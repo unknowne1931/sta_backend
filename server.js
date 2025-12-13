@@ -18,23 +18,153 @@ const fs = require('fs')
 const https = require('https');
 const Razorpay = require("razorpay");
 const users_admin_Middle = require('./module/admin_users_Midle');
-const admin = require("firebase-admin");
+// const admin = require("firebase-admin");
+// ✅ Correct import
+const crypto = require("crypto");
+
 
 
 const app = express();
+app.post(
+    "/razorpay/webhook",
+    express.raw({ type: "application/json" }),
+    async (req, res) => {
+        const secret = "k7ZQ10G2vSdP3vilTZ83a4GS"; // 🔐 Your webhook secret
+        const signature = req.headers["x-razorpay-signature"];
+        const rawBody = req.body;
+
+        try {
+            // ✅ Ensure raw body is a Buffer
+            if (!Buffer.isBuffer(rawBody)) {
+                throw new Error("Invalid raw body: not a Buffer");
+            }
+
+            // 🔒 Generate and compare HMAC signature
+            const expectedSignature = crypto
+                .createHmac("sha256", secret)
+                .update(rawBody)
+                .digest("hex");
+
+            if (expectedSignature !== signature) {
+                console.log("❌ Invalid Razorpay signature");
+                return res.status(400).json({ success: false, message: "Invalid signature" });
+            }
+
+            // ✅ Parse the body
+            const data = JSON.parse(rawBody.toString("utf8"));
+            const payment = data?.payload?.payment?.entity;
+
+            if (!payment || payment.status !== "captured") {
+                console.log("❗ Payment not captured or invalid");
+                return res.status(200).json({ success: false });
+            }
+
+            // ✅ Extract user from Razorpay notes
+            const user = payment.notes?.user;
+            const rp_i = payment.amount / 100
+            if (!user) {
+                console.log("⚠️ No user found in payment notes");
+                return res.status(400).json({ success: false, message: "User missing in notes" });
+            }
+
+            // ✅ Fetch rupee amount from admin config
+            // const fees = await Rupeemodule.findOne({ username: "admin" });
+            // if (!fees) {
+            //     console.log("⚠️ Fee configuration missing");
+            //     return res.status(500).json({ success: false, message: "Fee config missing" });
+            // }
+
+            // ✅ Find user balance
+            const userData = await Balancemodule.findOne({ user });
+            if (!userData) {
+                console.log("❌ User not found:", user);
+                return res.status(404).json({ success: false, message: "User not found" });
+            }
+
+
+
+            //   last_tr_id : {type : String, unique : true}
+
+            // ✅ Update balance
+            if (userData.last_tr_id === payment.id) {
+                return res.status(200).json({ success: true })
+            }
+
+
+            const creditAmount = parseInt(rp_i || "0");
+            const int_bal = parseInt(userData.balance) + creditAmount
+            userData.last_tr_id = payment.id
+            userData.balance = int_bal
+            await userData.save();
+
+
+            // ✅ Log transaction
+            await Historymodule.create({
+                Time: new Date().toISOString(),
+                user,
+                rupee: toString(rp_i),
+                type: "Credited",
+                tp: "Rupee",
+            });
+
+            const cred_to = await referandearnModule.findOne({ user: user });
+
+            if(cred_to && cred_to.ac_deb !== "Yes" && rp_i > 20){
+                const get_referd_user = await Balancemodule.findOne({ user: cred_to.referd_user_d_id });
+                const new_bal = parseInt(get_referd_user.balance) + 40;
+                get_referd_user.balance = new_bal;
+                await get_referd_user.save();
+                await Historymodule.create({
+                    Time: new Date().toISOString(),
+                    user : cred_to.referd_user_d_id,
+                    rupee: "40",
+                    type: "Credited",
+                    tp: "Rupee",
+                });
+                cred_to.ac_deb = "Yes";
+                await cred_to.save();
+            }
+
+            console.log(`✅ ₹${rp_i} credited to user: ${user}`);
+            return res.status(200).json({ success: true });
+        } catch (err) {
+            console.error("❌ Webhook processing error:", err);
+            return res.status(500).json({ success: false, message: "Internal Server Error" });
+        }
+    }
+);
+
 app.use(express.static('public'))
 // app.use(express.json());
-app.use(bodyParser.json());
+
 
 
 app.use(express.json());
+app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: true }));
+
+
+// app.use(bodyParser.urlencoded({ extended: true }));
+
+// 🟡 RAW BODY middleware for webhook
+// app.use(
+//   "/razorpay/webhook",
+//   bodyParser.json({
+//     verify: (req, res, buf) => {
+//       req.rawBody = buf;
+//     },
+//   })
+// );
+
+
+
 
 // Initialize Firebase Admin SDK
-const serviceAccount = require("./firebase-adminsdk.json"); // Ensure the correct path
+// const serviceAccount = require("./firebase-adminsdk.json"); // Ensure the correct path
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount),
+// });
 
 
 
@@ -46,12 +176,20 @@ app.use(cors({
 }));
 
 
-const Time = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+
+const Time = new Date().toLocaleString("en-US", {
+    timeZone: "Asia/Kolkata",
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true // or false for 24-hour format
+});
+
 
 // MongoDB connection
-// const mongoURI = "mongodb+srv://kick:kick@daa.0jeu1rr.mongodb.net/?retryWrites=true&w=majority&appName=DAA"
-// const mongoURI = "mongodb+srv://durgansathleticsacademy:ysKUdccnJ5Q94ihU@as.tlrlypo.mongodb.net/?retryWrites=true&w=majority&appName=AS";
+//Main
 const mongoURI = "mongodb+srv://instasecur24:kick@flutterdata.cgalmbt.mongodb.net/?retryWrites=true&w=majority&appName=flutterdata"
+// const mongoURI = "mongodb+srv://instasecur24:kick@stawroprototypecluster.0xbx0u5.mongodb.net/?retryWrites=true&w=majority&appName=staWroprototypecluster";
 mongoose.connect(mongoURI,)
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.log(err));
@@ -78,8 +216,9 @@ const generateOTP = () => {
 //https end
 
 app.get('/', (req, res) => {
-    res.send('Hello, world!');
+    res.send('Hello, world Vs : 1.3.3 ; Last Updated : 16-08-2025 ; Type : Live');
 });
+
 
 app.get('/ip', (req, res) => {
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
@@ -125,98 +264,98 @@ const User_s_OTP_module = mongoose.model('Users_OTP', user_s_otpSchema);
 
 
 app.post('/post/google/auth', async (req, res) => {
-  const { email, name, username, uid } = req.body;
+    const { email, name, username, uid } = req.body;
 
-  if (!email || !uid) {
-    return res.status(400).json({ Status: "INVALID_DATA", message: "Missing required fields." });
-  }
-
-  try {
-    let user = await Usermodule.findOne({ email });
-
-    if (user) {
-      // User exists, proceed to login
-      if (user.pass !== uid) {
-        return res.status(401).json({ Status: "INVALID_UID", message: "UID does not match." });
-      }
-
-      const token = jwt.sign({ id: user._id }, "kanna_stawro_founders_withhh_1931_liketha", {
-        expiresIn: "365 days"
-      });
-
-      return res.status(200).json({
-        Status: "OK",
-        message: "Login success",
-        token,
-        user: user._id,
-        username: user.username
-      });
-    } else {
-      // User not found, create new user
-      const Time = new Date();
-
-      user = await Usermodule.create({
-        pass: uid,
-        email,
-        name,
-        username,
-        Time,
-        valid: "yes"
-      });
-
-      const token = jwt.sign({ id: user._id }, "kanna_stawro_founders_withhh_1931_liketha", {
-        expiresIn: "365 days"
-      });
-
-      return res.status(200).json({
-        Status: "OK",
-        message: "User created and logged in successfully",
-        token,
-        user: user._id,
-        username: user.username
-      });
+    if (!email || !uid) {
+        return res.status(400).json({ Status: "INVALID_DATA", message: "Missing required fields." });
     }
-  } catch (error) {
-    console.error("Google Auth Error:", error);
-    return res.status(500).json({ Status: "ERR_SERVER", message: "Internal server error." });
-  }
+
+    try {
+        let user = await Usermodule.findOne({ email });
+
+        if (user) {
+            // User exists, proceed to login
+            if (user.pass !== uid) {
+                return res.status(401).json({ Status: "INVALID_UID", message: "UID does not match." });
+            }
+
+            const token = jwt.sign({ id: user._id }, "kanna_stawro_founders_withhh_1931_liketha", {
+                expiresIn: "365 days"
+            });
+
+            return res.status(200).json({
+                Status: "OK",
+                message: "Login success",
+                token,
+                user: user._id,
+                username: user.username
+            });
+        } else {
+            // User not found, create new user
+            const Time = new Date();
+
+            user = await Usermodule.create({
+                pass: uid,
+                email,
+                name,
+                username,
+                Time,
+                valid: "yes"
+            });
+
+            const token = jwt.sign({ id: user._id }, "kanna_stawro_founders_withhh_1931_liketha", {
+                expiresIn: "365 days"
+            });
+
+            return res.status(200).json({
+                Status: "OK",
+                message: "User created and logged in successfully",
+                token,
+                user: user._id,
+                username: user.username
+            });
+        }
+    } catch (error) {
+        console.error("Google Auth Error:", error);
+        return res.status(500).json({ Status: "ERR_SERVER", message: "Internal server error." });
+    }
 });
 
 
 
 app.post('/post/new/google/user', async (req, res) => {
-  const { email, name, username, uid } = req.body;
+    const { email, name, username, uid } = req.body;
 
-  if (!email || !uid) {
-    return res.status(400).json({ Status: "INVALID_DATA", message: "Missing required fields." });
-  }
-
-  console.log(email, name, username, uid)
-
-  try {
-    // Check if user already exists
-    let user = await Usermodule.findOne({ email });
-
-    if (user) {
-      return res.status(200).json({ Status: "OK", message: "User already exists. Login success." });
+    if (!email || !uid) {
+        return res.status(400).json({ Status: "INVALID_DATA", message: "Missing required fields." });
     }
 
-    // Create new user
-    user = await Usermodule.create({
-      pass : uid,
-      email,
-      name,
-      username,
-      Time,
-      valid : "yes"
-    });
+    console.log(email, name, username, uid)
 
-    return res.status(200).json({ Status: "OK", message: "User created successfully." });
+    try {
+        // Check if user already exists
+        let user = await Usermodule.findOne({ email });
 
-  } catch (error) {
-    console.error("Google Signup Error:", error);
-    return res.status(500).json({ Status: "ERR_SERVER", message: "Internal server error." });
-  }
+        if (user) {
+            return res.status(200).json({ Status: "OK", message: "User already exists. Login success." });
+        }
+
+        // Create new user
+        user = await Usermodule.create({
+            pass: uid,
+            email,
+            name,
+            username,
+            Time,
+            valid: "yes"
+        });
+
+        return res.status(200).json({ Status: "OK", message: "User created successfully." });
+
+    } catch (error) {
+        console.error("Google Signup Error:", error);
+        return res.status(500).json({ Status: "ERR_SERVER", message: "Internal server error." });
+    }
 });
 
 
@@ -229,7 +368,7 @@ app.post('/post/google/login', async (req, res) => {
 
     try {
         // Check if Google user exists
-        const user = await Usermodule.findOne({ email, pass : uid }).lean();
+        const user = await Usermodule.findOne({ email, pass: uid }).lean();
 
         if (!user) {
             return res.status(202).json({ Status: "NO" }); // Not found
@@ -395,7 +534,7 @@ app.post('/post/new/user/data', async (req, res) => {
 
 
 
-        
+
 
     } catch (error) {
         console.error("Error in", error);
@@ -749,11 +888,26 @@ app.post('/get/new/otp/to/verify', async (req, res) => {
 
 const BalanceSchema = new mongoose.Schema({
     Time: String,
-    user: String,
-    balance: String,
+    user: { type: String, required: true },
+    balance: { type: String, required: true },
+    last_tr_id: { type: String, unique: true }
 }, { timestamps: true });
 
 const Balancemodule = mongoose.model('Balance', BalanceSchema);
+
+
+const my_money_Schema = new mongoose.Schema({
+    Time: String,
+
+    user: {
+        default: "kick",
+        type: String
+    },
+
+    balance: String,
+}, { timestamps: true });
+
+const My_MoneyModule = mongoose.model('My_Money', my_money_Schema);
 
 const FCMSchema = new mongoose.Schema({
     Time: String,
@@ -1245,19 +1399,46 @@ app.post("/update/new/pass/by/token", async (req, res) => {
 
 
 app.post('/get/balance/new/data', authMiddleware, async (req, res) => {
-    const { user } = req.body;
+    const { user, val_cm , refer_ui} = req.body;
 
     try {
 
         if (!user) return res.status(400).json({ message: "Some Data missing" })
 
+        if(val_cm !== "" && refer_ui !== ""){
+            const data_bal = await Balancemodule.findOne({ user: refer_ui }).lean();
+            if (!data_bal) return res.status(200).json({ Status: "BAD_REF" });
+        }
+
 
         const data = await Balancemodule.findOne({ user: user })
         if (!data) {
-            await Balancemodule.create({ user, Time, balance: "5" });
-            await Historymodule.create({ Time, user, rupee: "5", type: "Credited", tp: "Rupee" });
+        
+            await Balancemodule.create({ user, Time, balance: "10", last_tr_id: user });
+            await Historymodule.create({ Time, user, rupee: "10", type: "Credited", tp: "Rupee" });
             const data1 = StarBalmodule.findOne({ user }).lean()
             if (data1) {
+                const add_ref_bal = await Balancemodule.findOne({ user: refer_ui })
+                if(val_cm !== "782egs"){
+                    return res.status(200).json({ Status: "OK" });
+                }
+                const sum_ref = parseInt(add_ref_bal.balance) + 10
+                await Balancemodule.updateOne({ user: refer_ui }, { balance: sum_ref })
+
+                const rfr_vrify = await referandearnModule.findOne({ user }).lean();
+
+                if(!rfr_vrify){
+                    await referandearnModule.create({
+                    Time,
+                    my_referd: [],
+                    referd_user_d_id: refer_ui,
+                    ac_crt: "Yes",
+                    ac_deb: "No",
+                    user,
+                })
+                }
+
+                await Historymodule.create({ Time, user: refer_ui, rupee: "10", type: "Credited", tp: "Rupee" });
                 return res.status(200).json({ Status: "OK" });
             } else {
                 await Historymodule.create({ Time, user, rupee: "1", type: "Credited", tp: "Stars" });
@@ -1651,9 +1832,13 @@ app.post('/claim/reqst/coins/admin', authMiddleware, async (req, res) => {
     try {
         if (!user && !id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
 
+        const bank = await UPImodule.findOne({ user }).lean();
+        if (!bank) return res.status(200).json({ Status: "No-BANK", message: "Bank Details Missing" })
+
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ success: false, message: "Invalid ObjectId format" });
         }
+
         const Bougt_Coin = await Mycoinsmodule.findById({ _id: id })
         if (Bougt_Coin.user === user) {
             await Claimrequestmodule.create({
@@ -1878,6 +2063,11 @@ app.post('/get/new/user/admin/account', async (req, res) => {
 
     try {
         if (!username && !pass && !quest && !answ && !id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
+
+        const user = await AdminUsermodule.findOne({ username }).lean();
+        if (user) {
+            return res.status(202).json({ Status: "EXIST" })
+        }
 
         if (quest === "Hero" && answ === "Ki1931cK" && id === "193100") {
             const hash = await bcrypt.hash(pass, 10)
@@ -2203,6 +2393,31 @@ const StartValidSchema = new mongoose.Schema({
 const StartValidmodule = mongoose.model('Start_Valid', StartValidSchema);
 
 
+const ReportSchema = new mongoose.Schema({
+
+    Time : String,
+    user : String,
+    qst : String,
+    ans: String,
+    a: String,
+    b: String,
+    c: String,
+    d: String,
+    seconds: String,
+    img: String,
+    usa : String,
+    vr : Boolean,
+    msg : String,
+    text : String,
+    exp_sec : String,
+    cat : String,
+    tough : String
+
+}, { timestamps: true });
+
+const ReportSecondModule = mongoose.model('Report_sec', ReportSchema);
+
+
 app.get('/choose/question/start/game/:lang', async (req, res) => {
     const { lang, user } = req.params.body;
     try {
@@ -2390,15 +2605,16 @@ const QuestionListmodule = mongoose.model('Question_List', QuestionListSchema);
 
 
 
-//main
+
+// //old main 1931
 // app.post('/start/playing/by/debit/amount', async (req, res) => {
 //     const { user } = req.body;
 
 //     try {
 
-        
 
-//         if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
+
+//         if (!user) return res.status(400).json({ Status: "s_m", message: "Some Data Missing" })
 
 //         const status = await Start_StopModule.findOne({ user: "kick" })
 //         if (status.Status === "off") {
@@ -2428,24 +2644,41 @@ const QuestionListmodule = mongoose.model('Question_List', QuestionListSchema);
 
 //                     console.log(get_per)
 
-//                     function get_new_list(tough){
+//                     function get_new_list(tough) {
 //                         const new_num = []
-//                         lang_data.map((data) =>{
-//                             const get_num = QuestionModule.findOne({tough :  tough, sub_lang : data })
+//                         lang_data.map((data) => {
+//                             const get_num = QuestionModule.findOne({ tough: tough, sub_lang: data })
 //                             new_num.push(get_num.qno)
 //                             const i = parseInt(get_num.qno)
 //                             QuestionListmodule.updateOne({ _id: create_data._id }, { $push: { list: i } });
 //                         })
+
+//                         const check_10 = QuestionListmodule.findOne({ user }).lean();
+//                         if (check_10.list.length < 10) {
+//                             const rem = parseInt(balance.balance) + parseInt(fees.rupee);
+//                             // Update the user's balance
+//                             balance.updateOne({ balance: rem });
+//                             return res.status(200).json({ Status: "less_10" });
+//                         }
+
+
 //                     }
 
 //                     if (get_per <= 0) {
-                        
+
 //                         QuestionListmodule.updateOne({ _id: create_data._id }, { $set: { list: [] } });
 //                         get_new_list("Too Easy")
-                    
-//                     }
-//                     else{
 
+
+//                     }
+//                     else {
+//                         const check_10 = QuestionListmodule.findOne({ user }).lean();
+//                         if (check_10.list.length < 10) {
+//                             const rem = parseInt(balance.balance) + parseInt(fees.rupee);
+//                             // Update the user's balance
+//                             balance.updateOne({ balance: rem });
+//                             return res.status(200).json({ Status: "les_10" });
+//                         }
 //                     }
 //                 } else {
 //                     console.log("User has enough balance");
@@ -2481,8 +2714,8 @@ const QuestionListmodule = mongoose.model('Question_List', QuestionListSchema);
 
 //                     if (Final.length <= 0) {
 //                         return res.status(200).json({ Status: "BAD" });
-//                     } 
-                    
+//                     }
+
 //                     else {
 //                         const rem = parseInt(balance.balance) - parseInt(fees.rupee);
 
@@ -2498,11 +2731,11 @@ const QuestionListmodule = mongoose.model('Question_List', QuestionListSchema);
 //                         // Create a new history record
 //                         await Historymodule.create({ Time, user, rupee: fees.rupee, type: "Debited", tp: "Rupee" });
 
-
 //                         const getRandomNumber = () => {
 //                             const randomIndex = Math.floor(Math.random() * Final.length);
 //                             return Final[randomIndex];
 //                         };
+
 //                         const num = getRandomNumber();
 //                         await QuestionListmodule.updateOne({ _id: create_data._id }, { $push: { oldlist: num } });
 //                         // Clear the 'list' array
@@ -2533,7 +2766,6 @@ const QuestionListmodule = mongoose.model('Question_List', QuestionListSchema);
 //                     // Create a new history record
 //                     await Historymodule.create({ Time, user, rupee: fees.rupee, type: "Debited", tp: "Rupee" });
 
-
 //                     const Question_list = await QuestionListmodule.create({ user, Time, lang: lang_data.lang[0], list: [], oldlist: [] });
 
 //                     const Total_Questions = await QuestionModule.find({ lang: lang_data.lang[0] }).lean();
@@ -2549,7 +2781,7 @@ const QuestionListmodule = mongoose.model('Question_List', QuestionListSchema);
 //                         return specificNumbers[randomIndex];
 //                     };
 
-                    
+
 
 //                     const num = getRandomNumber();
 //                     await QuestionListmodule.updateOne({ _id: Question_list._id }, { $push: { oldlist: num } });
@@ -2558,7 +2790,6 @@ const QuestionListmodule = mongoose.model('Question_List', QuestionListSchema);
 //                     for (let i = num; i < two; i++) {
 //                         await QuestionListmodule.updateOne({ _id: Question_list._id }, { $push: { list: i } });
 //                     }
-
 
 
 //                     main_bal()
@@ -2577,8 +2808,8 @@ const QuestionListmodule = mongoose.model('Question_List', QuestionListSchema);
 //         } else {
 
 //             // Send a response indicating that the user is not found
-//             return res.status(200).json({ Status: "BAD" });
-        
+//             return res.status(200).json({ Status: "no_us" });
+
 //         }
 //     } catch (error) {
 
@@ -2588,11 +2819,270 @@ const QuestionListmodule = mongoose.model('Question_List', QuestionListSchema);
 
 //     }
 
+
 // });
 
-
-
 app.post('/start/playing/by/debit/amount', async (req, res) => {
+    const { user } = req.body;
+    if (!user) return res.status(400).json({ Status: "s_m", message: "Some Data Missing" });
+
+    try {
+
+        const status = await Start_StopModule.findOne({ user: "kick" });
+        
+        if (status?.Status === "off") {
+            return res.status(200).json({ Status: "Time", message: status.text });
+        }
+
+
+
+        const lang_data = await LanguageSelectModule.findOne({ user }).lean();
+        const balance = await Balancemodule.findOne({ user });
+        const fees = await Rupeemodule.findOne({ username: "admin" }).lean();
+
+        if (!lang_data || !lang_data.lang) throw new Error("No language data found");
+
+        if (!balance) return res.status(200).json({ Status: "no_us" });
+
+        const balanceNum = parseInt(balance.balance);
+        const feesNum = parseInt(fees.rupee);
+
+        if (balanceNum < feesNum) {
+            return res.status(200).json({ Status: "Low-Bal" });
+        }
+
+        const Time = new Date().toISOString();
+        let create_data = await QuestionListmodule.findOne({ user });
+
+        const Total_Questions = await QuestionModule.find({ lang: lang_data.lang[0] }).lean();
+        const totalCount = Total_Questions.length;
+
+        if (totalCount < 10) {
+            return res.status(200).json({ Status: "NotEnoughQuestions", message: "Minimum 10 questions required." });
+        }
+
+
+        const specificNumbers = [];
+        for (let i = 1; i <= totalCount - 9; i += 10) {
+            specificNumbers.push(i);
+        }
+
+
+        // Remove already used question batches
+        const QnoList = create_data?.oldlist || [];
+        const Final = specificNumbers.filter(value => !QnoList.includes(value));
+
+        if (Final.length <= 0) {
+            return res.status(200).json({ Status: "BAD", message: "No unused question batches left." });
+        }
+
+        const getRandomNumber = () => Final[Math.floor(Math.random() * Final.length)];
+        const num = getRandomNumber();
+        const two = num + 10;
+        const questionRange = Array.from({ length: 10 }, (_, i) => i + num);
+
+        if (!create_data) {
+            create_data = await QuestionListmodule.create({
+                user,
+                Time,
+                lang: lang_data.lang[0],
+                list: [],
+                oldlist: [],
+            });
+        }
+
+
+        // const _to_str_up_rp = balanceNum - feesNum
+
+        const _dec_bal = await Balancemodule.findOne({ user });
+
+        if (_dec_bal) {
+            const currentBal = parseInt(_dec_bal.balance);
+            const updatedBal = currentBal - feesNum;
+
+            _dec_bal.balance = updatedBal.toString(); // ✅ convert number to string
+            await _dec_bal.save();
+        }
+
+
+
+
+        await Promise.all([
+
+            StartValidmodule.create({ Time, user, valid: "yes" }),
+            Totalusermodule.create({ Time, user }),
+            Historymodule.create({ Time, user, rupee: fees.rupee, type: "Debited", tp: "Rupee" }),
+            QuestionListmodule.updateOne(
+                { _id: create_data._id },
+                {
+                    $set: { list: questionRange },
+                    $push: { oldlist: num },
+                }
+            )
+        ]);
+
+
+
+        // ✅ Convert updated balance back to string
+        const updatedBal = await Balancemodule.findOne({ user });
+
+        if (typeof updatedBal.balance === "number") {
+            await Balancemodule.updateOne(
+                { user },
+                { $set: { balance: updatedBal.balance.toString() } }
+            );
+        }
+
+        setImmediate(async () => {
+            try {
+                const updatedBalance = await Balancemodule.findOne({ user });
+                console.log("In")
+                if (parseInt(updatedBalance.balance) <= feesNum) {
+                    console.log("gate 1")
+                    const lang_list = await QuestionModule.distinct("sub_lang");
+                    const [won_data, total_play] = await Promise.all([
+                        Wonmodule.countDocuments({ user }),
+                        Totalusermodule.countDocuments({ user }),
+                    ]);
+
+                    const get_per = (won_data / (total_play || 1)) * 100;
+
+                    console.log(get_per)
+
+                    const resetListAndPush = async (toughLevel) => {
+                        console.log(`Resetting with questions of toughness: ${toughLevel}`);
+                        await QuestionListmodule.updateOne({ _id: create_data._id }, { $set: { list: [] } });
+
+                        for (const data of lang_list) {
+                            try {
+                                const q = await QuestionModule.findOne({ tough: toughLevel, sub_lang: data });
+                                if (q && q.qno != null) {
+                                    await QuestionListmodule.updateOne(
+                                        { _id: create_data._id },
+                                        { $push: { list: parseInt(q.qno) } }
+                                    );
+                                }
+                            } catch (innerErr) {
+                                console.error(`Error finding/pushing question for sub_lang ${data}:`, innerErr);
+                            }
+                        }
+
+                        // const newListData = await QuestionListmodule.findOne({ user }).lean();
+                        // console.log(newListData.list)
+                        // if (newListData?.list?.length < 10) {
+                            
+                        //     const bal_dt = await Balancemodule.findOne({user : user})
+                        //     const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
+                        //     bal_dt.balance = lat.toString()
+                        //     await bal_dt.save()       
+                        //     resetResult = "BAD";
+                        //     return "bad"
+                        
+                        // }
+                    };
+
+                    if (get_per <= 0) {
+                        console.log("Too Easy")
+                        const wt = await resetListAndPush("Too Easy");
+                        if(wt === "bad"){
+                            return res.status(200).json({Status : "BAD"})
+                        }
+
+                    } else if (get_per >= 60) {
+                        console.log("Medium")
+                        await resetListAndPush("Medium");
+                        return res.status(200).json({Status : "BAD"})
+                    }
+
+
+
+                } else if (parseInt(updatedBalance.balance) >= feesNum) {
+                    console.log("gate 2")
+                    const lang_list = await QuestionModule.distinct("sub_lang");
+                    const [won_data, total_play] = await Promise.all([
+                        Wonmodule.countDocuments({ user }),
+                        Totalusermodule.countDocuments({ user }),
+                    ]);
+
+                    const get_per = (won_data / (total_play || 1)) * 100;
+
+                    console.log(get_per)
+
+                    const resetListAndPush = async (toughLevel) => {
+                        console.log(`Resetting with questions of toughness: ${toughLevel}`);
+                        await QuestionListmodule.updateOne({ _id: create_data._id }, { $set: { list: [] } });
+
+                        for (const data of lang_list) {
+                            try {
+                                const q = await QuestionModule.findOne({ tough: toughLevel, sub_lang: data });
+                                if (q && q.qno != null) {
+                                    await QuestionListmodule.updateOne(
+                                        { _id: create_data._id },
+                                        { $push: { list: parseInt(q.qno) } }
+                                    );
+                                }
+                            } catch (innerErr) {
+                                console.error(`Error finding/pushing question for sub_lang ${data}:`, innerErr);
+                            }
+                        }
+
+                        // const newListData = await QuestionListmodule.findOne({ user }).lean();
+                        // if (newListData?.list?.length < 11) {
+                        //     console.log("amount credited")
+                        //     const bal_dt = await Balancemodule.findOne({user : user})
+                        //     const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
+                        //     bal_dt.balance = lat.toString()
+                        //     await bal_dt.save()       
+                        //     resetResult = "BAD";
+                        //     console.log("BAD")
+                        //     return res.status(200).json({Status : "BAD"})
+                        
+                        // }
+                    };
+
+                    if (get_per <= 0) {
+                        console.log("Too Easy")
+                        await resetListAndPush("Too Easy");
+                    }
+                    else if (get_per >= 20) {
+                        console.log("Tough")
+                        await resetListAndPush("Tough");
+                    }
+                    else if (get_per >= 40) {
+                        console.log("Too Tough")
+                        await resetListAndPush("Too Tough");
+                    }
+                }
+            } catch (e) {
+                console.error("Error in background logic:", e);
+            }
+        });
+
+        const newListData = await QuestionListmodule.findOne({ user }).lean();
+        if (newListData?.list?.length < 10) {
+            console.log("amount credited")
+            const bal_dt = await Balancemodule.findOne({user : user})
+            const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
+            bal_dt.balance = lat.toString()
+            await bal_dt.save()       
+            resetResult = "BAD";
+            console.log("BAD")
+            return res.status(200).json({Status : "BAD_CR"})
+        
+        }
+
+        console.log("✅ Finished successfully");
+        return res.status(200).json({ Status: "OK" });
+
+    } catch (error) {
+        console.error("❌ Main Catch Error:", error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+});
+
+
+//live server
+app.post('/start/playing/by/debit/amount/try', async (req, res) => {
     const { user } = req.body;
 
     if (!user) {
@@ -2601,6 +3091,7 @@ app.post('/start/playing/by/debit/amount', async (req, res) => {
 
     try {
         const status = await Start_StopModule.findOne({ user: "kick" });
+
         if (status?.Status === "off") {
             return res.status(200).json({ Status: "Time", message: status.text });
         }
@@ -2617,6 +3108,9 @@ app.post('/start/playing/by/debit/amount', async (req, res) => {
                 if (!get_bal || !create_data) return;
 
                 if (parseInt(get_bal.balance) <= parseInt(fees.rupee)) {
+
+
+
                     const lang_data_list = await QuestionModule.distinct("sub_lang");
                     const won_data = await Wonmodule.countDocuments({ user });
                     const total_play = await Totalusermodule.countDocuments({ user });
@@ -2637,17 +3131,14 @@ app.post('/start/playing/by/debit/amount', async (req, res) => {
                         }
                     }
 
-                    if (get_per <= 0) {
+                    if (get_per <= 10) {
                         await QuestionListmodule.updateOne({ _id: create_data._id }, { $set: { list: [] } });
                         await get_new_list("Too Easy");
-                    }else if(get_per <= 10){
-                        await QuestionListmodule.updateOne({ _id: create_data._id }, { $set: { list: [] } });
-                        await get_new_list("Easy");
+                        const new_list = await QuestionListmodule.findOne({ user }).lean();
+                        if (new_list.oldlist.length < 10) {
+                        }
                     }
-                    else if(get_per <= 20){
-                        await QuestionListmodule.updateOne({ _id: create_data._id }, { $set: { list: [] } });
-                        await get_new_list("Medium");
-                    }
+
                 } else {
                     // await QuestionListmodule.updateOne({ _id: create_data._id }, { $set: { list: [] } });
                     console.log("User has enough balance");
@@ -2663,6 +3154,15 @@ app.post('/start/playing/by/debit/amount', async (req, res) => {
 
         const rem = parseInt(balance.balance) - parseInt(fees.rupee);
         await balance.updateOne({ balance: rem });
+
+        const get_my_mn = await My_MoneyModule.findOne({ user: "kick" })
+
+        if (get_my_mn) {
+            get_my_mn.balance = parseInt(get_my_mn.balance) + parseInt(fees.rupee)
+            await get_my_mn.save()
+        } else {
+            await My_MoneyModule.create({ Time, user: "kick", balance: fees.rupee })
+        }
 
         const Time = new Date();
         await StartValidmodule.create({ Time, user, valid: "yes" });
@@ -2862,6 +3362,79 @@ app.post('/start/playing/by/debit/amount/app', async (req, res) => {
 
 
 
+app.post("/get/id/to/update/seonds", authMiddleware, async (req, res) => {
+    const { id, user, sec, qst, a, b, c, d, img, ans, usa, vr, msg, ex_seconds, cat, tough } = req.body;
+
+    try {
+       await ReportSecondModule.create({
+                Time, // or your custom time
+                user,
+                qst : qst,
+                ans: ans,
+                a: a,
+                b: b,
+                c: c,
+                d: d,
+                seconds: sec,
+                img: img,
+                usa : usa,
+                vr : vr,
+                msg : msg,
+                text : "pro",
+                exp_sec : ex_seconds, 
+                cat,
+                tough,
+            });
+
+        console.log("OK Created")
+
+        return res.status(200).json({ Status: "OK" });
+
+        // If no matching record, return BAD (or handle differently)
+        return res.status(200).json({ Status: "BAD" });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+});
+
+
+app.get("/get/data/ticket/:user",authMiddleware, async (req, res) =>{
+    
+    const { user } = req.params.user;
+
+    try{
+
+        const data = await ReportSecondModule.find(user)
+
+        if(data){
+            return res.status(200).json({data})
+        }else{
+            return res.status(200).json({Status : "BAD"})
+        }
+
+    }catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+})
+
+app.get("/get/all/tickets/data/admin", adminMiddleware, async (req, res) =>{
+    try{
+        const data = await ReportSecondModule.find({})
+
+        if(data){
+            return res.status(200).json({data})
+        }else{
+            return res.status(200).json({Status : "BAD"})
+        }
+    }catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+})
+
 
 
 // app.post('/start/playing/by/debit/amount', async (req, res) => {
@@ -2988,6 +3561,69 @@ app.post('/start/playing/by/debit/amount/app', async (req, res) => {
 // });
 
 
+// app.post("/get/id/to/update/seconds", authMiddleware, async (req, res) => {
+//     const { id, second, user } = req.body;
+
+//     try {
+//         // Get question data
+//         const data = await QuestionModule.findById(id);
+//         if (!data) {
+//             return res.status(200).json({ Status: "BAD" });
+//         }
+
+//         // Find matching seconds document
+//         const sec_data = await Seconds_Module.findOne({
+//             category: data.sub_lang,
+//             Tough: data.tough
+//         });
+
+//         // Allowed time = question's base seconds + 3 buffer
+//         const exp_sec = parseInt(data.seconds) + 3;
+//         if (parseInt(second) <= exp_sec) {
+//             return res.status(200).json({ Status: "OK" });
+//         }
+
+//         // If no record exists, create it
+//         if (!sec_data) {
+//             await Seconds_Module.create({
+//                 Time: new Date().toISOString(), // or whatever your 'Time' is
+//                 category: data.sub_lang,
+//                 Tough: data.tough,
+//                 ex_seconds: [second],
+//                 seconds: [
+//                     {
+//                         user: user,
+//                         seconds: second
+//                     }
+//                 ]
+//             });
+//             consol
+//             return res.status(200).json({ Status: "OK" });
+//         }
+
+//         // If record exists, check if this user already has an entry
+//         const existingUser = sec_data.seconds.find(s => s.user === user);
+
+//         if (!existingUser) {
+//             sec_data.seconds.push({ user, seconds: second });
+//         } else {
+//             existingUser.seconds = second; // Or update logic if needed
+//         }
+
+//         // Add to ex_seconds
+//         sec_data.ex_seconds.push(second);
+
+//         // Save changes
+//         await sec_data.save();
+
+//         return res.status(200).json({ Status: "OK" });
+
+//     } catch (error) {
+//         console.error(error);
+//         return res.status(500).json({ message: "Internal Server Error" });
+//     }
+// });
+
 
 
 
@@ -3015,6 +3651,7 @@ app.delete("/delete/by/user/id/for/valid/data/:user", async (req, res) => {
 })
 
 app.get("/admin/get/all/users/data/logined", adminMiddleware, async (req, res) => {
+    
     try {
         // Fetch all records from StartValidmodule
         const records = await StartValidmodule.find({}).lean();
@@ -3042,7 +3679,9 @@ app.get("/admin/get/all/users/data/logined", adminMiddleware, async (req, res) =
 
         // Send a generic error message to the client
         return res.status(500).json({ message: "Internal Server Error" });
+
     }
+
 });
 
 
@@ -3099,6 +3738,76 @@ app.post("/get/posted/count/questions", async (req, res) => {
 
 
 
+// app.get("/get/question/no/by/user/name/:user", authMiddleware, async (req, res) => {
+//     const user = req.params.user;
+//     try {
+
+//         if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
+
+
+//         // Fetch the user's validity status from StartValidmodule
+//         const Data = await StartValidmodule.findOne({ user }).lean();
+//         // Fetch the user's question list from QuestionListmodule
+//         const Get_Qno_info = await QuestionListmodule.findOne({ user }).lean();
+
+//         // Check if the user is valid and has a question list
+//         if (Data && Data.valid === "yes") {
+//             if (Get_Qno_info && Get_Qno_info.list.length > 0) {
+//                 // Get the first question number from the list
+//                 const QNO = Get_Qno_info.list[0];
+
+//                 // Find the question in QuestionModule by its number and language
+//                 const Qno = await QuestionModule.findOne({ qno: QNO, lang: Get_Qno_info.lang }).lean();
+
+//                 const cal_sec = await Seconds_Module.findOne({
+//                     category: Qno.sub_lang,
+//                     Tough : Qno.tough,
+//                     "seconds.user" : user 
+//                 });
+
+
+//                 let sec_cal = ''
+
+//                 if(cal_sec){
+//                     sec_cal = cal_sec.seconds
+//                 }else {
+//                     sec_cal = Qno.seconds
+//                 }
+
+
+//                 if (Qno) {
+//                     // Construct the response data
+//                     const data = {
+//                         _id: Qno._id,
+//                         img: Qno.img,
+//                         Question: Qno.Questio,
+//                         Qno: Get_Qno_info.list.length - 1, // Calculates the position of the question
+//                         a: Qno.a,
+//                         b: Qno.b,
+//                         c: Qno.c,
+//                         d: Qno.d,
+//                         seconds: sec_cal,
+//                         Ans : Qno.Ans
+//                     };
+//                     console.log(data)
+
+//                     return res.status(200).json({ data });
+//                 } else {
+//                     return res.status(404).json({ Status: "BAD" });
+//                 }
+//             } else {
+//                 return res.status(202).json({ Status: "BAD" });
+//             }
+//         } else {
+//             return res.status(202).json({ Status: "BAD" });
+//         }
+//     } catch (error) {
+//         console.log(error);
+//         return res.status(500).json({ message: "Internal Server Error" });
+//     }
+// });
+
+
 app.get("/get/question/no/by/user/name/:user", authMiddleware, async (req, res) => {
     const user = req.params.user;
     try {
@@ -3120,6 +3829,30 @@ app.get("/get/question/no/by/user/name/:user", authMiddleware, async (req, res) 
                 // Find the question in QuestionModule by its number and language
                 const Qno = await QuestionModule.findOne({ qno: QNO, lang: Get_Qno_info.lang }).lean();
 
+                const cal_sec = await Seconds_Module.findOne(
+                    {
+                        category: Qno.sub_lang,
+                        Tough: Qno.tough,
+                        "seconds.user": user
+                    },
+                    {
+                        "seconds.$": 1 // project only the matching array element
+                    }
+                );
+
+                // console.log(cal_sec.seconds)
+
+                let sec_cal = '';
+
+
+                if (cal_sec && cal_sec.seconds && cal_sec.seconds.length > 0) {
+                    sec_cal = cal_sec.seconds[0].seconds; // get the actual seconds value for that user
+                } else {
+                    sec_cal = Qno.seconds; // fallback to default question seconds
+                }
+
+
+
                 if (Qno) {
                     // Construct the response data
                     const data = {
@@ -3131,8 +3864,12 @@ app.get("/get/question/no/by/user/name/:user", authMiddleware, async (req, res) 
                         b: Qno.b,
                         c: Qno.c,
                         d: Qno.d,
-                        seconds: Qno.seconds
+                        seconds: sec_cal,
+                        Ans : Qno.Ans,
+                        cat : Qno.sub_lang,
+                        tough : Qno.tough
                     };
+                    console.log(data)
 
                     return res.status(200).json({ data });
                 } else {
@@ -3150,6 +3887,7 @@ app.get("/get/question/no/by/user/name/:user", authMiddleware, async (req, res) 
     }
 });
 
+
 const WonSchema = new mongoose.Schema({
     Time: String,
     user: String,
@@ -3159,10 +3897,27 @@ const WonSchema = new mongoose.Schema({
 
 const Wonmodule = mongoose.model('Won', WonSchema);
 
+const Seconds_cal_Schema = new mongoose.Schema({
+    Time: String,
+    category: String,
+    Tough : String,
+    seconds : [
+        {
+            user : String,
+            seconds : String,
+        }
+    ],
+    ex_seconds : []
+}, { timestamps: true });
+
+const Seconds_Module = mongoose.model('Seconds_cal', Seconds_cal_Schema);
+
 
 app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
-    const { answer, user, id } = req.body;
+    const { answer, user, id, seconds, Ans } = req.body;
+    
     try {
+
 
 
         if (!answer && !user && !id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
@@ -3173,9 +3928,67 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
         }
 
 
+        function compareHash(plainText, hash) {
+            const plainHash = crypto
+                .createHash('sha256')
+                .update(plainText)
+                .digest('hex');
+            
+            return plainHash === hash;
+        }
+
+        
+        const hashedPlain = crypto
+            .createHash('sha256')
+            .update(answer)
+            .digest('hex');
+
+        const check_ans = compareHash(answer, Ans)
+
         const Answer_Verify = await QuestionModule.findById({ _id: id })
         const User_List = await QuestionListmodule.findOne({ user })
-        if (Answer_Verify.Ans === answer) {
+
+        console.log(check_ans)
+
+        if (check_ans) {
+            const get_t_data = await Seconds_Module.findOne({category : Answer_Verify.sub_lang, Tough : Answer_Verify.tough})
+            
+            if(get_t_data){
+
+                const gt_ud = get_t_data.seconds.find(s => s.user === user);
+
+                if(!gt_ud){
+                    await Seconds_Module.updateOne(
+                        { category: Answer_Verify.sub_lang, Tough: Answer_Verify.tough }, // match condition
+                        {
+                            $push: {
+                                seconds: { user: user, seconds: seconds }, // push into nested objects array
+                                ex_seconds: seconds                        // push into normal array
+                            }
+                        }
+                    );
+
+                }
+                
+
+                
+            }else{
+                // await Seconds_Module.create({Time, category : Answer_Verify.sub_lang, Tough : Answer_Verify.tough, seconds })
+                await Seconds_Module.create({
+                Time,
+                category : Answer_Verify.sub_lang,
+                Tough : Answer_Verify.tough,
+                seconds : [
+                    {
+                        seconds : seconds,
+                        user : user,
+                    }
+                ],
+                ex_seconds : seconds
+
+            })
+            }
+
             if (User_List.list.length === 1 || User_List.list.length === 0) {
                 await User_List.updateOne({ $pull: { list: User_List.list[0] } })
                 const won = await Wonmodule.find({})
@@ -3195,12 +4008,8 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
                     })
                     //ki1931ck add code here
                     const rank = toString(won.length + 1)
-                    if (!Answer_Verify.yes.includes(user)) {
-                        await Answer_Verify.updateOne({ $push: { yes: user } })
-                        return res.status(200).json({ Status: "OKK", id: CuponDat._id, rank: rank });
-                    } else {
-                        return res.status(200).json({ Status: "OKK", id: CuponDat._id, rank: rank });
-                    }
+                    await Answer_Verify.updateOne({ $push: { yes: user } })
+                    return res.status(200).json({ Status: "OKK", id: CuponDat._id, rank: rank });
 
 
 
@@ -3227,12 +4036,8 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
                                 await get_prize_list1.updateOne({ balance: parseInt(get_prize_list1.balance) + parseInt(get_count_data.stars) })
                                 await Historymodule.create({ Time, user, rupee: get_count_data.stars, type: "Credited", tp: "Stars" });
                                 const rank = toString(won.length + 1)
-                                if (!Answer_Verify.yes.includes(user)) {
-                                    await Answer_Verify.updateOne({ $push: { yes: user } })
-                                    return res.status(200).json({ Status: "STARS", stars: get_count_data.stars, rank: rank });
-                                } else {
-                                    return res.status(200).json({ Status: "STARS", stars: get_count_data.stars, rank: rank });
-                                }
+                                await Answer_Verify.updateOne({ $push: { yes: user } })
+                                return res.status(200).json({ Status: "STARS", stars: get_count_data.stars, rank: rank });
 
                             }
                         }
@@ -3245,12 +4050,8 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
                                 await StarBalmodule.create({ Time, user: user, balance: get_count_data.stars });
                                 await Historymodule.create({ Time, user, rupee: get_count_data.stars, type: "Credited", tp: "Stars" });
                                 const rank = toString(won.length + 1)
-                                if (!Answer_Verify.yes.includes(user)) {
-                                    await Answer_Verify.updateOne({ $push: { yes: user } })
-                                    return res.status(200).json({ Status: "STARS", stars: get_count_data.stars, rank: rank });
-                                } else {
-                                    return res.status(200).json({ Status: "STARS", stars: get_count_data.stars, rank: rank });
-                                }
+                                await Answer_Verify.updateOne({ $push: { yes: user } })
+                                return res.status(200).json({ Status: "STARS", stars: get_count_data.stars, rank: rank });
 
                             }
                         }
@@ -3258,6 +4059,8 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
                         // await StarBalmodule.create({Time, user : user, balance : get_count_data.stars});
                         // await Historymodule.create({Time, user, rupee : get_count_data.stars, type : "Credited", tp : "Stars"});
                         // return res.status(200).json({Status : "STARS", stars : get_count_data.stars});
+
+
                     }
 
                 }
@@ -3267,22 +4070,14 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
             } else {
                 await User_List.updateOne({ $pull: { list: User_List.list[0] } })
                 //ki1931ck add code here
-                if (!Answer_Verify.yes.includes(user)) {
-                    await Answer_Verify.updateOne({ $push: { yes: user } })
-                    return res.status(200).json({ Status: "OK" })
-                } else {
-                    return res.status(200).json({ Status: "OK" })
-                }
+                await Answer_Verify.updateOne({ $push: { yes: user } })
+                return res.status(200).json({ Status: "OK" })
 
             }
 
         } else {
-            if (!Answer_Verify.no.includes(user)) {
-                await Answer_Verify.updateOne({ $push: { no: user } })
-                return res.status(200).json({ Status: "BAD" })
-            } else {
-                return res.status(200).json({ Status: "BAD" })
-            }
+            await Answer_Verify.updateOne({ $push: { no: user } })
+            return res.status(200).json({ Status: "BAD" })
 
         }
     }
@@ -3306,6 +4101,8 @@ const CuponSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 const Cuponmodule = mongoose.model('Cupon_s', CuponSchema);
+
+
 
 app.post("/get/new/cupon/for/neww/cupon", async (req, res) => {
     const { title, img, valid, body, type, user } = req.body;
@@ -4028,71 +4825,246 @@ app.delete("/delete/all/selected/data/with/onley/one/:lang", async (req, res) =>
 })
 
 
+
+const Payment_History_Schema = new mongoose.Schema({
+    Time: String,  // Use Date for Time field
+    rupee: String,
+    tr_id: { type: String, unique: true },
+    user: String,
+    added: { type: String, default: "No" }
+}, { timestamps: true });
+
+const payment_Module = mongoose.model('Payment_module', Payment_History_Schema);
+
+
 const razorpay = new Razorpay({
-    key_id: "rzp_live_V4tRMNPowzPDU5", // Replace with your Key ID
-    key_secret: "dp793tI70CWW7hRlzNklvbKt", // Replace with your Key Secret
+    key_id: "rzp_live_J6nOYKPF6WZxFj", // Replace with your Key ID
+    key_secret: "k7ZQ10G2vSdP3vilTZ83a4GS", // Replace with your Key Secret
 });
+
+
+app.post("/create-order", async (req, res) => {
+    const { user, amt } = req.body;
+
+    if (!user) {
+        return res.status(400).json({ success: false, message: "User info is required." });
+    }
+
+    const razorpay = new Razorpay({
+        key_id: "rzp_live_J6nOYKPF6WZxFj", // Replace with your Key ID
+        key_secret: "k7ZQ10G2vSdP3vilTZ83a4GS", // Replace with your Key Secret
+    });
+
+
+    try {
+        // const fees = await Rupeemodule.findOne({ username: "admin" });
+
+        if (!amt) {
+            return res.status(404).json({ success: false, message: "Admin fee not found." });
+        }
+
+
+        const order = await razorpay.orders.create({
+            amount: parseInt(amt) * 100, // Convert ₹ to paise
+            currency: "INR",
+            receipt: `receipt_${Date.now()}`,
+            notes: { user },
+        });
+
+        console.log("Created Razorpay Order:", order);
+
+        return res.json({ success: true, order });
+    } catch (error) {
+        console.error("Error creating Razorpay order:", error);
+        return res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+
+
+
+// app.post(
+//   "/razorpay/webhook",
+//   express.raw({ type: "application/json" }), // 👈 ensures req.body is Buffer
+//   async (req, res) => {
+//     const secret = "k7ZQ10G2vSdP3vilTZ83a4GS";
+//     const signature = req.headers["x-razorpay-signature"];
+
+//     try {
+//       const rawBodyBuffer = req.body;
+
+//       if (!Buffer.isBuffer(rawBodyBuffer)) {
+//         throw new Error("Invalid raw body: not a Buffer");
+//       }
+
+//       // ✅ HMAC signature generation
+//       const expectedSignature = crypto
+//         .createHmac("sha256", secret)
+//         .update(rawBodyBuffer) // must be a Buffer or string
+//         .digest("hex");
+
+//       if (expectedSignature !== signature) {
+//         console.log("❌ Invalid signature");
+//         return res.status(400).json({ success: false, message: "Invalid signature" });
+//       }
+
+//       // ✅ Parse JSON after signature verified
+//       const data = JSON.parse(rawBodyBuffer.toString("utf8"));
+//       const payment = data?.payload?.payment?.entity;
+
+//       if (!payment || payment.status !== "captured") {
+//         console.log("❗ Payment not captured or missing");
+//         return res.status(200).json({ success: false });
+//       }
+
+//       const user = payment.notes?.user;
+//       if (!user) {
+//         console.log("⚠️ User missing in notes");
+//         return res.status(400).json({ success: false, message: "User not found in notes" });
+//       }
+
+//       // ✅ Proceed with DB updates...
+//       const fees = await Rupeemodule.findOne({ username: "admin" });
+//       const userData = await Balancemodule.findOne({ user });
+
+//       if (!userData) {
+//         return res.status(404).json({ success: false, message: "User not found" });
+//       }
+
+//       const creditAmount = parseInt(fees?.rupee || "0");
+//       userData.balance += creditAmount;
+//       await userData.save();
+
+//       await Historymodule.create({
+//         Time: new Date().toISOString(),
+//         user,
+//         rupee: creditAmount,
+//         type: "Credited",
+//         tp: "Rupee",
+//       });
+
+//       console.log(`✅ Credited ₹${creditAmount} to user: ${user}`);
+//       return res.status(200).json({ success: true });
+//     } catch (err) {
+//       console.error("❌ Webhook processing error:", err);
+//       return res.status(500).json({ success: false });
+//     }
+//   }
+// );
 
 
 // Route to create an order
-app.post("/create-order", async (req, res) => {
-    try {
-        const { amount, currency } = req.body;
-
-        const fees = await Rupeemodule.findOne({ username: "admin" });
-
-        const options = {
-            amount: fees.rupee * 100, // Amount in smallest currency unit (e.g., paise for INR)
-            currency: currency || "INR",
-        };
-
-        const order = await razorpay.orders.create(options);
-        res.status(200).json({ success: true, order });
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
-});
 
 
-app.post("/verify/and/add/user/data/to/ac", authMiddleware, async (req, res) => {
-    try {
-        const { user } = req.body;
 
-        if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
 
-        const fees = await Rupeemodule.findOne({ username: "admin" }).lean();
 
-        const data = await Balancemodule.findOne({ user: user })
-        if (data) {
-            sum = parseInt(fees.rupee) + parseInt(data.balance)
-            data.balance = sum
-            await data.save()
-            await Historymodule.create({ Time, user, rupee: fees.rupee, type: "Credited", tp: "Rupee" });
-            res.status(200).json({ Status: "OK", message: "Payment verified successfully", rs: fees.rupee });
-        } else {
-            return res.status(202).json({ Status: "NO" });
-        }
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
-})
+
+// app.post("/create-order", async (req, res) => {
+//     try {
+//         const { amount, currency } = req.body;
+
+//         const fees = await Rupeemodule.findOne({ username: "admin" });
+
+//         const options = {
+//             amount: fees.rupee * 100, // Amount in smallest currency unit (e.g., paise for INR)
+//             currency: currency || "INR",
+//         };
+
+
+
+//         const order = await razorpay.orders.create(options);
+
+//         console.log(order)
+//         res.status(200).json({ success: true, order });
+//     } catch (error) {
+//         console.log(error);
+//         return res.status(500).json({ message: "Internal Server Error" });
+//     }
+// });
+
+// Route to verify payment
+// app.post("/verify-payment", async (req, res) => {
+//     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, user } = req.body;
+
+//     try {
+//         const crypto = require("crypto");
+//         const hmac = crypto.createHmac("sha256", "k7ZQ10G2vSdP3vilTZ83a4GS");
+
+//         const fees = await Rupeemodule.findOne({ username: "admin" });
+
+//         hmac.update(razorpay_order_id + "|" + razorpay_payment_id);
+//         const generatedSignature = hmac.digest("hex");
+
+//         if (generatedSignature === razorpay_signature) {
+//             const data = await Balancemodule.findOne({ user: user })
+//             if (data) {
+//                 sum = parseInt(fees.rupee) + parseInt(data.balance)
+//                 data.balance = sum
+//                 await data.save()
+//                 await Historymodule.create({ Time, user, rupee: fees.rupee, type: "Credited", tp: "Rupee" });
+//                 res.status(200).json({ success: true, message: "Payment verified successfully" });
+//             } else {
+//                 return res.status(202).json({ Status: "NO" });
+//             }
+//         } else {
+//             res.status(400).json({ success: false, message: "Payment verification failed" });
+//         }
+//     } catch (error) {
+//         console.log(error);
+//         return res.status(500).json({ message: "Internal Server Error" });
+//     }
+
+
+// });
+
+
+
+// app.post("/verify/and/add/user/data/to/ac", authMiddleware, async (req, res) => {
+//     try {
+//         const { user } = req.body;
+
+//         if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
+
+//         const fees = await Rupeemodule.findOne({ username: "admin" }).lean();
+
+//         const data = await Balancemodule.findOne({ user: user })
+//         if (data) {
+//             sum = parseInt(fees.rupee) + parseInt(data.balance)
+//             data.balance = sum
+//             await data.save()
+//             await Historymodule.create({ Time, user, rupee: fees.rupee, type: "Credited", tp: "Rupee" });
+//             res.status(200).json({ Status: "OK", message: "Payment verified successfully", rs: fees.rupee });
+//         } else {
+//             return res.status(202).json({ Status: "NO" });
+//         }
+//     } catch (error) {
+//         console.log(error);
+//         return res.status(500).json({ message: "Internal Server Error" });
+//     }
+// })
 
 
 
 // Route to verify payment
+
+
+
+
+
 app.post("/verify-payment", async (req, res) => {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, user } = req.body;
 
     try {
         const crypto = require("crypto");
-        const hmac = crypto.createHmac("sha256", "dp793tI70CWW7hRlzNklvbKt");
+        const hmac = crypto.createHmac("sha256", "k7ZQ10G2vSdP3vilTZ83a4GS");
 
         const fees = await Rupeemodule.findOne({ username: "admin" });
 
         hmac.update(razorpay_order_id + "|" + razorpay_payment_id);
         const generatedSignature = hmac.digest("hex");
+
+        console.log(generatedSignature + " : " + razorpay_signature)
 
         if (generatedSignature === razorpay_signature) {
             const data = await Balancemodule.findOne({ user: user })
@@ -4115,6 +5087,145 @@ app.post("/verify-payment", async (req, res) => {
 
 
 });
+
+
+
+// // RAW body middleware for webhook
+// app.post("/razorpay/webhook", express.raw({ type: "application/json" }), async (req, res) => {
+//   const secret = "dp793tI70CWW7hRlzNklvbKt"; // Razorpay Secret Key
+//   const signature = req.headers["x-razorpay-signature"];
+
+//   const generated_signature = crypto
+//     .createHmac("sha256", secret)
+//     .update(req.body)
+//     .digest("hex");
+
+//   if (signature === generated_signature) {
+//     try {
+//       const payload = JSON.parse(req.body);
+//       const payment = payload.payload?.payment?.entity;
+
+//       if (payment && payment.status === "captured") {
+//         const razorpay_order_id = payment.order_id;
+//         const razorpay_payment_id = payment.id;
+//         const amount = payment.amount; // in paise
+
+//         // 👇 Pull user from payment.notes.user (if you set it during order creation)
+//         const user = payment.notes?.user;
+//         if (!user) return res.status(400).json({ error: "User info missing in notes" });
+
+//         const fees = await Rupeemodule.findOne({ username: "admin" });
+//         const data = await Balancemodule.findOne({ user });
+
+//         if (data) {
+//           const sum = parseInt(fees.rupee) + parseInt(data.balance);
+//           data.balance = sum;
+//           await data.save();
+
+//           await Historymodule.create({
+//             Time: new Date().toISOString(),
+//             user,
+//             rupee: fees.rupee,
+//             type: "Credited",
+//             tp: "Rupee"
+//           });
+
+//           console.log(`✅ Webhook payment success for user: ${user}`);
+//           return res.status(200).json({ success : true });
+//         } else {
+//           console.log("⚠️ User balance data not found");
+//           return res.status(404).json({ error: "User balance not found" });
+//         }
+//       } else {
+//         return res.status(200).json({ message: "Payment not captured or invalid" });
+//       }
+//     } catch (error) {
+//       console.error("Webhook Error:", error);
+//       return res.status(500).json({ error: "Webhook processing failed" });
+//     }
+//   } else {
+//     console.log("❌ Invalid webhook signature");
+//     return res.status(400).json({ error: "Invalid signature" });
+//   }
+// });
+
+
+// Important: register this BEFORE any other body-parser (like express.json())
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// app.post("/razorpay/webhook", async (req, res) => {
+//   const secret = "dp793tI70CWW7hRlzNklvbKt"; // Razorpay Secret Key
+//   const signature = req.headers["x-razorpay-signature"];
+
+//   try {
+//     const generated_signature = crypto
+//       .createHmac("sha256", secret)
+//       .update(req.rawBody) // ✅ Use raw body for signature
+//       .digest("hex");
+
+//     if (signature !== generated_signature) {
+//       console.log("❌ Invalid webhook signature");
+//       return res.status(400).json({ success: false, error: "Invalid signature" });
+//     }
+
+//     const payment = req.body?.payload?.payment?.entity;
+
+//     if (!payment || payment.status !== "captured") {
+//       return res.status(200).json({ success: false, message: "Payment not captured or invalid" });
+//     }
+
+//     const razorpay_order_id = payment.order_id;
+//     const razorpay_payment_id = payment.id;
+//     const amount = payment.amount;
+
+//     const user = payment.notes?.user;
+//     if (!user) {
+//       console.log("⚠️ User info missing in Razorpay notes");
+//       return res.status(400).json({ success: false, error: "User info missing in notes" });
+//     }
+
+//     const fees = await Rupeemodule.findOne({ username: "admin" });
+//     const data = await Balancemodule.findOne({ user });
+
+//     if (!data) {
+//       console.log("⚠️ User balance data not found");
+//       return res.status(404).json({ success: false, error: "User balance not found" });
+//     }
+
+//     const sum = parseInt(fees.rupee) + parseInt(data.balance);
+//     data.balance = sum;
+//     await data.save();
+
+//     await Historymodule.create({
+//       Time: new Date().toISOString(),
+//       user,
+//       rupee: fees.rupee,
+//       type: "Credited",
+//       tp: "Rupee"
+//     });
+
+//     console.log(`✅ Webhook payment success for user: ${user}`);
+//     return res.status(200).json({ success: true, message: "Balance credited" });
+
+//   } catch (error) {
+//     console.error("Webhook processing error:", error);
+//     return res.status(500).json({ success: false, error: "Internal server error" });
+//   }
+// });
 
 
 
@@ -4633,53 +5744,53 @@ const NotificationSchema = new mongoose.Schema(
 );
 const NotificationModule = mongoose.model("Notification", NotificationSchema);
 
-// ✅ Send Notification to a Single User
-app.post("/send-notification", async (req, res) => {
-    const { token, title, body } = req.body;
+// // ✅ Send Notification to a Single User
+// app.post("/send-notification", async (req, res) => {
+//     const { token, title, body } = req.body;
 
-    if (!token || !title || !body) {
-        return res
-            .status(400)
-            .json({ error: "❌ Missing required fields: token, title, body" });
-    }
+//     if (!token || !title || !body) {
+//         return res
+//             .status(400)
+//             .json({ error: "❌ Missing required fields: token, title, body" });
+//     }
 
-    const message = {
-        token: token,
-        notification: { title, body },
-        data: { type: "chat" },
-        android: {
-            priority: "high",
-            notification: {
-                sound: "default",
-                channelId: "high_importance_channel",
-                priority: "max", // Ensures heads-up notification
-                visibility: "public", // Ensures it appears over the lock screen
-            },
-        },
-        apns: {
-            payload: {
-                aps: {
-                    alert: { title, body },
-                    sound: "default",
-                    contentAvailable: true,
-                },
-            },
-        },
-    };
+//     const message = {
+//         token: token,
+//         notification: { title, body },
+//         data: { type: "chat" },
+//         android: {
+//             priority: "high",
+//             notification: {
+//                 sound: "default",
+//                 channelId: "high_importance_channel",
+//                 priority: "max", // Ensures heads-up notification
+//                 visibility: "public", // Ensures it appears over the lock screen
+//             },
+//         },
+//         apns: {
+//             payload: {
+//                 aps: {
+//                     alert: { title, body },
+//                     sound: "default",
+//                     contentAvailable: true,
+//                 },
+//             },
+//         },
+//     };
 
-    try {
-        const response = await admin.messaging().send(message);
-        console.log("✅ Notification sent:", response);
-        res
-            .status(200)
-            .json({ success: true, message: "Notification sent!", response });
-    } catch (error) {
-        console.error("❌ Error sending notification:", error);
-        res
-            .status(500)
-            .json({ error: "Failed to send notification", details: error.message });
-    }
-});
+//     try {
+//         const response = await admin.messaging().send(message);
+//         console.log("✅ Notification sent:", response);
+//         res
+//             .status(200)
+//             .json({ success: true, message: "Notification sent!", response });
+//     } catch (error) {
+//         console.error("❌ Error sending notification:", error);
+//         res
+//             .status(500)
+//             .json({ error: "Failed to send notification", details: error.message });
+//     }
+// });
 
 // ✅ Store FCM Token from App
 app.post("/get/new/notification/fcm/token/from/app", async (req, res) => {
@@ -4715,62 +5826,62 @@ app.post("/get/new/notification/fcm/token/from/app", async (req, res) => {
     }
 });
 
-// ✅ Send Notification to All Users
-app.post("/send-notification/to/all", async (req, res) => {
-    const { title, body } = req.body;
+// // ✅ Send Notification to All Users
+// app.post("/send-notification/to/all", async (req, res) => {
+//     const { title, body } = req.body;
 
-    if (!title || !body) {
-        return res
-            .status(400)
-            .json({ error: "❌ Missing required fields: title, body" });
-    }
+//     if (!title || !body) {
+//         return res
+//             .status(400)
+//             .json({ error: "❌ Missing required fields: title, body" });
+//     }
 
-    try {
-        const notificationData = await NotificationModule.findOne();
-        if (!notificationData || !notificationData.tokens || notificationData.tokens.length === 0) {
-            return res.status(400).json({ error: "❌ No FCM tokens found" });
-        }
+//     try {
+//         const notificationData = await NotificationModule.findOne();
+//         if (!notificationData || !notificationData.tokens || notificationData.tokens.length === 0) {
+//             return res.status(400).json({ error: "❌ No FCM tokens found" });
+//         }
 
-        const messages = notificationData.tokens.map((token) => ({
-            token,
-            notification: { title, body },
-            data: { type: "chat" },
-            android: {
-                priority: "high",
-                notification: {
-                    sound: "default",
-                    channelId: "high_importance_channel",
-                    priority: "max",
-                    visibility: "public",
-                },
-            },
-            apns: {
-                payload: {
-                    aps: {
-                        alert: { title, body },
-                        sound: "default",
-                        contentAvailable: true,
-                    },
-                },
-            },
-        }));
+//         const messages = notificationData.tokens.map((token) => ({
+//             token,
+//             notification: { title, body },
+//             data: { type: "chat" },
+//             android: {
+//                 priority: "high",
+//                 notification: {
+//                     sound: "default",
+//                     channelId: "high_importance_channel",
+//                     priority: "max",
+//                     visibility: "public",
+//                 },
+//             },
+//             apns: {
+//                 payload: {
+//                     aps: {
+//                         alert: { title, body },
+//                         sound: "default",
+//                         contentAvailable: true,
+//                     },
+//                 },
+//             },
+//         }));
 
-        const responses = await Promise.all(messages.map((msg) => admin.messaging().send(msg)));
-        console.log("✅ Notifications sent:", responses.length);
+//         const responses = await Promise.all(messages.map((msg) => admin.messaging().send(msg)));
+//         console.log("✅ Notifications sent:", responses.length);
 
-        res.status(200).json({
-            success: true,
-            message: "Notifications sent!",
-            responses,
-        });
-    } catch (error) {
-        console.error("❌ Error sending notifications:", error);
-        res.status(500).json({
-            error: "Failed to send notifications",
-            details: error.message,
-        });
-    }
-});
+//         res.status(200).json({
+//             success: true,
+//             message: "Notifications sent!",
+//             responses,
+//         });
+//     } catch (error) {
+//         console.error("❌ Error sending notifications:", error);
+//         res.status(500).json({
+//             error: "Failed to send notifications",
+//             details: error.message,
+//         });
+//     }
+// });
 
 
 
@@ -5269,42 +6380,38 @@ app.post("/start/game/by/click", async (req, res) => {
 
 const user_track_ip = new mongoose.Schema({
     Time: String,
-    ip: String,
+    ip: { type: String, unique: true },
     city: String
 }, { timestamps: true });
 
 const userstrackmodule = mongoose.model('Users_IP_Track', user_track_ip);
 
-app.post('/new/ip/data', async (req, res) =>{
-    
-    const {ip, city} = req.body;
+app.post('/new/ip/data', async (req, res) => {
 
-    try{
-        const user = await userstrackmodule.findOne({ip :ip})
-        if(!user){
-            await userstrackmodule.create({Time, ip, city})
-            return res.status(200).json({Status : "OK"})
+    const { ip, city } = req.body;
+
+    try {
+        const user = await userstrackmodule.findOne({ ip: ip })
+        if (!user) {
+            await userstrackmodule.create({ Time, ip, city })
+            return res.status(200).json({ Status: "OK" })
         }
-        return res.status(200).json({Status : "In"})
-    }catch (error) {
+        return res.status(200).json({ Status: "In" })
+    } catch (error) {
         console.error("Error updating game status:", error);
         return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to update game status" });
     }
 })
 
 
-
-
-
-
 const comment_Schema = new mongoose.Schema({
     Time: String,
-    text : String,
-    stars : String,
-    name : String,
-    profile : String,
-    email :  String,
-    like : [],
+    text: String,
+    stars: String,
+    name: String,
+    profile: String,
+    email: String,
+    like: [],
     user: { type: String, unique: true }, // Unique constraint
 }, { timestamps: true });
 
@@ -5347,7 +6454,8 @@ app.post("/get/new/post/from/comment", authMiddleware, async (req, res) => {
                 await Balancemodule.create({
                     user: user_data._id,
                     Time,
-                    balance: bal.toString()
+                    balance: bal.toString(),
+                    last_tr_id: user_data._id
                 });
 
                 await Historymodule.create({
@@ -5358,7 +6466,7 @@ app.post("/get/new/post/from/comment", authMiddleware, async (req, res) => {
                     tp: "Rupee"
                 });
 
-                return res.status(200).json({ Status: "OK", to : crt._id , message: "Created New with Bonus" });
+                return res.status(200).json({ Status: "OK", to: crt._id, message: "Created New with Bonus" });
             } else {
                 const new_bal = parseInt(bal_data.balance) + parseInt(fees.rupee);
                 bal_data.balance = new_bal;
@@ -5372,7 +6480,7 @@ app.post("/get/new/post/from/comment", authMiddleware, async (req, res) => {
                     tp: "Rupee"
                 });
 
-                return res.status(200).json({ Status: "OK", to : crt._id ,message: "Created New" });
+                return res.status(200).json({ Status: "OK", to: crt._id, message: "Created New" });
             }
         } else {
             return res.status(200).json({ Status: "IN", message: "Already Exists" });
@@ -5466,157 +6574,1108 @@ app.post("/get/new/post/from/comment", authMiddleware, async (req, res) => {
 
 
 app.post("/make/like/review/count", authMiddleware, async (req, res) => {
-  const { l_id, email } = req.body;
-  const Time = new Date();
+    const { l_id, email } = req.body;
+    const Time = new Date();
 
-  try {
-    if (!l_id || !email) {
-      return res.status(400).json({ Status: "Miss" });
+    try {
+        if (!l_id || !email) {
+            return res.status(400).json({ Status: "Miss" });
+        }
+
+        // Check if the user already liked ANY document
+        const alreadyLiked = await CommentModule.findOne({ like: email });
+        if (alreadyLiked) {
+            return res.status(200).json({
+                Status: "ALREADY_LIKED",
+                message: "You can like only one document.",
+            });
+        }
+
+        // Find the comment/document by ID
+        const data = await CommentModule.findById({ _id: l_id });
+        if (!data) {
+            return res.status(404).json({ Status: "Not Found", message: "Comment not found" });
+        }
+
+        if (data.email === email) {
+            return res.status(200).json({ Status: "U" }); // User trying to like their own doc?
+        }
+
+        // Add like only if not already present (redundant here, but safe)
+        const updated = await CommentModule.findOneAndUpdate(
+            { _id: l_id, like: { $ne: email } },
+            { $addToSet: { like: email } }
+        );
+
+        if (!updated) {
+            return res.status(200).json({ Status: "Exist" });
+        }
+
+        // Proceed with user and balance updates
+        const user_data = await Usermodule.findOne({ email });
+        if (!user_data) {
+            return res.status(404).json({ Status: "Not Found", message: "User not found" });
+        }
+
+        const fees = await Rupeemodule.findOne({ username: "admin" });
+        if (!fees) {
+            return res.status(500).json({ Status: "Server Error", message: "Fee config missing" });
+        }
+
+        let bal_data = await Balancemodule.findOne({ user: user_data._id });
+        if (!bal_data) {
+            await Balancemodule.create({
+                user: user_data._id,
+                Time,
+                balance: "5",
+                last_tr_id: user_data._id
+            });
+
+            await Historymodule.create({
+                Time,
+                user: user_data._id,
+                rupee: "5",
+                type: "Credited",
+                tp: "Rupee",
+            });
+
+            bal_data = await Balancemodule.findOne({ user: user_data._id });
+        }
+
+        const added_bal = parseInt(bal_data.balance) + parseInt(fees.rupee);
+        bal_data.balance = added_bal.toString();
+        await bal_data.save();
+
+        await Historymodule.create({
+            Time,
+            user: user_data._id,
+            rupee: fees.rupee,
+            type: "Credited",
+            tp: "Rupee",
+        });
+
+        return res.status(200).json({
+            Status: "OK",
+            message: "Like recorded and balance updated",
+        });
+
+    } catch (error) {
+        console.error("Error updating like and balance:", error);
+        return res.status(500).json({
+            Status: "SERVER_ERR",
+            message: "Failed to process like",
+        });
     }
-
-    // Check if the user already liked ANY document
-    const alreadyLiked = await CommentModule.findOne({ like: email });
-    if (alreadyLiked) {
-      return res.status(200).json({
-        Status: "ALREADY_LIKED",
-        message: "You can like only one document.",
-      });
-    }
-
-    // Find the comment/document by ID
-    const data = await CommentModule.findById({ _id: l_id });
-    if (!data) {
-      return res.status(404).json({ Status: "Not Found", message: "Comment not found" });
-    }
-
-    if (data.email === email) {
-      return res.status(200).json({ Status: "U" }); // User trying to like their own doc?
-    }
-
-    // Add like only if not already present (redundant here, but safe)
-    const updated = await CommentModule.findOneAndUpdate(
-      { _id: l_id, like: { $ne: email } },
-      { $addToSet: { like: email } }
-    );
-
-    if (!updated) {
-      return res.status(200).json({ Status: "Exist" });
-    }
-
-    // Proceed with user and balance updates
-    const user_data = await Usermodule.findOne({ email });
-    if (!user_data) {
-      return res.status(404).json({ Status: "Not Found", message: "User not found" });
-    }
-
-    const fees = await Rupeemodule.findOne({ username: "admin" });
-    if (!fees) {
-      return res.status(500).json({ Status: "Server Error", message: "Fee config missing" });
-    }
-
-    let bal_data = await Balancemodule.findOne({ user: user_data._id });
-    if (!bal_data) {
-      await Balancemodule.create({
-        user: user_data._id,
-        Time,
-        balance: "5",
-      });
-
-      await Historymodule.create({
-        Time,
-        user: user_data._id,
-        rupee: "5",
-        type: "Credited",
-        tp: "Rupee",
-      });
-
-      bal_data = await Balancemodule.findOne({ user: user_data._id });
-    }
-
-    const added_bal = parseInt(bal_data.balance) + parseInt(fees.rupee);
-    bal_data.balance = added_bal.toString();
-    await bal_data.save();
-
-    await Historymodule.create({
-      Time,
-      user: user_data._id,
-      rupee: fees.rupee,
-      type: "Credited",
-      tp: "Rupee",
-    });
-
-    return res.status(200).json({
-      Status: "OK",
-      message: "Like recorded and balance updated",
-    });
-
-  } catch (error) {
-    console.error("Error updating like and balance:", error);
-    return res.status(500).json({
-      Status: "SERVER_ERR",
-      message: "Failed to process like",
-    });
-  }
 });
 
 
 
-app.get("/comment/review/frome/all/users", async(req, res)=>{
-    try{
+app.get("/comment/review/frome/all/users", async (req, res) => {
+    try {
         const data = await CommentModule.find({}).lean()
-        return res.status(200).json({data})
-    }catch (error) {
+        return res.status(200).json({ data })
+    } catch (error) {
         console.error("Error updating like and balance:", error);
         return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to process like" });
     }
 })
 
 app.get("/comment/get/single/data/:id", async (req, res) => {
-  const id = req.params.id;
+    const id = req.params.id;
 
-  try {
-    const data = await CommentModule.findById(id); // Corrected: removed `{}`
+    try {
+        const data = await CommentModule.findById(id); // Corrected: removed `{}`
 
-    if (data) {
-      return res.status(200).json({ data });
-    } else {
-      return res.status(404).json({ Status: "NO_DATA", message: "No data found" });
+        if (data) {
+            return res.status(200).json({ data });
+        } else {
+            return res.status(404).json({ Status: "NO_DATA", message: "No data found" });
+        }
+    } catch (error) {
+        console.error("Error fetching comment data:", error);
+        return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch data" });
     }
-  } catch (error) {
-    console.error("Error fetching comment data:", error);
-    return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch data" });
-  }
 });
 
 
 
-app.get("/comment/get/single/data/email/:email", authMiddleware , async (req, res) => {
-  const email = req.params.email;
+app.get("/comment/get/single/data/email/:email", authMiddleware, async (req, res) => {
+    const email = req.params.email;
 
-  try {
-    // Fetch the first comment that matches the email
-    const data = await CommentModule.findOne({ email : email });
+    try {
+        // Fetch the first comment that matches the email
+        const data = await CommentModule.findOne({ email: email });
 
-    if (data) {
-      return res.status(200).json({ data });
-    } else {
-      return res.status(404).json({ Status: "NO_DATA", message: "No data found for this email." });
+        if (data) {
+            return res.status(200).json({ data });
+        } else {
+            return res.status(404).json({ Status: "NO_DATA", message: "No data found for this email." });
+        }
+    } catch (error) {
+        console.error("Error fetching comment data:", error);
+        return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch comment data." });
     }
-  } catch (error) {
-    console.error("Error fetching comment data:", error);
-    return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch comment data." });
-  }
 });
 
 
 
+
+const Question_Data_base_Schema = new mongoose.Schema({
+    question: {
+        type: String,
+        required: true
+    },
+    answer: {
+        type: String,
+        required: true
+    },
+    a: {
+        type: String,
+        required: true
+    },
+
+    b: {
+        type: String,
+        required: true
+    },
+
+    c: {
+        type: String,
+        required: true
+    },
+
+    d: {
+        type: String,
+        required: true
+    },
+
+    language: {
+        type: String,
+        required: true
+    },
+
+    category: {
+        type: String,
+        required: true
+    },
+    difficulty: {
+        type: String,
+        required: true
+    },
+    type: {
+        type: String,
+        required: true
+    },
+
+    image: {
+        type: String,
+        required: false
+    },
+
+    seconds: {
+        type: Number,
+        required: true
+    },
+
+}, { timestamps: true });
+
+const AI_QuestionModule = mongoose.model('Question Data', Question_Data_base_Schema);
+
+
+
+const ip_singel_qst_Schema = new mongoose.Schema({
+    Time: String,
+    qno: String,
+    rupee: { type: String, default: "" },
+    yes: { type: String, default: "!" }, // Default value
+    user: { type: String, unique: true }, // Unique constraint
+}, { timestamps: true });
+
+const ip_singel_qst_module = mongoose.model('singel_quest', ip_singel_qst_Schema);
+
+
+app.get("/get/singel/qst/:ip", async (req, res) => {
+    const ip = req.params.ip;
+
+    try {
+        if (!ip) {
+            return res
+                .status(400)
+                .json({ Status: "No_IP", message: "IP address is required" });
+        }
+
+        // total questions count
+        const qstCount = await QuestionModule.countDocuments();
+        if (qstCount === 0) {
+            return res
+                .status(500)
+                .json({ Status: "NO_QUESTIONS", message: "No questions available" });
+        }
+
+        // random question number (as string if stored that way)
+        const randomQno = Math.floor(Math.random() * qstCount) + 1;
+        const qnoStr = randomQno.toString();
+
+        // try to find existing record
+        const existing = await ip_singel_qst_module.findOne({ user: ip });
+
+        // helper to build response payload from a question doc
+        const buildPayload = (qnDoc, extra = {}) => ({
+            img: qnDoc.img,
+            Questio: qnDoc.Questio,
+            qno: qnDoc.qno,
+            a: qnDoc.a,
+            b: qnDoc.b,
+            c: qnDoc.c,
+            d: qnDoc.d,
+            seconds: qnDoc.seconds,
+            ...extra,
+        });
+
+        if (!existing) {
+            // no prior entry: pick a random question and create entry
+            const qn_numm = await QuestionModule.findOne({ qno: qnoStr });
+            if (!qn_numm) {
+                return res
+                    .status(500)
+                    .json({ Status: "NO_QUESTION_FOUND", message: "Question missing" });
+            }
+
+            const now = Date.now();
+            // create with upsert-like safety using updateOne with $setOnInsert to avoid duplicate-key errors
+            await ip_singel_qst_module.findOneAndUpdate(
+                { user: ip },
+                {
+                    $set: {
+                        // fields to refresh every time, e.g., qno if it should change
+                        qno: qnoStr,
+                    },
+                    $setOnInsert: {
+                        user: ip,
+                        yes: "!",
+                        rupee: null,
+                    },
+                },
+                {
+                    upsert: true,
+                    new: true,
+                    setDefaultsOnInsert: true,
+                }
+            );
+
+
+            const data = buildPayload(qn_numm);
+            return res.status(200).json({ Status: "OK", data });
+        }
+
+        // existing entry logic: normalize `yes` values for consistency
+        const statusFlag = (existing.yes || "").trim();
+
+        if (statusFlag === "!") {
+            const qn_numm = await QuestionModule.findOne({ qno: existing.qno });
+            if (!qn_numm) {
+                return res
+                    .status(500)
+                    .json({ Status: "NO_QUESTION_FOUND", message: "Question missing" });
+            }
+            const data = buildPayload(qn_numm, { yes: existing.yes });
+            return res.status(200).json({ Status: "OK", data });
+        } else if (statusFlag === "NO") {
+            return res.status(200).json({ Status: "NO" });
+        } else if (statusFlag === "Time_Out" || statusFlag === "Time Out") {
+            return res
+                .status(200)
+                .json({ Status: "Time_Out", qno: existing.qno });
+        } else if (statusFlag === "Yes") {
+            return res.status(200).json({ Status: "Yes", rupee: existing.rupee });
+        } else {
+            // fallback / in-progress or unknown flag
+            return res.status(200).json({ Status: "IN", qno: existing.qno });
+        }
+    } catch (error) {
+        console.error("Error fetching comment data:", error);
+        return res
+            .status(500)
+            .json({ Status: "SERVER_ERR", message: "Failed to fetch comment data." });
+    }
+});
+
+
+// app.post("/get/singel/qst", async (req, res) => {
+//     const { ip } = req.body;
+
+//     try {
+
+//         if (!ip) {
+//             return res.status(400).json({ Status: "No_IP", message: "IP address is required" });
+//         }
+
+//         const qst = await QuestionModule.countDocuments({});
+
+//         const to = qst;
+
+//         const qno = Math.floor(Math.random() * to) + 1;
+//         const existing = await ip_singel_qst_module.findOne({ user : ip });
+//         if (!existing) {
+
+//             const qn_numm = await QuestionModule.findOne({ qno: qno.toString() });
+//             await ip_singel_qst_module.create({ Time, qno: qno.toString(), user : ip });
+
+//             const data = {
+//                 img: qn_numm.img,
+//                 Questio: qn_numm.Questio,
+//                 qno: qn_numm.qno,
+//                 a: qn_numm.a,
+//                 b: qn_numm.b,
+//                 c: qn_numm.c,
+//                 d: qn_numm.d,
+//                 seconds: qn_numm.seconds,
+//             }
+
+
+//             return res.status(200).json({ Status: "OK", data });
+
+
+//         }
+//         else if (existing.yes === "!") {
+//             const qn_numm = await QuestionModule.findOne({ qno: existing.qno });
+//             const data = {
+//                 yes: existing.yes,
+//                 img: qn_numm.img,
+//                 Questio: qn_numm.Questio,
+//                 qno: qn_numm.qno,
+//                 a: qn_numm.a,
+//                 b: qn_numm.b,
+//                 c: qn_numm.c,
+//                 d: qn_numm.d,
+//                 seconds: qn_numm.seconds,
+//             }
+//             return res.status(200).json({ Status: "OK", data });
+//         }
+//         else if (existing.yes === "NO") {
+//             return res.status(200).json({ Status: "NO" });
+//         } else if (existing.yes === "Time Out") {
+//             return res.status(200).json({ Status: "Time_Out", qno: existing.qno });
+//         }
+//         else if (existing.yes === "Yes") {
+//             return res.status(200).json({ Status: "Yes", rupee: existing.rupee });
+//         }
+//         else {
+//             return res.status(200).json({ Status: "IN", qno: existing.qno });
+//         }
+
+//     } catch (error) {
+//         console.error("Error fetching comment data:", error);
+//         return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch comment data." });
+//     }
+// })
+
+
+
+app.post("/time/out/by/singel/qst/data", async (req, res) => {
+    const { ip } = req.body;
+
+    try {
+        if (!ip) {
+            return res.status(400).json({ Status: "No_IP", message: "IP address is required" });
+        }
+
+        const existing = await ip_singel_qst_module.findOne({ user: ip });
+
+        if (!existing) {
+            return res.status(404).json({ Status: "NOT_FOUND", message: "No question found for this IP" });
+        }
+
+        await ip_singel_qst_module.updateOne({ user: ip }, { $set: { yes: "Time Out" } });
+        return res.status(200).json({ Status: "Time_Out", message: "Question data updated successfully" });
+    } catch (error) {
+        console.error("Error updating question data:", error);
+        return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to update question data." });
+    }
+});
+
+
+
+
+// app.post("/get/singel/qst/ans", async (req, res) => {
+//     const { ip, qno, ans } = req.body;
+
+//     try {
+//         if (!ip || !qno || !ans) {
+//             return res.status(400).json({ Status: "BAD", message: "Some Data Missing" });
+//         }
+
+//         const existing = await ip_singel_qst_module.findOne({ user : ip });
+
+//         if (!existing) {
+//             return res.status(404).json({ Status: "NOT_FOUND", message: "No question found for this IP" });
+//         }
+
+//         if (existing.qno !== qno) {
+//             return res.status(400).json({ Status: "WRONG_QNO", message: "Question number does not match" });
+//         }
+
+//         if (existing.yes !== "!") {
+//             return res.status(400).json({ Status: "ALREADY_ANSWERED", message: "Question already answered" });
+//         }
+
+//         const question = await QuestionModule.findOne({ qno });
+
+//         if (!question) {
+//             return res.status(404).json({ Status: "QUESTION_NOT_FOUND", message: "Question not found" });
+//         }
+
+//         if(existing){
+//             if (question.Ans === ans) {
+//             existing.yes = "Yes";
+//             await existing.save();
+//             const rw_data = await Singel_rewards_module.findOne({ user: "kick" });
+//             if (rw_data.data.length >= 1) {
+
+//                 const won_data = await Singel_win_module.findOne({ user : ip });
+//                 if (!won_data) {
+
+//                     const shuffled = rw_data.data.sort(() => Math.random() - 0.5);
+//                     const removedItem = shuffled.shift();
+//                     rw_data.data = shuffled;
+//                     await rw_data.save(); // ✅ save the updated rewards
+
+//                     await Singel_win_module.create({ Time, user : ip, rupee: removedItem });
+//                     await ip_singel_qst_module.findOneAndUpdate(
+//                         { user : ip },
+//                         { rupee: removedItem }
+//                     );
+
+//                     return res.status(200).json({
+//                         Status: "CORRECT",
+//                         rupee: removedItem,
+//                         message: "Correct answer"
+//                     });
+//                 }
+//                 else {
+//                     return res.status(200).json({ Status: "EX CORRECT", message: "Correct answer" });
+//                 }
+//             } else {
+//                 return res.status(200).json({ Status: "CORRECT NO REWARD", message: "Correct answer" });
+//             }
+
+
+//         } else {
+//             existing.yes = "NO";
+//             await existing.save();
+//             return res.status(200).json({ Status: "INCORRECT", message: "Incorrect answer" });
+//         }
+//         }
+
+
+//     } catch (error) {
+//         console.error("Error processing question answer:", error);
+//         return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to process answer" });
+//     }
+// });
+
+
+
+
+
+
+
+
+
+
+
+
+// app.post("/get/singel/qst/ans", async (req, res) => {
+//     const { ip, qno, ans } = req.body;
+
+//     try {
+//         if (!ip || !qno || !ans) {
+//             return res.status(400).json({ Status: "BAD", message: "Some Data Missing" });
+//         }
+
+//         const existing = await ip_singel_qst_module.findOne({ ip });
+//         if (!existing) {
+//             return res.status(404).json({ Status: "NOT_FOUND", message: "No question found for this IP" });
+//         }
+
+//         if (existing.qno !== qno) {
+//             return res.status(400).json({ Status: "WRONG_QNO", message: "Question number does not match" });
+//         }
+
+//         if (existing.yes !== "!") {
+//             return res.status(400).json({ Status: "ALREADY_ANSWERED", message: "Question already answered" });
+//         }
+
+//         const question = await QuestionModule.findOne({ qno });
+//         if (!question) {
+//             return res.status(404).json({ Status: "QUESTION_NOT_FOUND", message: "Question not found" });
+//         }
+
+//         if (question.Ans === ans) {
+//             existing.yes = "Yes";
+//             await existing.save();
+
+//             const rw_data = await Singel_rewards_module.findOne({ user: "kick" });
+//             if (rw_data?.data?.length >= 1) {
+//                 const shuffled = rw_data.data.sort(() => Math.random() - 0.5);
+//                 const removedItem = shuffled.shift();
+//                 rw_data.data = shuffled;
+//                 await rw_data.save();
+
+//                 const won_data = await Singel_win_module.findOne({ ip });
+//                 const Time = Date.now();
+
+//                 if (!won_data) {
+//                     await Singel_win_module.create({ Time, ip, rupee: removedItem });
+
+//                     await ip_singel_qst_module.findOneAndUpdate(
+//                         { ip },
+//                         { rupee: removedItem }
+//                     );
+
+//                     return res.status(200).json({
+//                         Status: "CORRECT",
+//                         rupee: removedItem,
+//                         message: "Correct answer"
+//                     });
+//                 } else {
+//                     return res.status(200).json({
+//                         Status: "EX CORRECT",
+//                         message: "Correct answer"
+//                     });
+//                 }
+//             } else {
+//                 return res.status(200).json({
+//                     Status: "CORRECT NO REWARD",
+//                     message: "Correct answer"
+//                 });
+//             }
+//         } else {
+//             existing.yes = "NO";
+//             await existing.save();
+//             return res.status(200).json({
+//                 Status: "INCORRECT",
+//                 message: "Incorrect answer"
+//             });
+//         }
+
+//     } catch (error) {
+//         console.error("Error processing question answer:", error);
+//         return res.status(500).json({
+//             Status: "SERVER_ERR",
+//             message: "Failed to process answer"
+//         });
+//     }
+// });
+
+
+app.post("/get/singel/qst/ans", async (req, res) => {
+    const { ip, qno, ans } = req.body;
+
+    try {
+        if (!ip || !qno || !ans) {
+            return res.status(400).json({ Status: "BAD", message: "Some Data Missing" });
+        }
+
+        const existing = await ip_singel_qst_module.findOne({ user: ip });
+        if (!existing) {
+            return res.status(404).json({ Status: "NOT_FOUND", message: "No question found for this IP" });
+        }
+
+        if (existing.qno !== qno) {
+            return res.status(400).json({ Status: "WRONG_QNO", message: "Question number does not match" });
+        }
+
+        if (existing.yes !== "!") {
+            return res.status(400).json({ Status: "ALREADY_ANSWERED", message: "Question already answered" });
+        }
+
+        const question = await QuestionModule.findOne({ qno });
+        if (!question) {
+            return res.status(404).json({ Status: "QUESTION_NOT_FOUND", message: "Question not found" });
+        }
+
+        // CORRECT ANSWER BLOCK
+        if (question.Ans === ans) {
+            existing.yes = "Yes";
+            await existing.save();
+
+            const rw_data = await Singel_rewards_module.findOne({ user: "kick" });
+            // console.log(rw_data.data)
+            const len_t = rw_data.data.length
+
+            if (len_t >= 0) {
+                const won_data = await Singel_win_module.findOne({ user: ip });
+
+                if (!won_data) {
+                    const shuffled = rw_data.data.sort(() => Math.random() - 0.5);
+                    const removedItem = shuffled.shift();
+                    rw_data.data = shuffled;
+                    await rw_data.save();
+
+                    const Time = new Date().toISOString();
+                    await Singel_win_module.create({ Time, user: ip, rupee: removedItem });
+                    await ip_singel_qst_module.findOneAndUpdate(
+                        { user: ip },
+                        { rupee: removedItem }
+                    );
+
+                    return res.status(200).json({
+                        Status: "CORRECT",
+                        rupee: removedItem,
+                        message: "Correct answer"
+                    });
+                } else {
+                    return res.status(200).json({
+                        Status: "EX CORRECT",
+                        message: "Already answered correctly before"
+                    });
+                }
+            } else {
+                return res.status(200).json({
+                    Status: "CORRECT NO REWARD",
+                    message: "Correct answer, but no rewards left"
+                });
+            }
+
+        } else {
+            // INCORRECT ANSWER BLOCK
+            existing.yes = "NO";
+            await existing.save();
+            return res.status(200).json({
+                Status: "INCORRECT",
+                message: "Incorrect answer"
+            });
+        }
+
+    } catch (error) {
+        console.error("Error processing question answer:", error);
+        return res.status(500).json({
+            Status: "SERVER_ERR",
+            message: "Failed to process answer"
+        });
+    }
+});
+
+
+
+const Reward_Singel_Schema = new mongoose.Schema({
+    Time: String,
+    data: [], // Default value
+    user: { type: String, unique: true }, // Unique constraint
+}, { timestamps: true });
+
+const Singel_rewards_module = mongoose.model('singel_Rewards', Reward_Singel_Schema);
+
+
+
+const Win_Reward_Singel_Schema = new mongoose.Schema({
+    Time: String,
+    user: { type: String, unique: true }, // Unique constraint
+    rupee: String,
+}, { timestamps: true });
+
+const Singel_win_module = mongoose.model('singel_win_Rewards', Win_Reward_Singel_Schema);
+
+
+
+
+app.post("/add/singel/rewards", adminMiddleware, async (req, res) => {
+    const { data } = req.body;
+
+    try {
+        if (!data) {
+
+            return res.status(400).json({ Status: "BAD", message: "Some Data Missing" });
+
+        }
+
+        const newReward = await Singel_rewards_module.findOne({ user: "kick" });
+
+        if (!newReward) {
+            await Singel_rewards_module.create({ Time, data: [data], user: "kick" });
+            return res.status(201).json({ Status: "OK", message: "Reward added successfully" });
+        } else {
+            newReward.data.push(data);
+            await newReward.save();
+            return res.status(200).json({ Status: "OK", message: "Reward updated successfully" });
+        }
+
+    } catch (error) {
+        console.error("Error adding reward:", error);
+        return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to add reward." });
+    }
+});
+
+
+app.get("/get/singel/rewards", async (req, res) => {
+    try {
+        const rewards = await Singel_rewards_module.findOne({ user: "kick" });
+
+        if (!rewards || !rewards.data) {
+            return res.status(404).json({ Status: "NOT_FOUND", message: "No rewards found" });
+        }
+
+        return res.status(200).json({ Status: "OK", data: rewards.data });
+    } catch (error) {
+        console.error("Error fetching rewards:", error);
+        return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch rewards." });
+    }
+});
+
+
+app.get("/get/singel/reward/data/by/:id/:u_id", async (req, res) => {
+    const { id, u_id } = req.params;
+    try {
+
+
+        const data = await Singel_win_module.findOne({ user: id })
+        if (data) {
+            data.user = u_id
+            await data.save()
+            return res.status(200).json({ data })
+        }
+
+        const Data = await Singel_win_module.findOne({ user: u_id })
+
+        if (Data) {
+            return res.status(200).json({ data: Data })
+        }
+
+        if (!data && !Data) {
+            return res.status(200).json({ Status: "NO" })
+        }
+
+    } catch (error) {
+        console.error("Error fetching rewards:", error);
+        return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch rewards." });
+    }
+})
+
+
+
+
+app.get("/get/won/module/reward/with/upi/data", async (req, res) => {
+    try {
+        const allRewards = await Singel_win_module.find({});
+
+        const rewardsWithUpi = await Promise.all(
+            allRewards.map(async (reward) => {
+                const upiData = await UPImodule.findOne({ user: reward.user });
+                if (upiData) {
+                    return {
+                        reward,
+                        upi: upiData
+                    };
+                }
+                return null;
+            })
+        );
+
+        const filtered = rewardsWithUpi.filter(item => item !== null);
+
+        return res.status(200).json({ data: filtered });
+
+    } catch (error) {
+        console.error("Error fetching rewards:", error);
+        return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch rewards." });
+    }
+});
+
+
+app.delete("/delet/paid/after/one/day/data/:id", async (req, res) => {
+    try {
+        const data = await Singel_win_module.findById(req.params.id);
+
+        if (data) {
+            await data.deleteOne();  // Make sure to await this operation
+            return res.status(200).json({ Status: "OK", message: "Deleted successfully" });
+        } else {
+            return res.status(404).json({ Status: "NOT_FOUND", message: "Data not found" });
+        }
+
+    } catch (error) {
+        console.error("Error deleting reward:", error);
+        return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to delete reward." });
+    }
+});
+
+
+
+
+
+
+
+
+
+// const paymentSchema = new mongoose.Schema({
+//   orderId: String,
+//   paymentId: String,
+//   amount: Number,
+//   status: String,
+//   userId: String,
+// }, { timestamps: true });
+
+// module.exports = mongoose.model('Payment', paymentSchema);
+
+
+// app.post('/pay/now', async (req, res) => {
+//   try {
+//     const { amount, userId, razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
+
+//     // Step 1: Create order
+//     const order = await razorpay.orders.create({
+//       amount: amount * 100, // Razorpay works in paise
+//       currency: "INR",
+//       receipt: `rcpt_${Date.now()}`
+//     });
+
+//     // Optional: send order id back if frontend needs to pay separately
+//     if (!razorpay_payment_id) {
+//       return res.json({ orderId: order.id });
+//     }
+
+//     // Step 2: Verify signature
+//     const generated_signature = crypto
+//       .createHmac("sha256", process.env.RAZORPAY_SECRET)
+//       .update(razorpay_order_id + "|" + razorpay_payment_id)
+//       .digest("hex");
+//     const expectedSignature = crypto
+//         .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+//         .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+//         .digest("hex");
+
+//     if (generated_signature !== razorpay_signature) {
+//       return res.status(400).json({ status: "FAIL", message: "Invalid payment signature" });
+//     }
+
+//     // Step 3: Save to DB
+//     const payment = new Payment({
+//       orderId: razorpay_order_id,
+//       paymentId: razorpay_payment_id,
+//       amount,
+//       status: "PAID",
+//       userId
+//     });
+
+//     await payment.save();
+
+//     return res.status(200).json({ status: "SUCCESS", message: "Payment verified and saved", payment });
+
+//   } catch (error) {
+//     console.error("Payment Error:", error);
+//     return res.status(500).json({ status: "ERROR", message: "Payment failed" });
+//   }
+// });
+
+
+
+
+
+
+
+
+
+app.get("/remaining/rewards/len/and/list", async (req, res) => {
+    try {
+        const rewards = await Singel_rewards_module.findOne({ user: "kick" });
+        if (rewards) {
+            return res.status(200).json({ Status: "OK", data: rewards.data })
+        } else {
+            return res.status(200).json({ Status: "BAD" })
+        }
+    } catch (error) {
+        console.error("Payment Error:", error);
+        return res.status(500).json({ status: "ERROR", message: "Payment failed" });
+    }
+})
+
+
+
+
+
+
+
+app.post("/razorpay", async (req, res) => {
+    const { action, amount, currency, razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+    if (action === "create-order") {
+
+        console.log(action, amount, currency, razorpay_order_id, razorpay_payment_id, razorpay_signature)
+        try {
+            const options = {
+                amount: amount * 100,
+                currency: currency || "INR",
+                receipt: `rcpt_${Date.now()}`,
+            };
+
+            const order = await razorpay.orders.create(options);
+            return res.json({ success: true, order });
+        } catch (err) {
+            console.error("Order Create Error:", err);
+            return res.status(500).json({ success: false, error: "Failed to create order" });
+        }
+    }
+
+    if (action === "verify-payment") {
+        const expectedSignature = crypto
+            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+            .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+            .digest("hex");
+
+        if (expectedSignature === razorpay_signature) {
+            return res.json({ success: true, message: "Payment Verified" });
+        } else {
+            try {
+                const refund = await razorpay.payments.refund(razorpay_payment_id, {
+                    speed: "optimum",
+                    notes: { reason: "Signature verification failed" },
+                });
+
+                return res.status(400).json({
+                    success: false,
+                    message: "Signature verification failed. Refund initiated.",
+                    refund,
+                });
+            } catch (refundErr) {
+                console.error("Refund Error:", refundErr);
+                return res.status(500).json({
+                    success: false,
+                    message: "Refund failed after signature mismatch",
+                    error: refundErr.message,
+                });
+            }
+        }
+    }
+
+    res.status(400).json({ success: false, message: "Invalid action" });
+});
+
+
+
+
+app.post("/refund/data/and/add/to/users", adminMidleware, async (req, res) => {
+    const { id, text, ex_seconds } = req.body;
+
+    try {
+        const data = await ReportSecondModule.findById(id);
+        if (!data) {
+            return res.status(200).json({ Status: "BAD" });
+        }
+
+        if (text === "refund") {
+            
+            if(ex_seconds !== "no"){
+                await Seconds_Module.updateOne(
+                    {
+                        category: data.cat,
+                        Tough: data.tough,
+                        "seconds.user": data.user
+                    },
+                    {
+                        $set: { "seconds.$.seconds": ex_seconds } // update that user's seconds
+                    }
+                );
+            }
+            
+            data.text = "refund";
+            await data.save();
+        
+            // Fetch fee and balance with await
+            const fees = await Rupeemodule.findOne({ username: "admin" });
+            const bal = await Balancemodule.findOne({ user: data.user });
+
+            if (!fees || !bal) {
+                return res.status(404).json({ Status: "ERROR", message: "Fee or balance not found" });
+            }
+
+            const new_bal = parseInt(fees.rupee) + parseInt(bal.balance);
+            bal.balance = new_bal;
+            await bal.save();
+
+            return res.status(200).json({ Status: "OK" });
+        }
+        
+        else {
+            data.text = "non-refund";
+            await data.save();
+            return res.status(200).json({ Status: "OK" });
+        }
+
+    } catch (error) {
+        console.error("Payment Error:", error);
+        return res.status(500).json({ status: "ERROR", message: "Payment failed" });
+    }
+});
+
+
+// app.post("/new/sec/to/user/data/id", adminMiddleware, async (req, res) =>{
+//     try{
+//         const updated_sec = await Seconds_Module.updateOne(
+//             {
+//                 category: Qno.sub_lang,
+//                 Tough: Qno.tough,
+//                 "seconds.user": user
+//             },
+//             {
+//                 $set: { "seconds.$.seconds": newSecondsValue } // update that user's seconds
+//             }
+//         );
+
+//     }catch (error) {
+//         console.error("Payment Error:", error);
+//         return res.status(500).json({ status: "ERROR", message: "Payment failed" });
+//     }
+// })
+
+
+
+const refer_and_earn_Schema = new mongoose.Schema({
+    Time: String,
+    my_referd : [
+        {
+            user : String,
+            d_id : String
+        }
+    ],
+    referd_user_d_id : String,
+    ac_crt : { type: String, default: "No" },
+    ac_deb : { type: String, default: "No" },
+    user: { type: String, unique: true }, // Unique constraint
+}, { timestamps: true });
+
+const referandearnModule = mongoose.model('refer_and_earn', refer_and_earn_Schema);
+
+app.post("/refer/and/earn", async (req, res) => {
+    const { user, referd_user_d_id, referd } = req.body;
+
+    try {
+        const newRefer = new referandearnModule({
+            Time: new Date().toISOString(),
+            my_referd: [{
+                user: referd.user,
+                d_id: referd.d_id
+            }],
+            referd_user_d_id,
+            user
+        });
+
+        await newRefer.save();
+        return res.status(201).json({ status: "OK", message: "Referral created successfully" });
+    } catch (error) {
+        console.error("Referral Error:", error);
+        return res.status(500).json({ status: "ERROR", message: "Failed to create referral" });
+    }
+});
 
 
 process.on('uncaughtException', (err) => {
     console.error('Uncaught Exception:', err);
 });
 
+
 process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection:', reason);
 });
+
 
