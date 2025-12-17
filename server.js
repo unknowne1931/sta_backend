@@ -3409,7 +3409,7 @@ app.get("/get/data/ticket/:user",authMiddleware, async (req, res) =>{
         const data = await ReportSecondModule.find(user)
 
         if(data){
-            return res.status(200).json({data})
+            return res.status(200).json({data : data.reverse()})
         }else{
             return res.status(200).json({Status : "BAD"})
         }
