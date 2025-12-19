@@ -13,7 +13,7 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            const socket = io("https://kalanirdhari.in:3000");
+            const socket = io("http://localhost:3000");
 
             socket.on('message', (data) => {
                 let li = document.createElement("li");
