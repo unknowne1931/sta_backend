@@ -1457,8 +1457,8 @@ app.post('/get/balance/new/data', authMiddleware, async (req, res) => {
 
 
 
-app.get("/get/acount/balence/:user", authMiddleware, async (req, res) => {
-    const user = req.params.user;
+app.get("/get/acount/balence", authMiddleware, async (req, res) => {
+    const user = req.user;
 
     try {
 
@@ -1493,8 +1493,8 @@ const HistorySchema = new mongoose.Schema({
 const Historymodule = mongoose.model('History', HistorySchema);
 
 
-app.get('/update/data/:user', async (req, res) => {
-    const user = req.params.user;
+app.get('/update/data', authMiddleware,async (req, res) => {
+    const user = req.user;
     try {
         if (!user) return res.status(400).json({ Status: "NO", message: "Some Data Missing" })
 
@@ -1555,8 +1555,8 @@ app.post("/bank/upi/data/collect", authMiddleware, async (req, res) => {
 })
 
 
-app.get("/get/bank/account/data/:user", authMiddleware, async (req, res) => {
-    const user = req.params.user;
+app.get("/get/bank/account/data", authMiddleware, async (req, res) => {
+    const user = req.user;
     try {
         if (!user) return res.status(400).json({ Status: "NO", message: "Some Data Missing" })
 
@@ -1709,8 +1709,8 @@ app.post('/get/my/conis/get', authMiddleware, async (req, res) => {
 
 
 
-app.get('/get/coins/data/by/id/:user', authMiddleware, async (req, res) => {
-    const user = req.params.user;
+app.get('/get/coins/data/by/id', authMiddleware, async (req, res) => {
+    const user = req.user;
     try {
         if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
 
@@ -1728,8 +1728,8 @@ app.get('/get/coins/data/by/id/:user', authMiddleware, async (req, res) => {
 })
 
 
-app.get('/get/coins/data/length/to/app/:user', authMiddleware, async (req, res) => {
-    const user = req.params.user;
+app.get('/get/coins/data/length/to/app', authMiddleware, async (req, res) => {
+    const user = req.user;
 
     try {
         if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
@@ -1756,8 +1756,8 @@ const StarBalSchema = new mongoose.Schema({
 
 const StarBalmodule = mongoose.model('Star_Bal', StarBalSchema);
 
-app.get('/get/stars/balance/:user', authMiddleware, async (req, res) => {
-    const user = req.params.user;
+app.get('/get/stars/balance', authMiddleware, async (req, res) => {
+    const user = req.user;
     try {
         if (!user) return res.status(200).json({ Status: "BAD", message: "Some Data Missing" })
 
@@ -1866,8 +1866,8 @@ app.post('/claim/reqst/coins/admin', authMiddleware, async (req, res) => {
 })
 
 
-app.get("/get/requested/coins/by/:user", authMiddleware, async (req, res) => {
-    const user = req.params.user
+app.get("/get/requested/coins/by", authMiddleware, async (req, res) => {
+    const user = req.user
 
     try {
         if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
@@ -1979,8 +1979,8 @@ app.get('/get/claimed/from/pending/coins', async (req, res) => {
 })
 
 
-app.get('/get/claimed/from/pending/coins/:user', authMiddleware, async (req, res) => {
-    const user = req.params.user;
+app.get('/get/claimed/from/pending/coins', authMiddleware, async (req, res) => {
+    const user = req.user;
     try {
         if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" });
 
@@ -2000,8 +2000,8 @@ app.get('/get/claimed/from/pending/coins/:user', authMiddleware, async (req, res
 
 
 
-app.get('/get/claimed/from/pending/coins/app/:user', authMiddleware, async (req, res) => {
-    const user = req.params.user;
+app.get('/get/claimed/from/pending/coins/app', authMiddleware, async (req, res) => {
+    const user = req.user;
 
     try {
         if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
@@ -2033,8 +2033,8 @@ const PendingNotiSchema = new mongoose.Schema({
 
 const PendingNotimodule = mongoose.model('Pending_Noti', PendingNotiSchema);
 
-app.get('/get/pending/notification/:user', authMiddleware, async (req, res) => {
-    const user = req.params.user;
+app.get('/get/pending/notification', authMiddleware, async (req, res) => {
+    const user = req.user;
     try {
         if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
 
@@ -3400,9 +3400,9 @@ app.post("/get/id/to/update/seonds", authMiddleware, async (req, res) => {
 });
 
 
-app.get("/get/data/ticket/:user",authMiddleware, async (req, res) =>{
+app.get("/get/data/ticket",authMiddleware, async (req, res) =>{
     
-    const { user } = req.params.user;
+    const user = req.user;
 
     try{
 
@@ -3630,8 +3630,8 @@ app.get("/get/all/tickets/data/admin", adminMiddleware, async (req, res) =>{
 
 
 
-app.delete("/delete/by/user/id/for/valid/data/:user", async (req, res) => {
-    const user = req.params.user;
+app.delete("/delete/by/user/id/for/valid/data", authMiddleware, async (req, res) => {
+    const user = req.user;
 
     try {
         if (!user) return res.status(400).json({ Status: 400, message: "Some Data Missing" })
@@ -3808,8 +3808,8 @@ app.post("/get/posted/count/questions", async (req, res) => {
 // });
 
 
-app.get("/get/question/no/by/user/name/:user", authMiddleware, async (req, res) => {
-    const user = req.params.user;
+app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
+    const user = req.user;
     try {
 
         if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
@@ -4077,6 +4077,7 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
 
         } else {
             await Answer_Verify.updateOne({ $push: { no: user } })
+            //make this if answer is false make verified is fale or no to throught the user out from playing
             return res.status(200).json({ Status: "BAD" })
 
         }
@@ -4635,8 +4636,8 @@ app.get("/get/language/datas/all/get/:user", async (req, res) => {
 
 
 
-app.delete('/get/language/datas/all/get/and/delete/:user', async (req, res) => {
-    const user = req.params.user;
+app.delete('/get/language/datas/all/get/and/delete', authMiddleware , async (req, res) => {
+    const user = req.user;
     try {
         if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
 
@@ -4689,8 +4690,8 @@ app.delete('/delete/unwanted/questions/:id', async (req, res) => {
     }
 })
 
-app.get('/get/languages/data/with/questions/:user', async (req, res) => {
-    const user = req.params.user;
+app.get('/get/languages/data/with/questions', authMiddleware, async (req, res) => {
+    const user = req.user;
     try {
 
         if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
@@ -7668,6 +7669,14 @@ app.post("/refer/and/earn", async (req, res) => {
     }
 });
 
+app.get("/print/user/data", authMiddleware ,async(req, res)=>{
+    try{
+        console.log(req.user)        
+    }catch (error) {
+        console.error("Referral Error:", error);
+        return res.status(500).json({ status: "ERROR", message: "Failed to create referral" });
+    }
+})
 
 process.on('uncaughtException', (err) => {
     console.error('Uncaught Exception:', err);
