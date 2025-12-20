@@ -392,7 +392,6 @@ app.post('/post/google/login', async (req, res) => {
 
 
 
-
 app.post('/get/all/users/data/otp/to/verify', async (req, res) => {
     const { OTP, username } = req.body;
 
@@ -408,10 +407,11 @@ app.post('/get/all/users/data/otp/to/verify', async (req, res) => {
             // Update the user's valid status in the main user module
             const mainUser = await Usermodule.findOne({ username });
             if (mainUser) {
+                
                 mainUser.valid = "yes";
                 await mainUser.save();
-            }
 
+            }
             // Delete the OTP record
 
             await find_user.deleteOne();
@@ -670,15 +670,6 @@ app.post("/logout/data/app", async (req, res) => {
         return res.status(500).json({ message: "Internal Server Error" });
     }
 })
-
-
-
-
-
-
-
-
-
 
 
 
