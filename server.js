@@ -2876,25 +2876,25 @@ app.post("/get/id/to/update/seonds", authMiddleware, async (req, res) => {
 });
 
 
-app.get("/get/data/ticket",authMiddleware, async (req, res) =>{
-    
-    const user = req.user;
+app.get("/get/data/ticket", authMiddleware, async (req, res) => {
+    try {
+        const userId = req.user._id; // ಅಥವಾ req.user.id — ನಿನ್ನ middleware ಮೇಲೆ depend ಆಗಿರುತ್ತೆ
 
-    try{
+        const data = await ReportSecondModule.find({ userId }); 
+        // find({ userId: userId }) same
 
-        const data = await ReportSecondModule.find(user)
-
-        if(data){
-            return res.status(200).json({data : data.reverse()})
-        }else{
-            return res.status(200).json({Status : "BAD"})
+        if (data && data.length > 0) {
+            return res.status(200).json({ data: data.reverse() });
+        } else {
+            return res.status(404).json({ status: "NO_DATA_FOUND" });
         }
 
-    }catch (error) {
-        console.error(error);
+    } catch (error) {
+        console.error("Error fetching ticket data:", error);
         return res.status(500).json({ message: "Internal Server Error" });
     }
-})
+});
+
 
 app.get("/get/all/tickets/data/admin", adminMiddleware, async (req, res) =>{
     try{
