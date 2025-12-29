@@ -2298,8 +2298,8 @@ const QuestionListmodule = mongoose.model('Question_List', QuestionListSchema);
 
 // });
 
-app.post('/start/playing/by/debit/amount', async (req, res) => {
-    const { user } = req.body;
+app.post('/start/playing/by/debit/amount', authMiddleware,  async (req, res) => {
+    const user = req.user;
     if (!user) return res.status(400).json({ Status: "s_m", message: "Some Data Missing" });
 
     try {
@@ -2558,7 +2558,7 @@ app.post('/start/playing/by/debit/amount', async (req, res) => {
 
 
 //live server
-app.post('/start/playing/by/debit/amount/try', async (req, res) => {
+app.post('/start/playing/by/debit/amount/try', authMiddleware, async (req, res) => {
     const { user } = req.body;
 
     if (!user) {
@@ -3389,11 +3389,23 @@ const Seconds_cal_Schema = new mongoose.Schema({
 const Seconds_Module = mongoose.model('Seconds_cal', Seconds_cal_Schema);
 
 
+const module_analysis_Schema = new mongoose.Schema({
+    sub_lang : String,
+    tough : String,
+    yes : [],
+    no : []
+}, { timestamps: true });
+
+const module_analysis_module = mongoose.model('most_answerd_module', module_analysis_Schema);
+
+
+
 app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
-    const { answer, user, id, seconds, Ans } = req.body;
+    const { answer, id, seconds, Ans } = req.body;
     
     try {
 
+        const user = req.user
 
 
         if (!answer && !user && !id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
@@ -3428,6 +3440,14 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
 
         if (check_ans) {
             const get_t_data = await Seconds_Module.findOne({category : Answer_Verify.sub_lang, Tough : Answer_Verify.tough})
+
+            const check_anyl_modl = await module_analysis_module.findOne({sub_lang : Answer_Verify.sub_lang, tough : Answer_Verify.tough})
+
+            if(check_anyl_modl){
+                await check_anyl_modl.updateOne({$push : {yes : user}})
+            }else{
+                await module_analysis_module.create({sub_lang : Answer_Verify.sub_lang, tough : Answer_Verify.tough, yes : [user], no : [] })
+            }
             
             if(get_t_data){
 
@@ -3554,6 +3574,27 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
         } else {
             await Answer_Verify.updateOne({ $push: { no: user } })
             //make this if answer is false make verified is fale or no to throught the user out from playing
+
+            const data = await StartValidmodule.findOne({ user });
+
+            if (data) {
+                data.valid = "no";
+                await data.save();
+            } else {
+                await StartValidmodule.create({ Time, user, valid: "no" });
+            }
+
+            const check_anyl_modl = await module_analysis_module.findOne({sub_lang : Answer_Verify.sub_lang, tough : Answer_Verify.tough})
+
+            if(check_anyl_modl){
+                await check_anyl_modl.updateOne({$push : {no : user}})
+            }else{
+                await module_analysis_module.create({sub_lang : Answer_Verify.sub_lang, tough : Answer_Verify.tough, yes : [], no : [user] })
+            }
+
+
+
+
             return res.status(200).json({ Status: "BAD" })
 
         }
