@@ -1,26 +1,28 @@
 //Main server file
+// Main server file (ESM imports)
 
-const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
-const jwt = require("jsonwebtoken");
-const multer = require('multer');
-const path = require('path');
-const nodemailer = require('nodemailer');
-const { hash } = require('crypto');
-const authMiddleware = require('./module/authmidle');
-const adminMidleware = require('./module/adminMidle');
-const adminMiddleware = require('./module/adminMidle');
-const { type } = require('os');
-const fs = require('fs')
-const https = require('https');
-const Razorpay = require("razorpay");
-const users_admin_Middle = require('./module/admin_users_Midle');
-// const admin = require("firebase-admin");
-// ✅ Correct import
-const crypto = require("crypto");
+import express from 'express';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import multer from 'multer';
+import path from 'path';
+import nodemailer from 'nodemailer';
+import { hash } from 'crypto';
+import authMiddleware from './module/authmidle.js';
+import adminMidleware from './module/adminMidle.js';
+import adminMiddleware from './module/adminMidle.js';
+import { type } from 'os';
+import fs from 'fs';
+import https from 'https';
+import Razorpay from 'razorpay';
+import users_admin_Middle from './module/admin_users_Midle.js';
+import crypto from 'crypto';
+import { MongoClient } from "mongodb";
+
+
 
 
 
@@ -196,6 +198,19 @@ mongoose.connect(mongoURI,)
 
 
 
+const client = new MongoClient(mongoURI);
+
+let users_db;
+
+async function run() {
+    await client.connect();
+    const db = client.db("test");
+    users_db = db.collection("most_answerd_modules");
+}
+
+run().catch(console.error)
+
+
 const generateOTP = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
 };
@@ -214,6 +229,24 @@ const generateOTP = () => {
 // httpsServer.listen(443);
 
 //https end
+
+
+export async function get_per(sub_lang, tough) {
+    try {
+        const data = await users_db.findOne({ sub_lang: sub_lang, tough: tough });
+        if (data) {
+            const total = data.yes.length + data.no.length;
+            const per = (data.yes.length / total) * 100;
+            return per;
+        } else {
+            return 0;
+        }
+
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
+    }
+}
+
 
 app.get('/', (req, res) => {
     res.send('Hello, world Vs : 1.3.3 ; Last Updated : 16-08-2025 ; Type : Live');
@@ -2304,7 +2337,7 @@ app.post('/start/playing/by/debit/amount', authMiddleware,  async (req, res) => 
 
     try {
 
-        const status = await Start_StopModule.findOne({ user: "kick" });
+        const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
         
         if (status?.Status === "off") {
             return res.status(200).json({ Status: "Time", message: status.text });
@@ -2312,9 +2345,9 @@ app.post('/start/playing/by/debit/amount', authMiddleware,  async (req, res) => 
 
 
 
-        const lang_data = await LanguageSelectModule.findOne({ user }).lean();
-        const balance = await Balancemodule.findOne({ user });
-        const fees = await Rupeemodule.findOne({ username: "admin" }).lean();
+        const lang_data = await LanguageSelectModule.findOne({ user }).lean(); 
+        const balance = await Balancemodule.findOne({ user }); // ac balance
+        const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
 
         if (!lang_data || !lang_data.lang) throw new Error("No language data found");
 
@@ -2555,6 +2588,172 @@ app.post('/start/playing/by/debit/amount', authMiddleware,  async (req, res) => 
         return res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 });
+
+
+//new version
+app.post('/start/playing/by/debit/amount/new', authMiddleware,  async (req, res) => {
+    const user = req.user;
+    if (!user) return res.status(400).json({ Status: "s_m", message: "Some Data Missing" });
+
+    try {
+
+        const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
+        
+        if (status?.Status === "off") {
+            return res.status(200).json({ Status: "Time", message: status.text });
+        }
+
+
+
+        const lang_data = await LanguageSelectModule.findOne({ user }).lean(); 
+        const balance = await Balancemodule.findOne({ user }); // ac balance
+        const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
+
+        if (!lang_data || !lang_data.lang) throw new Error("No language data found");
+
+        if (!balance) return res.status(200).json({ Status: "no_us" });
+
+        const balanceNum = parseInt(balance.balance);
+        const feesNum = parseInt(fees.rupee);
+
+        if (balanceNum < feesNum) {
+            return res.status(200).json({ Status: "Low-Bal" });
+        }
+
+        const [won_data, total_play] = await Promise.all([
+            Wonmodule.countDocuments({ user }),
+            Totalusermodule.countDocuments({ user }),
+        ]);
+
+        const get_per = (won_data / (total_play || 1)) * 100;
+
+        function getDifficultyDistribution(winPercent) {
+    
+            if (winPercent <= 0) {
+                return ["Too Easy", "Too Easy", "Easy", "Easy", "Easy", "Easy", "Easy", "Easy", "Tough", "Too Easy"];
+            
+            } else if (winPercent > 0 && winPercent < 20) {
+                return ["Easy", "Easy", "Easy", "Medium", "Medium", "Medium", "Tough", "Tough", "Too Tough", "Too Tough"];
+
+            } else if (winPercent >= 20 && winPercent < 40) {
+                return ["Medium", "Medium", "Medium", "Medium", "Tough", "Tough", "Tough", "Too Tough", "Too Tough", "Too Tough"];
+
+            } else if (winPercent >= 40 && winPercent < 60) {
+                return ["Tough", "Tough", "Tough", "Tough", "Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough"];
+
+            } else {
+                return ["Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough",
+                        "Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough"];
+            }
+        }
+
+        const Time = new Date().toISOString();
+        let create_data = await QuestionListmodule.findOne({ user });
+
+        const docs = await QuestionModule.find({ user }).select("_id");
+        const ids = docs.map(d => d._id);
+
+        await QuestionModule.deleteMany({ _id: { $in: ids } });
+
+
+
+        const dif = getDifficultyDistribution(get_per)
+
+        if (!create_data) {
+            create_data = await QuestionListmodule.create({
+                user,
+                Time,
+                lang: lang_data.lang[0],
+                list: [dif],
+                oldlist: [dif],
+            });
+        }
+
+
+        await Promise.all([
+
+            StartValidmodule.create({ Time, user, valid: "yes" }),
+            Totalusermodule.create({ Time, user }),
+            Historymodule.create({ Time, user, rupee: fees.rupee, type: "Debited", tp: "Rupee" }),
+            QuestionListmodule.updateOne(
+                { _id: create_data._id },
+                {
+                    $set: { list: dif },
+                    $push: { oldlist: dif },
+                }
+            )
+        ]);
+
+
+        // const _to_str_up_rp = balanceNum - feesNum
+
+        const _dec_bal = await Balancemodule.findOne({ user });
+
+        if (_dec_bal) {
+            const currentBal = parseInt(_dec_bal.balance);
+            const updatedBal = currentBal - feesNum;
+
+            _dec_bal.balance = updatedBal.toString(); // ✅ convert number to string
+            await _dec_bal.save();
+        }
+
+
+
+
+        
+
+
+
+        // ✅ Convert updated balance back to string
+        const updatedBal = await Balancemodule.findOne({ user });
+
+        if (typeof updatedBal.balance === "number") {
+            await Balancemodule.updateOne(
+                { user },
+                { $set: { balance: updatedBal.balance.toString() } }
+            );
+        }
+
+        dif.filter((data, i) =>{
+            console.log(`${i} : ${data}`)
+        })
+
+
+        const newListData = await QuestionListmodule.findOne({ user }).lean();
+        if (newListData?.list?.length < 10) {
+            console.log("amount credited")
+            const bal_dt = await Balancemodule.findOne({user : user})
+            const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
+            bal_dt.balance = lat.toString()
+            await bal_dt.save()       
+            resetResult = "BAD";
+            console.log("BAD")
+            return res.status(200).json({Status : "BAD_CR"})
+        
+        }
+
+        console.log("✅ Finished successfully");
+        return res.status(200).json({ Status: "OK" });
+
+    } catch (error) {
+        console.error("❌ Main Catch Error:", error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+});
+
+
+
+
+app.get("/triallll/go/first", async (req, res) =>{
+    try{
+        const user = "686dfffb45b524709b831957";
+        return res.status(200).json({"Good" : "hiii"})
+    }catch (error) {
+        console.error("❌ Main Catch Error:", error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+})
+
 
 
 //live server
@@ -3555,7 +3754,6 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
                         // await StarBalmodule.create({Time, user : user, balance : get_count_data.stars});
                         // await Historymodule.create({Time, user, rupee : get_count_data.stars, type : "Credited", tp : "Stars"});
                         // return res.status(200).json({Status : "STARS", stars : get_count_data.stars});
-
 
                     }
 

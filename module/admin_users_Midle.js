@@ -1,4 +1,4 @@
-const jwt = require('jsonwebtoken');
+import jwt from 'jsonwebtoken';
 
 const users_admin_Middle = (req, res, next) => {
   const token = req.header('Authorization')?.split(' ')[1];
@@ -20,4 +20,4 @@ const users_admin_Middle = (req, res, next) => {
   }
 };
 
-module.exports = users_admin_Middle;
+export default users_admin_Middle;
