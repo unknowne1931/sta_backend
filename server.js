@@ -21,6 +21,12 @@ import Razorpay from 'razorpay';
 import users_admin_Middle from './module/admin_users_Midle.js';
 import crypto from 'crypto';
 import { MongoClient } from "mongodb";
+import { getDifficultiesByPer,
+    generateBoxesData,
+    generateOptions,
+    drawImage,
+    uploadImage,
+    pickValidShape } from './ai/one.js';
 
 
 
@@ -2716,6 +2722,7 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware,  async (req, res)
 
         dif.filter((data, i) =>{
             console.log(`${i} : ${data}`)
+            One(data)
         })
 
 
@@ -7385,14 +7392,63 @@ app.post("/refer/and/earn", async (req, res) => {
     }
 });
 
-app.get("/print/user/data", authMiddleware ,async(req, res)=>{
-    try{
-        console.log(req.user)        
-    }catch (error) {
-        console.error("Referral Error:", error);
-        return res.status(500).json({ status: "ERROR", message: "Failed to create referral" });
+
+async function One(level) {
+    try {
+        const per = await get_per("star_cir_tri", level);
+        const DIFFICULTIES = getDifficultiesByPer(per);
+
+        const difficulty = DIFFICULTIES[level];
+
+        const boxes = generateBoxesData(difficulty);
+
+        let question, correct;
+        // 30% chance to ask total boxes
+        // 30% chance to ask total boxes
+        if (Math.random() < 0.3) {
+            const completeBoxes = boxes.filter(b => b.complete); // only complete boxes
+            question = "How many boxes are there in total?";
+            correct = completeBoxes.length;
+        } else {
+            // Normal shape question, only complete boxes count
+            const target = pickValidShape(boxes);
+            if (!target) return res.json({ error: "No valid question this round" });
+            correct = boxes.filter(b => b.shape === target && b.complete).length;
+            question = `How many boxes have ${target}s?`;
+        }
+
+        // options
+        const options = generateOptions(correct);
+
+        // upload image
+        const imageBuf = drawImage(boxes);
+        const upload = await uploadImage(imageBuf);
+
+        // respond
+        // res.json({
+        //     difficulty: level,
+        //     question,
+        //     correctAnswer: correct,
+        //     options,
+        //     sub_lang: "star_cir_tri",
+        //     per,
+        //     totalBoxes: boxes.filter(b => b.complete).length, // only complete boxes
+        //     imagePath: upload.image
+        // });
+
+        console.log(question)
+
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
-})
+}
+
+
+
+
+
+
 
 process.on('uncaughtException', (err) => {
     console.error('Uncaught Exception:', err);
