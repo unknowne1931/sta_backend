@@ -21,12 +21,22 @@ import Razorpay from 'razorpay';
 import users_admin_Middle from './module/admin_users_Midle.js';
 import crypto from 'crypto';
 import { MongoClient } from "mongodb";
-import { getDifficultiesByPer,
+import {
+    getDifficultiesByPer,
     generateBoxesData,
     generateOptions,
     drawImage,
     uploadImage,
-    pickValidShape } from './ai/one.js';
+    pickValidShape
+} from './ai/one.js';
+
+import { generateArrows, drawArrowsImage, uploadImage1, generateMCQOptions, DIRECTIONS } from "./ai/two.js"
+import { fromJSON } from 'postcss';
+import { generatePlusQuestionImage } from "./ai/three.js"
+import { generateData, renderImageBase64 } from "./ai/four.js"
+import { generateData1, renderImageBase641 } from "./ai/five.js"
+import { createChallenge, uploadBase64 } from "./ai/six.js";
+import {createAdvancedNumberMCQ} from "./ai/seven.js";
 
 
 
@@ -117,14 +127,14 @@ app.post(
 
             const cred_to = await referandearnModule.findOne({ user: user });
 
-            if(cred_to && cred_to.ac_deb !== "Yes" && rp_i > 20){
+            if (cred_to && cred_to.ac_deb !== "Yes" && rp_i >= 20) {
                 const get_referd_user = await Balancemodule.findOne({ user: cred_to.referd_user_d_id });
                 const new_bal = parseInt(get_referd_user.balance) + 40;
                 get_referd_user.balance = new_bal;
                 await get_referd_user.save();
                 await Historymodule.create({
                     Time: new Date().toISOString(),
-                    user : cred_to.referd_user_d_id,
+                    user: cred_to.referd_user_d_id,
                     rupee: "40",
                     type: "Credited",
                     tp: "Rupee",
@@ -446,7 +456,7 @@ app.post('/get/all/users/data/otp/to/verify', async (req, res) => {
             // Update the user's valid status in the main user module
             const mainUser = await Usermodule.findOne({ username });
             if (mainUser) {
-                
+
                 mainUser.valid = "yes";
                 await mainUser.save();
 
@@ -914,13 +924,13 @@ app.post('/login/data/app', async (req, res) => {
 
 
 app.post('/get/balance/new/data', authMiddleware, async (req, res) => {
-    const { user, val_cm , refer_ui} = req.body;
+    const { user, val_cm, refer_ui } = req.body;
 
     try {
 
         if (!user) return res.status(400).json({ message: "Some Data missing" })
 
-        if(val_cm !== "" && refer_ui !== ""){
+        if (val_cm !== "" && refer_ui !== "") {
             const data_bal = await Balancemodule.findOne({ user: refer_ui }).lean();
             if (!data_bal) return res.status(200).json({ Status: "BAD_REF" });
         }
@@ -928,13 +938,13 @@ app.post('/get/balance/new/data', authMiddleware, async (req, res) => {
 
         const data = await Balancemodule.findOne({ user: user })
         if (!data) {
-        
+
             await Balancemodule.create({ user, Time, balance: "10", last_tr_id: user });
             await Historymodule.create({ Time, user, rupee: "10", type: "Credited", tp: "Rupee" });
             const data1 = StarBalmodule.findOne({ user }).lean()
             if (data1) {
                 const add_ref_bal = await Balancemodule.findOne({ user: refer_ui })
-                if(val_cm !== "782egs"){
+                if (val_cm !== "782egs") {
                     return res.status(200).json({ Status: "OK" });
                 }
                 const sum_ref = parseInt(add_ref_bal.balance) + 10
@@ -942,15 +952,15 @@ app.post('/get/balance/new/data', authMiddleware, async (req, res) => {
 
                 const rfr_vrify = await referandearnModule.findOne({ user }).lean();
 
-                if(!rfr_vrify){
+                if (!rfr_vrify) {
                     await referandearnModule.create({
-                    Time,
-                    my_referd: [],
-                    referd_user_d_id: refer_ui,
-                    ac_crt: "Yes",
-                    ac_deb: "No",
-                    user,
-                })
+                        Time,
+                        my_referd: [],
+                        referd_user_d_id: refer_ui,
+                        ac_crt: "Yes",
+                        ac_deb: "No",
+                        user,
+                    })
                 }
 
                 await Historymodule.create({ Time, user: refer_ui, rupee: "10", type: "Credited", tp: "Rupee" });
@@ -1008,7 +1018,7 @@ const HistorySchema = new mongoose.Schema({
 const Historymodule = mongoose.model('History', HistorySchema);
 
 
-app.get('/update/data', authMiddleware,async (req, res) => {
+app.get('/update/data', authMiddleware, async (req, res) => {
     const user = req.user;
     try {
         if (!user) return res.status(400).json({ Status: "NO", message: "Some Data Missing" })
@@ -1910,23 +1920,20 @@ const StartValidmodule = mongoose.model('Start_Valid', StartValidSchema);
 
 const ReportSchema = new mongoose.Schema({
 
-    Time : String,
-    user : String,
-    qst : String,
+    Time: String,
+    user: String,
+    qst: String,
     ans: String,
-    a: String,
-    b: String,
-    c: String,
-    d: String,
+    options: [],
     seconds: String,
     img: String,
-    usa : String,
-    vr : Boolean,
-    msg : String,
-    text : String,
-    exp_sec : String,
-    cat : String,
-    tough : String
+    usa: String,
+    vr: Boolean,
+    msg: String,
+    text: String,
+    exp_sec: String,
+    cat: String,
+    tough: String
 
 }, { timestamps: true });
 
@@ -2337,21 +2344,21 @@ const QuestionListmodule = mongoose.model('Question_List', QuestionListSchema);
 
 // });
 
-app.post('/start/playing/by/debit/amount', authMiddleware,  async (req, res) => {
+app.post('/start/playing/by/debit/amount', authMiddleware, async (req, res) => {
     const user = req.user;
     if (!user) return res.status(400).json({ Status: "s_m", message: "Some Data Missing" });
 
     try {
 
         const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
-        
+
         if (status?.Status === "off") {
             return res.status(200).json({ Status: "Time", message: status.text });
         }
 
 
 
-        const lang_data = await LanguageSelectModule.findOne({ user }).lean(); 
+        const lang_data = await LanguageSelectModule.findOne({ user }).lean();
         const balance = await Balancemodule.findOne({ user }); // ac balance
         const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
 
@@ -2485,28 +2492,28 @@ app.post('/start/playing/by/debit/amount', authMiddleware,  async (req, res) => 
                         // const newListData = await QuestionListmodule.findOne({ user }).lean();
                         // console.log(newListData.list)
                         // if (newListData?.list?.length < 10) {
-                            
+
                         //     const bal_dt = await Balancemodule.findOne({user : user})
                         //     const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
                         //     bal_dt.balance = lat.toString()
                         //     await bal_dt.save()       
                         //     resetResult = "BAD";
                         //     return "bad"
-                        
+
                         // }
                     };
 
                     if (get_per <= 0) {
                         console.log("Too Easy")
                         const wt = await resetListAndPush("Too Easy");
-                        if(wt === "bad"){
-                            return res.status(200).json({Status : "BAD"})
+                        if (wt === "bad") {
+                            return res.status(200).json({ Status: "BAD" })
                         }
 
                     } else if (get_per >= 60) {
                         console.log("Medium")
                         await resetListAndPush("Medium");
-                        return res.status(200).json({Status : "BAD"})
+                        return res.status(200).json({ Status: "BAD" })
                     }
 
 
@@ -2551,7 +2558,7 @@ app.post('/start/playing/by/debit/amount', authMiddleware,  async (req, res) => 
                         //     resetResult = "BAD";
                         //     console.log("BAD")
                         //     return res.status(200).json({Status : "BAD"})
-                        
+
                         // }
                     };
 
@@ -2576,14 +2583,14 @@ app.post('/start/playing/by/debit/amount', authMiddleware,  async (req, res) => 
         const newListData = await QuestionListmodule.findOne({ user }).lean();
         if (newListData?.list?.length < 10) {
             console.log("amount credited")
-            const bal_dt = await Balancemodule.findOne({user : user})
+            const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
             bal_dt.balance = lat.toString()
-            await bal_dt.save()       
+            await bal_dt.save()
             resetResult = "BAD";
             console.log("BAD")
-            return res.status(200).json({Status : "BAD_CR"})
-        
+            return res.status(200).json({ Status: "BAD_CR" })
+
         }
 
         console.log("✅ Finished successfully");
@@ -2597,21 +2604,21 @@ app.post('/start/playing/by/debit/amount', authMiddleware,  async (req, res) => 
 
 
 //new version
-app.post('/start/playing/by/debit/amount/new', authMiddleware,  async (req, res) => {
+app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) => {
     const user = req.user;
     if (!user) return res.status(400).json({ Status: "s_m", message: "Some Data Missing" });
 
     try {
 
         const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
-        
+
         if (status?.Status === "off") {
             return res.status(200).json({ Status: "Time", message: status.text });
         }
 
 
 
-        const lang_data = await LanguageSelectModule.findOne({ user }).lean(); 
+        const lang_data = await LanguageSelectModule.findOne({ user }).lean();
         const balance = await Balancemodule.findOne({ user }); // ac balance
         const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
 
@@ -2634,10 +2641,10 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware,  async (req, res)
         const get_per = (won_data / (total_play || 1)) * 100;
 
         function getDifficultyDistribution(winPercent) {
-    
+
             if (winPercent <= 0) {
                 return ["Too Easy", "Too Easy", "Easy", "Easy", "Easy", "Easy", "Easy", "Easy", "Tough", "Too Easy"];
-            
+
             } else if (winPercent > 0 && winPercent < 20) {
                 return ["Easy", "Easy", "Easy", "Medium", "Medium", "Medium", "Tough", "Tough", "Too Tough", "Too Tough"];
 
@@ -2649,7 +2656,7 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware,  async (req, res)
 
             } else {
                 return ["Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough",
-                        "Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough"];
+                    "Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough"];
             }
         }
 
@@ -2682,7 +2689,7 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware,  async (req, res)
             Totalusermodule.create({ Time, user }),
             Historymodule.create({ Time, user, rupee: fees.rupee, type: "Debited", tp: "Rupee" }),
             QuestionListmodule.updateOne(
-                { _id: create_data._id },
+                { user : user },
                 {
                     $set: { list: dif },
                     $push: { oldlist: dif },
@@ -2706,7 +2713,7 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware,  async (req, res)
 
 
 
-        
+
 
 
 
@@ -2720,23 +2727,26 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware,  async (req, res)
             );
         }
 
-        dif.filter((data, i) =>{
-            console.log(`${i} : ${data}`)
-            One(data)
-        })
+
+
+        const qst_gen = [One(), Two(), Three(), Four(), Five(), Six(), Seven(), Two(), Three(), Four()];
+
+        dif.filter((data, i) => {
+            qst_gen[i](data, user);   // now this works because qst_gen[i] *is a function*
+        });
 
 
         const newListData = await QuestionListmodule.findOne({ user }).lean();
         if (newListData?.list?.length < 10) {
             console.log("amount credited")
-            const bal_dt = await Balancemodule.findOne({user : user})
+            const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
             bal_dt.balance = lat.toString()
-            await bal_dt.save()       
+            await bal_dt.save()
             resetResult = "BAD";
             console.log("BAD")
-            return res.status(200).json({Status : "BAD_CR"})
-        
+            return res.status(200).json({ Status: "BAD_CR" })
+
         }
 
         console.log("✅ Finished successfully");
@@ -2751,11 +2761,11 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware,  async (req, res)
 
 
 
-app.get("/triallll/go/first", async (req, res) =>{
-    try{
+app.get("/triallll/go/first", async (req, res) => {
+    try {
         const user = "686dfffb45b524709b831957";
-        return res.status(200).json({"Good" : "hiii"})
-    }catch (error) {
+        return res.status(200).json({ "Good": "hiii" })
+    } catch (error) {
         console.error("❌ Main Catch Error:", error);
         return res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
@@ -3045,28 +3055,25 @@ app.post('/start/playing/by/debit/amount/app', async (req, res) => {
 
 
 app.post("/get/id/to/update/seonds", authMiddleware, async (req, res) => {
-    const { id, user, sec, qst, a, b, c, d, img, ans, usa, vr, msg, ex_seconds, cat, tough } = req.body;
+    const { id, sec, qst, options, img, ans, usa, vr, msg, ex_seconds, cat, tough } = req.body;
 
     try {
-       await ReportSecondModule.create({
-                Time, // or your custom time
-                user,
-                qst : qst,
-                ans: ans,
-                a: a,
-                b: b,
-                c: c,
-                d: d,
-                seconds: sec,
-                img: img,
-                usa : usa,
-                vr : vr,
-                msg : msg,
-                text : "pro",
-                exp_sec : ex_seconds, 
-                cat,
-                tough,
-            });
+        await ReportSecondModule.create({
+            Time, // or your custom time
+            user: req.user,
+            qst: qst,
+            ans: ans,
+            options: options,
+            seconds: sec,
+            img: img,
+            usa: usa,
+            vr: vr,
+            msg: msg,
+            text: "pro",
+            exp_sec: ex_seconds,
+            cat,
+            tough,
+        });
 
         console.log("OK Created")
 
@@ -3086,13 +3093,13 @@ app.get("/get/data/ticket", authMiddleware, async (req, res) => {
     try {
         const userId = req.user._id; // ಅಥವಾ req.user.id — ನಿನ್ನ middleware ಮೇಲೆ depend ಆಗಿರುತ್ತೆ
 
-        const data = await ReportSecondModule.find({ userId }); 
+        const data = await ReportSecondModule.find({ userId });
         // find({ userId: userId }) same
 
         if (data && data.length > 0) {
             return res.status(200).json({ data: data.reverse() });
         } else {
-            return res.status(404).json({ status: "NO_DATA_FOUND" });
+            return res.status(200).json({ status: "NO_DATA_FOUND" });
         }
 
     } catch (error) {
@@ -3102,16 +3109,16 @@ app.get("/get/data/ticket", authMiddleware, async (req, res) => {
 });
 
 
-app.get("/get/all/tickets/data/admin", adminMiddleware, async (req, res) =>{
-    try{
+app.get("/get/all/tickets/data/admin", adminMiddleware, async (req, res) => {
+    try {
         const data = await ReportSecondModule.find({})
 
-        if(data){
-            return res.status(200).json({data})
-        }else{
-            return res.status(200).json({Status : "BAD"})
+        if (data) {
+            return res.status(200).json({ data })
+        } else {
+            return res.status(200).json({ Status: "BAD" })
         }
-    }catch (error) {
+    } catch (error) {
         console.error(error);
         return res.status(500).json({ message: "Internal Server Error" });
     }
@@ -3333,7 +3340,7 @@ app.delete("/delete/by/user/id/for/valid/data", authMiddleware, async (req, res)
 })
 
 app.get("/admin/get/all/users/data/logined", adminMiddleware, async (req, res) => {
-    
+
     try {
         // Fetch all records from StartValidmodule
         const records = await StartValidmodule.find({}).lean();
@@ -3373,28 +3380,17 @@ const QnoSchema = new mongoose.Schema({
     user: String,
     img: String,
     Questio: String,
-    qno: String,
-    a: String,
-    b: String,
-    c: String,
-    d: String,
+    options: [],
     Ans: String,
-    lang: String,
-    tough: String,
-    seconds: String,
-    sub_lang: {
-        default: "",
+    lang: {
+        default: "English",
         type: String
     },
-
-    yes: {
-        default: "",
-        type: []
-    },
-    no: {
-        default: "",
-        type: []
-    }
+    tough: String,
+    seconds: String,
+    sub_lang: String,
+    yes: [],
+    no: []
 
 }, { timestamps: true });
 
@@ -3509,7 +3505,7 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                 const QNO = Get_Qno_info.list[0];
 
                 // Find the question in QuestionModule by its number and language
-                const Qno = await QuestionModule.findOne({ qno: QNO, lang: Get_Qno_info.lang }).lean();
+                const Qno = await QuestionModule.findOne({ tough: QNO, lang: Get_Qno_info.lang, user: user });
 
                 const cal_sec = await Seconds_Module.findOne(
                     {
@@ -3528,7 +3524,7 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
 
 
                 if (cal_sec && cal_sec.seconds && cal_sec.seconds.length > 0) {
-                    sec_cal = cal_sec.seconds[0].seconds; // get the actual seconds value for that user
+                    sec_cal = parseInt(cal_sec.seconds[0].seconds) + 5; // get the actual seconds value for that user
                 } else {
                     sec_cal = Qno.seconds; // fallback to default question seconds
                 }
@@ -3541,17 +3537,12 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                         _id: Qno._id,
                         img: Qno.img,
                         Question: Qno.Questio,
-                        Qno: Get_Qno_info.list.length - 1, // Calculates the position of the question
-                        a: Qno.a,
-                        b: Qno.b,
-                        c: Qno.c,
-                        d: Qno.d,
+                        options: Qno.options,
                         seconds: sec_cal,
-                        Ans : Qno.Ans,
-                        cat : Qno.sub_lang,
-                        tough : Qno.tough
+                        Ans: Qno.Ans,
+                        cat: Qno.sub_lang,
+                        tough: Qno.tough
                     };
-                    console.log(data)
 
                     return res.status(200).json({ data });
                 } else {
@@ -3565,7 +3556,7 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
         }
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Internal Server Error" });
+        return res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 });
 
@@ -3582,33 +3573,33 @@ const Wonmodule = mongoose.model('Won', WonSchema);
 const Seconds_cal_Schema = new mongoose.Schema({
     Time: String,
     category: String,
-    Tough : String,
-    seconds : [
+    Tough: String,
+    seconds: [
         {
-            user : String,
-            seconds : String,
+            user: String,
+            seconds: String,
         }
     ],
-    ex_seconds : []
+    ex_seconds: []
 }, { timestamps: true });
 
 const Seconds_Module = mongoose.model('Seconds_cal', Seconds_cal_Schema);
 
 
 const module_analysis_Schema = new mongoose.Schema({
-    sub_lang : String,
-    tough : String,
-    yes : [],
-    no : []
+    sub_lang: String,
+    tough: String,
+    yes: [],
+    no: []
 }, { timestamps: true });
 
 const module_analysis_module = mongoose.model('most_answerd_module', module_analysis_Schema);
 
 
-
+//Before Live Server 31-11-2025
 app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
     const { answer, id, seconds, Ans } = req.body;
-    
+
     try {
 
         const user = req.user
@@ -3622,20 +3613,27 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
         }
 
 
+        // function compareHash(plainText, hash) {
+        //     const plainHash = crypto
+        //         .createHash('sha256')
+        //         .update(plainText)
+        //         .digest('hex');
+
+        //     return plainHash === hash;
+        // }
+
+
         function compareHash(plainText, hash) {
             const plainHash = crypto
-                .createHash('sha256')
-                .update(plainText)
-                .digest('hex');
-            
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(plainText.toString())
+                .digest("hex");
+
             return plainHash === hash;
         }
 
-        
-        const hashedPlain = crypto
-            .createHash('sha256')
-            .update(answer)
-            .digest('hex');
+
+
 
         const check_ans = compareHash(answer, Ans)
 
@@ -3645,21 +3643,21 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
         console.log(check_ans)
 
         if (check_ans) {
-            const get_t_data = await Seconds_Module.findOne({category : Answer_Verify.sub_lang, Tough : Answer_Verify.tough})
+            const get_t_data = await Seconds_Module.findOne({ category: Answer_Verify.sub_lang, Tough: Answer_Verify.tough })
 
-            const check_anyl_modl = await module_analysis_module.findOne({sub_lang : Answer_Verify.sub_lang, tough : Answer_Verify.tough})
+            const check_anyl_modl = await module_analysis_module.findOne({ sub_lang: Answer_Verify.sub_lang, tough: Answer_Verify.tough })
 
-            if(check_anyl_modl){
-                await check_anyl_modl.updateOne({$push : {yes : user}})
-            }else{
-                await module_analysis_module.create({sub_lang : Answer_Verify.sub_lang, tough : Answer_Verify.tough, yes : [user], no : [] })
+            if (check_anyl_modl) {
+                await check_anyl_modl.updateOne({ $push: { yes: user } })
+            } else {
+                await module_analysis_module.create({ sub_lang: Answer_Verify.sub_lang, tough: Answer_Verify.tough, yes: [user], no: [] })
             }
-            
-            if(get_t_data){
+
+            if (get_t_data) {
 
                 const gt_ud = get_t_data.seconds.find(s => s.user === user);
 
-                if(!gt_ud){
+                if (!gt_ud) {
                     await Seconds_Module.updateOne(
                         { category: Answer_Verify.sub_lang, Tough: Answer_Verify.tough }, // match condition
                         {
@@ -3671,28 +3669,33 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
                     );
 
                 }
-                
 
-                
-            }else{
+
+
+            } else {
                 // await Seconds_Module.create({Time, category : Answer_Verify.sub_lang, Tough : Answer_Verify.tough, seconds })
                 await Seconds_Module.create({
-                Time,
-                category : Answer_Verify.sub_lang,
-                Tough : Answer_Verify.tough,
-                seconds : [
-                    {
-                        seconds : seconds,
-                        user : user,
-                    }
-                ],
-                ex_seconds : seconds
+                    Time,
+                    category: Answer_Verify.sub_lang,
+                    Tough: Answer_Verify.tough,
+                    seconds: [
+                        {
+                            seconds: seconds,
+                            user: user,
+                        }
+                    ],
+                    ex_seconds: seconds
 
-            })
+                })
             }
 
             if (User_List.list.length === 1 || User_List.list.length === 0) {
-                await User_List.updateOne({ $pull: { list: User_List.list[0] } })
+                // await User_List.updateOne({ $pull: { list: User_List.list[0] } })
+                await QuestionListmodule.updateOne(
+                    { user },
+                    { $pop: { list: -1 } }   // remove first element
+                );
+
                 const won = await Wonmodule.find({})
                 const CuponDat = await Cuponmodule.findOne({ no: won.length + 1 })
                 if (CuponDat) {
@@ -3769,7 +3772,11 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
 
 
             } else {
-                await User_List.updateOne({ $pull: { list: User_List.list[0] } })
+                // await User_List.updateOne({ $pull: { list: User_List.list[0] } })
+                await QuestionListmodule.updateOne(
+                    { user },
+                    { $pop: { list: -1 } }   // remove first element
+                );
                 //ki1931ck add code here
                 await Answer_Verify.updateOne({ $push: { yes: user } })
                 return res.status(200).json({ Status: "OK" })
@@ -3789,12 +3796,12 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
                 await StartValidmodule.create({ Time, user, valid: "no" });
             }
 
-            const check_anyl_modl = await module_analysis_module.findOne({sub_lang : Answer_Verify.sub_lang, tough : Answer_Verify.tough})
+            const check_anyl_modl = await module_analysis_module.findOne({ sub_lang: Answer_Verify.sub_lang, tough: Answer_Verify.tough })
 
-            if(check_anyl_modl){
-                await check_anyl_modl.updateOne({$push : {no : user}})
-            }else{
-                await module_analysis_module.create({sub_lang : Answer_Verify.sub_lang, tough : Answer_Verify.tough, yes : [], no : [user] })
+            if (check_anyl_modl) {
+                await check_anyl_modl.updateOne({ $push: { no: user } })
+            } else {
+                await module_analysis_module.create({ sub_lang: Answer_Verify.sub_lang, tough: Answer_Verify.tough, yes: [], no: [user] })
             }
 
 
@@ -3809,6 +3816,9 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
         return res.status(500).json({ message: "Internal Server Error" });
     }
 })
+
+
+
 
 
 
@@ -4358,7 +4368,7 @@ app.get("/get/language/datas/all/get/:user", async (req, res) => {
 
 
 
-app.delete('/get/language/datas/all/get/and/delete', authMiddleware , async (req, res) => {
+app.delete('/get/language/datas/all/get/and/delete', authMiddleware, async (req, res) => {
     const user = req.user;
     try {
         if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
@@ -7288,8 +7298,8 @@ app.post("/refund/data/and/add/to/users", adminMidleware, async (req, res) => {
         }
 
         if (text === "refund") {
-            
-            if(ex_seconds !== "no"){
+
+            if (ex_seconds !== "no") {
                 await Seconds_Module.updateOne(
                     {
                         category: data.cat,
@@ -7301,10 +7311,10 @@ app.post("/refund/data/and/add/to/users", adminMidleware, async (req, res) => {
                     }
                 );
             }
-            
+
             data.text = "refund";
             await data.save();
-        
+
             // Fetch fee and balance with await
             const fees = await Rupeemodule.findOne({ username: "admin" });
             const bal = await Balancemodule.findOne({ user: data.user });
@@ -7319,7 +7329,7 @@ app.post("/refund/data/and/add/to/users", adminMidleware, async (req, res) => {
 
             return res.status(200).json({ Status: "OK" });
         }
-        
+
         else {
             data.text = "non-refund";
             await data.save();
@@ -7356,15 +7366,15 @@ app.post("/refund/data/and/add/to/users", adminMidleware, async (req, res) => {
 
 const refer_and_earn_Schema = new mongoose.Schema({
     Time: String,
-    my_referd : [
+    my_referd: [
         {
-            user : String,
-            d_id : String
+            user: String,
+            d_id: String
         }
     ],
-    referd_user_d_id : String,
-    ac_crt : { type: String, default: "No" },
-    ac_deb : { type: String, default: "No" },
+    referd_user_d_id: String,
+    ac_crt: { type: String, default: "No" },
+    ac_deb: { type: String, default: "No" },
     user: { type: String, unique: true }, // Unique constraint
 }, { timestamps: true });
 
@@ -7393,60 +7403,472 @@ app.post("/refer/and/earn", async (req, res) => {
 });
 
 
-async function One(level) {
-    try {
-        const per = await get_per("star_cir_tri", level);
-        const DIFFICULTIES = getDifficultiesByPer(per);
+function One() {
+    return async function (level, user) {
+        try {
+            const per = await get_per("star_cir_tri", level);
+            const DIFFICULTIES = getDifficultiesByPer(per);
 
-        const difficulty = DIFFICULTIES[level];
+            const difficulty = DIFFICULTIES[level];
 
-        const boxes = generateBoxesData(difficulty);
+            const boxes = generateBoxesData(difficulty);
 
-        let question, correct;
-        // 30% chance to ask total boxes
-        // 30% chance to ask total boxes
-        if (Math.random() < 0.3) {
-            const completeBoxes = boxes.filter(b => b.complete); // only complete boxes
-            question = "How many boxes are there in total?";
-            correct = completeBoxes.length;
-        } else {
-            // Normal shape question, only complete boxes count
-            const target = pickValidShape(boxes);
-            if (!target) return res.json({ error: "No valid question this round" });
-            correct = boxes.filter(b => b.shape === target && b.complete).length;
-            question = `How many boxes have ${target}s?`;
+            let question, correct;
+            // 30% chance to ask total boxes
+            // 30% chance to ask total boxes
+            if (Math.random() < 0.3) {
+                const completeBoxes = boxes.filter(b => b.complete); // only complete boxes
+                question = "How many boxes are there in total?";
+                correct = completeBoxes.length;
+            } else {
+                // Normal shape question, only complete boxes count
+                const target = pickValidShape(boxes);
+                if (!target) return res.json({ error: "No valid question this round" });
+                correct = boxes.filter(b => b.shape === target && b.complete).length;
+                question = `How many boxes have ${target}s?`;
+            }
+
+            // options
+            const options = generateOptions(correct);
+
+            // upload image
+            const imageBuf = drawImage(boxes);
+            const upload = await uploadImage(imageBuf);
+
+            // respond
+            // res.json({
+            //     difficulty: level,
+            //     question,
+            //     correctAnswer: correct,
+            //     options,
+            //     sub_lang: "star_cir_tri",
+            //     per,
+            //     totalBoxes: boxes.filter(b => b.complete).length, // only complete boxes
+            //     imagePath: upload.image
+            // });
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(correct.toString())
+                .digest("hex");
+
+            await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: upload.image,
+                Questio: question,
+                options: options,
+                Ans: hash,
+                tough: level,
+                seconds: 50,
+                sub_lang: "star_cir_tri",
+                yes: [],
+                no: []
+            })
+
+            return 1;
+
+            // console.log(question)
+            // console.log(upload.image)
+
+
+        } catch (err) {
+            res.status(500).json({ error: err.message });
         }
-
-        // options
-        const options = generateOptions(correct);
-
-        // upload image
-        const imageBuf = drawImage(boxes);
-        const upload = await uploadImage(imageBuf);
-
-        // respond
-        // res.json({
-        //     difficulty: level,
-        //     question,
-        //     correctAnswer: correct,
-        //     options,
-        //     sub_lang: "star_cir_tri",
-        //     per,
-        //     totalBoxes: boxes.filter(b => b.complete).length, // only complete boxes
-        //     imagePath: upload.image
-        // });
-
-        console.log(question)
-
-
-    } catch (err) {
-        res.status(500).json({ error: err.message });
     }
 }
 
 
 
+function Two() {
+    return async function (level, user) {
+        try {
 
+            const per = await get_per("news_side", level);
+
+            // 1) Generate random arrows
+            const angles = generateArrows(per, level);
+
+            // 2) Draw & upload image
+            const buffer = drawArrowsImage(angles);
+            const imageURL = await uploadImage1(buffer);
+            if (!imageURL) return res.status(500).json({ error: "Upload failed" });
+
+            const totalArrows = angles.length;
+
+            // --- Count arrows direction-wise ---
+            const directionCounts = DIRECTIONS.map(dir => ({
+                dir,
+                count: angles.filter(a => a === dir.angle).length
+            })).filter(d => d.count > 0);
+
+            if (directionCounts.length === 0) {
+                return res.json({ message: "No arrows found" });
+            }
+
+            // Pick single or double direction question
+            const askDouble = (Math.random() < 0.4) && directionCounts.length >= 2;
+
+            // -------------------------
+            // SINGLE QUESTION
+            // -------------------------
+
+            if (!askDouble) {
+                const picked = directionCounts[Math.floor(Math.random() * directionCounts.length)];
+                const correct = picked.count;
+                const options = generateMCQOptions(correct, totalArrows);
+
+                // return res.json({
+                //     sub_lang: "news_side",
+                //     tough: level,
+                //     img: imageURL,
+                //     Questio: `How many arrows are facing ${picked.dir.name}?`,
+                //     options: options,
+                //     Ans: correct,
+                // });
+
+                const hash = crypto
+                    .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                    .update(correct.toString())
+                    .digest("hex");
+
+                await QuestionModule.create({
+                    Time: Time,
+                    user: user,
+                    img: imageURL,
+                    Questio: `How many arrows are facing ${picked.dir.name}?`,
+                    options: options,
+                    Ans: hash,
+                    tough: level,
+                    seconds: 50,
+                    sub_lang: "news_side",
+                    yes: [],
+                    no: []
+                })
+
+                return 1;
+
+
+            }
+
+            // -------------------------
+            // DOUBLE QUESTION
+            // -------------------------
+            const shuffled = [...directionCounts].sort(() => Math.random() - 0.5);
+            const dir1 = shuffled[0];
+            const dir2 = shuffled[1];
+
+            const correctDouble = dir1.count + dir2.count;
+            const optionsDouble = generateMCQOptions(correctDouble, totalArrows);
+
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(correctDouble.toString())
+                .digest("hex");
+
+
+
+
+            await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: imageURL,
+                Questio: `How many arrows are facing ${dir1.dir.name} and ${dir2.dir.name}?`,
+                options: optionsDouble,
+                Ans: hash,
+                tough: level,
+                seconds: 50,
+                sub_lang: "news_side",
+                yes: [],
+                no: []
+            })
+
+            return 1;
+
+
+
+            // res.json({
+            //     sub_lang: "news_side",
+            //     tough: level,
+            //     img: imageURL,
+            //     Questio: `How many arrows are facing ${dir1.dir.name} and ${dir2.dir.name}?`,
+            //     options: optionsDouble,
+            //     Ans: correctDouble,
+            // });
+
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: err.message });
+        }
+    }
+}
+
+
+
+function Three() {
+    return async function (level, user) {
+
+        try {
+            const per = await get_per("plus", level);
+            const data = await generatePlusQuestionImage(per, level);
+
+            // const hash = crypto
+            //     .createHash('sha256')
+            //     .update(data.question.correct)
+            //     .digest('hex')
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(data.question.correct.toString())
+                .digest("hex");
+
+            await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: data.imageUrl,
+                Questio: "How many “+” are formed?",
+                options: data.question.options,
+                Ans: hash,
+                tough: level,
+                seconds: 50,
+                sub_lang: "plus",
+                yes: [],
+                no: []
+            })
+
+            return 1;
+
+
+        } catch (error) {
+            console.log(error)
+        }
+
+    }
+}
+
+
+
+function Four() {
+    return async function (level, user) {
+        try {
+            // const level = req.query.level || "Easy";
+            const per = await get_per("two_leters_word", level);
+
+
+            const { words, question, correctAnswer, options } = generateData(level, per);
+            const base64Image = await renderImageBase64(words);
+
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(correctAnswer.toString())
+                .digest("hex");
+
+            await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: base64Image,
+                Questio: question,
+                options: options,
+                Ans: hash,
+                tough: level,
+                seconds: 50,
+                sub_lang: "two_leters_word",
+                yes: [],
+                no: []
+            })
+
+            return 1;
+
+            res.json({
+
+                Questio: question,
+                Ans: correctAnswer,
+                Options: options,
+                img: base64Image,
+                sub_lang: "two_leters_word",
+                tough: level,
+            })
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+function Five() {
+    return async function (level, user) {
+        try {
+            // const level = req.query.level || "Easy";
+            const per = await get_per("singel_word", level);
+            const data = generateData1(level, per);
+
+            console.log(data);
+
+            const base64Image = await renderImageBase641(data.text);
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(data.correctAnswer.toString())
+                .digest("hex");
+
+
+            await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: base64Image,
+                Questio: data.question,
+                options: data.options,
+                Ans: hash,
+                tough: level,
+                seconds: 50,
+                sub_lang: "singel_word",
+                yes: [],
+                no: []
+            })
+
+            return 1;
+
+
+
+            res.json({
+                Questio: data.question,
+                Ans: data.correctAnswer,
+                options: data.options,
+                img: base64Image,
+                sub_lang: "singel_word"
+
+
+            })
+
+        } catch (error) {
+            console.log(error)
+        }
+
+    }
+}
+
+
+function Six() {
+    return async function (level, user) {
+        try {
+            
+            const per = await get_per("ran_leters", level);
+
+
+
+            createChallenge(level, per).then(async out => {
+                // console.log("Correct:", out.correct);
+                // console.log("Options:", out.options);
+                // console.log("Base64 length:", out.base64img.length);
+
+                const img = await uploadBase64(out.base64img);
+
+                const hash = crypto
+                    .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                    .update(out.correct.toString())
+                    .digest("hex");
+
+                
+                await QuestionModule.create({
+                    Time: Time,
+                    user: user,
+                    img: img,
+                    Questio: out.qst,
+                    options: out.options,
+                    Ans: hash,
+                    tough: level,
+                    seconds: 50,
+                    sub_lang: "ran_leters",
+                    yes: [],
+                    no: []
+                })
+
+                return 1;
+
+                res.json({
+                    Questio: out.qst,
+                    Ans: out.correct,
+                    options: out.options,
+                    img: img,
+                    sub_lang: "ran_leters"
+                })
+
+
+            });
+
+
+            // if (process.argv[1].includes("challenge.js")) {
+            //     const per = 35; // change here to test
+            //     createChallenge(per).then(res => {
+            //         console.log(res.question);
+            //         console.log("Options:", res.options);
+            //         console.log("Correct:", res.correct);
+            //         console.log("Base64 length:", res.base64img.length);
+            //     });
+            // }
+
+
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+function Seven() {
+    return async function (level, user) {
+            try{
+        const per = await get_per("less_grtr", level);
+
+
+        const data = await createAdvancedNumberMCQ(level, per);
+        // console.log("Question:", data.question);
+        // console.log("Difficulty:", data.difficulty);
+        // console.log("Options:", data.options);
+        // console.log("Correct Answer:", data.correct);
+
+        // res.json({
+        //     Questio: data.question,
+        //     Ans: data.correct,
+        //     options: data.options,
+        //     img: data.image,
+        //     sub_lang: "ran_leters",
+        //     tough : level
+        // })
+
+
+        const hash = crypto
+            .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+            .update(data.correct.toString())
+            .digest("hex");
+
+        
+        await QuestionModule.create({
+            Time: Time,
+            user: user,
+            img: data.image,
+            Questio: data.question,
+            options: data.options,
+            Ans: hash,
+            tough: level,
+            seconds: 50,
+            sub_lang: "less_grtr",
+            yes: [],
+            no: []
+        })
+
+        return 1
+        
+
+    }catch(error){
+        console.log(error)
+    }
+    }
+}
 
 
 

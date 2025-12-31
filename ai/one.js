@@ -18,37 +18,37 @@ export function getDifficultiesByPer(per) {
             "Easy":      { boxes: [8, 10], size: [35, 45], broken: [0, 0] },
             "Medium":    { boxes: [10, 14], size: [30, 42], broken: [0, 0] },
             "Tough":     { boxes: [12, 16], size: [28, 38], broken: [0, 0] },
-            "Too Tough": { boxes: [14, 18], size: [25, 35], broken: [2, 3] },
+            "Too Tough": { boxes: [16, 20], size: [25, 35], broken: [2, 3] },
         };
     } else if (per < 20) {
         DIFFICULTIES = {
             "Too Easy":  { boxes: [7, 9],   size: [38, 48], broken: [0, 0] },
             "Easy":      { boxes: [9, 11],  size: [34, 44], broken: [0, 0] },
-            "Medium":    { boxes: [12, 16], size: [30, 40], broken: [0, 1] },
-            "Tough":     { boxes: [15, 18], size: [27, 36], broken: [0, 1] },
-            "Too Tough": { boxes: [18, 22], size: [22, 32], broken: [3, 4] },
+            "Medium":    { boxes: [14, 17], size: [30, 40], broken: [0, 1] },
+            "Tough":     { boxes: [16, 19], size: [27, 36], broken: [0, 1] },
+            "Too Tough": { boxes: [20, 24], size: [22, 32], broken: [3, 4] },
         };
     } else if (per < 40) {
         DIFFICULTIES = {
             "Too Easy":  { boxes: [8, 10],  size: [37, 47], broken: [0, 0] },
-            "Easy":      { boxes: [10, 12], size: [34, 44], broken: [0, 0] },
-            "Medium":    { boxes: [13, 17], size: [28, 38], broken: [0, 0] },
-            "Tough":     { boxes: [16, 20], size: [25, 35], broken: [2, 3] },
-            "Too Tough": { boxes: [22, 26], size: [22, 30], broken: [3, 5] },
+            "Easy":      { boxes: [11, 13], size: [34, 44], broken: [0, 0] },
+            "Medium":    { boxes: [17, 20], size: [28, 38], broken: [0, 0] },
+            "Tough":     { boxes: [19, 22], size: [25, 35], broken: [2, 3] },
+            "Too Tough": { boxes: [24, 28], size: [22, 30], broken: [3, 5] },
         };
     } else if (per < 60) {
         DIFFICULTIES = {
-            "Too Easy":  { boxes: [8, 10],  size: [30, 40], broken: [0, 0] },
-            "Easy":      { boxes: [11, 13], size: [33, 43], broken: [0, 1] },
-            "Medium":    { boxes: [14, 18], size: [28, 38], broken: [1, 3] },
-            "Tough":     { boxes: [17, 21], size: [25, 35], broken: [2, 4] },
-            "Too Tough": { boxes: [26, 30], size: [20, 32], broken: [7, 8] },
+            "Too Easy":  { boxes: [10, 12],  size: [30, 40], broken: [0, 0] },
+            "Easy":      { boxes: [13, 15], size: [33, 43], broken: [0, 1] },
+            "Medium":    { boxes: [20, 22], size: [28, 38], broken: [1, 3] },
+            "Tough":     { boxes: [22, 24], size: [25, 35], broken: [2, 4] },
+            "Too Tough": { boxes: [28, 34], size: [20, 32], broken: [7, 8] },
         };
     } else {
         // High performance: max challenge
         DIFFICULTIES = {
-            "Too Easy":  { boxes: [8, 11],  size: [20, 20], broken: [0, 1] },
-            "Easy":      { boxes: [12, 15], size: [25, 30], broken: [1, 2] },
+            "Too Easy":  { boxes: [12, 14],  size: [20, 20], broken: [0, 1] },
+            "Easy":      { boxes: [15, 20], size: [25, 30], broken: [1, 2] },
             "Medium":    { boxes: [15, 20], size: [28, 36], broken: [2, 3] },
             "Tough":     { boxes: [18, 23], size: [24, 34], broken: [3, 5] },
             "Too Tough": { boxes: [30, 40], size: [20, 30], broken: [9, 10] },
