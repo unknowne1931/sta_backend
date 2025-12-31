@@ -215,11 +215,7 @@
 
 
 
-
-
-
-
-import puppeteer from "puppeteer";
+import { createCanvas } from "canvas";
 
 // ===========================
 // CONFIG
@@ -278,17 +274,15 @@ function diff_level(per) {
     return DIFFICULTIES;
 }
 
-// question type pool
 const QUESTION_TYPES = ["less", "greater", "between"];
 
 // ===========================
-// GENERATORS
+// HELPERS
 // ===========================
 const rand = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
 
 function generateNumbers(count, min, max) {
-    const colors = ["#e63946","#457b9d","#2a9d8f","#e9c46a","#f4a261",
-                    "#264653","#ff006e","#8338ec","#3a86ff","#d00000"];
+    const colors = ["#e63946","#457b9d","#2a9d8f","#e9c46a","#f4a261","#264653","#ff006e","#8338ec","#3a86ff","#d00000"];
     const numbers = [];
     const padding = 18;
 
@@ -323,7 +317,8 @@ function createQuestionText(type, a, b) {
 function generateOptions(correct) {
     const opts = new Set([correct]);
     while (opts.size < 4) {
-        let guess = correct + rand(-4, 4);
+        let guess = correct + rand(-6, 6);
+        if (guess === correct) continue;
         if (guess < 0) guess = Math.abs(guess) + 1;
         opts.add(guess);
     }
@@ -331,12 +326,32 @@ function generateOptions(correct) {
 }
 
 // ===========================
+// CANVAS RENDERER
+// ===========================
+function renderToBase64(numbers) {
+    const canvas = createCanvas(WIDTH, HEIGHT);
+    const ctx = canvas.getContext("2d");
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+    ctx.font = "bold 16px Arial";
+
+    for (const n of numbers) {
+        ctx.fillStyle = n.color;
+        ctx.fillText(String(n.num), n.x, n.y);
+    }
+
+    return canvas.toBuffer("image/png").toString("base64");
+}
+
+// ===========================
 // MAIN EXPORT
 // ===========================
 export async function createAdvancedNumberMCQ(level, per) {
 
-    const DIFFICULTIES = diff_level(per); // get all difficulties for the per
-    const diff = DIFFICULTIES[level];      // pick based on level string
+    const DIFFICULTIES = diff_level(per);
+    const diff = DIFFICULTIES[level];
 
     const qType = QUESTION_TYPES[rand(0, QUESTION_TYPES.length - 1)];
 
@@ -346,59 +361,9 @@ export async function createAdvancedNumberMCQ(level, per) {
     const numbers = generateNumbers(diff.count, diff.range[0], diff.range[1]);
     const correct = calculateAnswer(qType, numbers, a, b);
     const options = generateOptions(correct);
-
     const question = createQuestionText(qType, a, b);
 
-    const htmlNumbers = numbers
-        .map(n => `<span style="
-            position:absolute; 
-            left:${n.x}px; 
-            top:${n.y}px;
-            color:${n.color};
-            font-size:14px;
-            font-weight:bold;">
-            ${n.num}
-        </span>`)
-        .join("");
-
-    const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <style>
-            body {
-                font-family: Arial;
-                background:#eee;
-                display:flex;
-                justify-content:center;
-                align-items:center;
-                height:100vh; margin:0;
-            }
-            .box {
-                width:${WIDTH}px; height:${HEIGHT}px;
-                border:1px solid black;
-                background:white;
-                position:relative;
-                overflow:hidden;
-                padding:10px;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="box">
-            ${htmlNumbers}
-        </div>
-    </body>
-    </html>`;
-
-    const browser = await puppeteer.launch({ headless: "new" });
-    const page = await browser.newPage();
-    await page.setViewport({ width: WIDTH, height: HEIGHT });
-    await page.setContent(html, { waitUntil: "networkidle0" });
-
-    const imgBuffer = await page.screenshot({ type: "png" });
-    const base64img = imgBuffer.toString("base64");
-    await browser.close();
+    const base64img = renderToBase64(numbers);
 
     return {
         difficulty: level,

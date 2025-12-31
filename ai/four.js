@@ -1,7 +1,4 @@
-// app.js
-import puppeteer from 'puppeteer';
-import path from 'path';
-import fs from 'fs';
+import { createCanvas } from "canvas";
 
 // ----- WORD DATA -----
 const WORDS = [
@@ -110,58 +107,52 @@ export function generateData(difficulty, per) {
   return { words, question, correctAnswer, options: shuffled };
 }
 
-// ----- RENDER IMAGE + RETURN BASE64 -----
+const WIDTH = 400;
+const HEIGHT = 250;
+
 export async function renderImageBase64(words) {
-  const html = `
-   <html>
-  <head>
-    <style>
-      body {
-        font-family: Arial;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background: white;
-        height: auto;     /* full screen height so centering works */
-        margin: 0;
-      }
+  const canvas = createCanvas(WIDTH, HEIGHT);
+  const ctx = canvas.getContext("2d");
 
-      .container {
-        width: 400px;
-        height: 250px;     /* <-- your requested size */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background: white;
-        border: 1px solid transparent; /* keeps size stable */
-      }
+  // background
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-      p {
-        display: inline-block;
-        max-width: 380px;  /* keep text inside container */
-        font-size: 26px;
-        color: black;
-        line-height: 1.6;
-        text-align: center;
-        word-wrap: break-word;
-        margin: 0;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <p>${words.join(" ")}</p>
-    </div>
-  </body>
-</html>
+  // font & style
+  const padding = 10;
+  const maxWidth = WIDTH - padding * 2;
+  ctx.fillStyle = "black";
+  ctx.font = "26px Arial";
+  ctx.textBaseline = "middle";
 
+  // words -> sentence string
+  const text = words.join(" ");
 
-  `;
+  // --- automatic word wrap ---
+  const pieces = text.split(" ");
+  let lines = [];
+  let line = "";
 
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-  await page.setContent(html);
-  const data = await page.screenshot({ encoding: 'base64' });
-  await browser.close();
-  return data;
+  pieces.forEach(word => {
+    const test = line + word + " ";
+    if (ctx.measureText(test).width > maxWidth && line !== "") {
+      lines.push(line);
+      line = word + " ";
+    } else {
+      line = test;
+    }
+  });
+  if (line) lines.push(line);
+
+  const lineHeight = 32;
+  const totalTextHeight = lines.length * lineHeight;
+  let y = (HEIGHT - totalTextHeight) / 2 + lineHeight / 2;
+
+  for (let l of lines) {
+    const txtWidth = ctx.measureText(l).width;
+    ctx.fillText(l, (WIDTH - txtWidth) / 2, y);
+    y += lineHeight;
+  }
+
+  return canvas.toBuffer("image/png").toString("base64");
 }

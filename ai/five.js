@@ -1,5 +1,8 @@
-// word_length_game.js
-import puppeteer from "puppeteer";
+import { createCanvas, loadImage } from "canvas";
+
+
+const WIDTH = 400;
+const HEIGHT = 250;
 
 // ------------------- WORDS -------------------
 const WORDS = [
@@ -106,122 +109,64 @@ export function generateData1(difficulty, per) {
   return { text: fullText, question, correctAnswer, options };
 }
 
-// ------------------- IMAGE RENDER -------------------
-// export async function renderImageBase641(text) {
-//   const html = `
-//   <html>
-//   <head>
-//     <style>
-//       body {
-//         font-family: Arial;
-//         display: flex;
-//         justify-content: center;
-//         align-items: center;
-//         margin: 0;
-//         background: white;
-//         height: 100vh;
-//       }
-
-//       .container {
-//         width: 400px;
-//         height: 250px;
-//         display: flex;
-//         justify-content: center;
-//         align-items: center;
-//         border: 3px solid black;
-//         border-radius: 10px;
-//         padding: 12px;
-//         box-sizing: border-box;
-//       }
-
-//       p {
-//         text-align: center;
-//         margin: 0;
-//         line-height: 1.4;
-//         word-wrap: break-word;
-//         overflow-wrap: break-word;
-
-//         /* Dynamically fit text */
-//         font-size: clamp(14px, 4vw, 22px);
-//         max-height: 100%;
-//         display: flex;
-//         justify-content: center;
-//         align-items: center;
-//       }
-//     </style>
-//   </head>
-//   <body>
-//     <div class="container">
-//       <p>${text}</p>
-//     </div>
-//   </body>
-// </html>
-
-//   `;
-
-//   const browser = await puppeteer.launch();
-//   const page = await browser.newPage();
-//   await page.setContent(html);
-//   const img = await page.screenshot({ encoding: "base64" });
-//   await browser.close();
-//   return img;
-// }
 
 
 export async function renderImageBase641(text) {
-  const html = `
-  <html>
-  <head>
-    <style>
-      body {
-        font-family: Arial;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin: 0;
-        background: white;
-        height: 100vh;
-      }
+  const canvas = createCanvas(WIDTH, HEIGHT);
+  const ctx = canvas.getContext("2d");
 
-      .container {
-        width: 400px;
-        height: 250px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border: 3px solid black;
-        border-radius: 10px;
-        padding: 12px;
-        box-sizing: border-box;
-      }
+  // background
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-      p {
-        margin: 0;
-        line-height: 1.4;
-        text-align: center;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        font-size: 16px;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container" id="container">
-      <p>${text}</p>
-    </div>
-  </body>
-</html>
-  `;
+  // rounded border style
+  const border = 3;
+  const radius = 10;
 
-  const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
-  const page = await browser.newPage();
-  await page.setContent(html, { waitUntil: 'networkidle0' });
+  ctx.lineWidth = border;
+  ctx.strokeStyle = "black";
 
-  // Capture only the container element
-  const container = await page.$('#container');
-  const img = await container.screenshot({ encoding: 'base64' });
+  ctx.beginPath();
+  ctx.moveTo(radius, border);
+  ctx.lineTo(WIDTH - radius, border);
+  ctx.quadraticCurveTo(WIDTH - border, border, WIDTH - border, radius);
+  ctx.lineTo(WIDTH - border, HEIGHT - radius);
+  ctx.quadraticCurveTo(WIDTH - border, HEIGHT - border, WIDTH - radius, HEIGHT - border);
+  ctx.lineTo(radius, HEIGHT - border);
+  ctx.quadraticCurveTo(border, HEIGHT - border, border, HEIGHT - radius);
+  ctx.lineTo(border, radius);
+  ctx.quadraticCurveTo(border, border, radius, border);
+  ctx.stroke();
 
-  await browser.close();
-  return img;
+  // container padding
+  const padding = 14;
+  const maxWidth = WIDTH - padding * 2;
+
+  // text style
+  ctx.fillStyle = "black";
+  ctx.font = "16px Arial";
+  ctx.textBaseline = "middle";
+
+  // ---- word wrap ----
+  const words = text.split(" ");
+  let line = "";
+  let y = HEIGHT / 2 - 30; // start slightly above center
+  const lineHeight = 22;
+
+  for (let i = 0; i < words.length; i++) {
+    const testLine = line + words[i] + " ";
+    const metrics = ctx.measureText(testLine);
+    if (metrics.width > maxWidth && i > 0) {
+      ctx.fillText(line, (WIDTH - ctx.measureText(line).width) / 2, y);
+      line = words[i] + " ";
+      y += lineHeight;
+    } else {
+      line = testLine;
+    }
+  }
+
+  // final line
+  ctx.fillText(line, (WIDTH - ctx.measureText(line).width) / 2, y);
+
+  return canvas.toBuffer("image/png").toString("base64");
 }
-

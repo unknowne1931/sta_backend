@@ -2344,6 +2344,10 @@ const QuestionListmodule = mongoose.model('Question_List', QuestionListSchema);
 
 // });
 
+
+
+
+
 app.post('/start/playing/by/debit/amount', authMiddleware, async (req, res) => {
     const user = req.user;
     if (!user) return res.status(400).json({ Status: "s_m", message: "Some Data Missing" });
@@ -2587,7 +2591,7 @@ app.post('/start/playing/by/debit/amount', authMiddleware, async (req, res) => {
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
             bal_dt.balance = lat.toString()
             await bal_dt.save()
-            resetResult = "BAD";
+            // resetResult = "BAD";
             console.log("BAD")
             return res.status(200).json({ Status: "BAD_CR" })
 
@@ -2601,6 +2605,15 @@ app.post('/start/playing/by/debit/amount', authMiddleware, async (req, res) => {
         return res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 });
+
+
+
+const Amount_count_Schema = new mongoose.Schema({
+    Time: String,
+    count: Number,
+}, { timestamps: true });
+
+const Amount_Count_Module = mongoose.model('Amount', Amount_count_Schema);
 
 
 //new version
@@ -2663,14 +2676,24 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
         const Time = new Date().toISOString();
         let create_data = await QuestionListmodule.findOne({ user });
 
-        const docs = await QuestionModule.find({ user }).select("_id");
-        const ids = docs.map(d => d._id);
-
-        await QuestionModule.deleteMany({ _id: { $in: ids } });
+        await QuestionModule.deleteMany({ user });
 
 
 
-        const dif = getDifficultyDistribution(get_per)
+
+        const dif_l = getDifficultyDistribution(get_per)
+
+        const qst_gen = [One(), Two(), Three(), Four(), Five(), Six(), Seven(), Two(), Three(), Four()];
+        const dif = [];
+
+
+
+        dif_l.forEach((data, i) => {
+            const num = (i + 1).toString();
+            dif.push(num);
+            qst_gen[i](data, user, i + 1); // qst_gen[i] is a function, so this works
+        });
+
 
         if (!create_data) {
             create_data = await QuestionListmodule.create({
@@ -2710,6 +2733,8 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
             await _dec_bal.save();
         }
 
+        
+
 
 
 
@@ -2729,24 +2754,20 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
 
 
 
-        const qst_gen = [One(), Two(), Three(), Four(), Five(), Six(), Seven(), Two(), Three(), Four()];
-
-        dif.filter((data, i) => {
-            qst_gen[i](data, user);   // now this works because qst_gen[i] *is a function*
-        });
+        
 
 
         const newListData = await QuestionListmodule.findOne({ user }).lean();
-        if (newListData?.list?.length < 10) {
+        const newQstData = await QuestionModule.countDocuments({ user: user });
+        if (newListData?.list?.length < 10 && newQstData < 10) {
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
             bal_dt.balance = lat.toString()
             await bal_dt.save()
-            resetResult = "BAD";
+            // resetResult = "BAD";
             console.log("BAD")
             return res.status(200).json({ Status: "BAD_CR" })
-
         }
 
         console.log("✅ Finished successfully");
@@ -3387,6 +3408,7 @@ const QnoSchema = new mongoose.Schema({
         type: String
     },
     tough: String,
+    Qno : String,
     seconds: String,
     sub_lang: String,
     yes: [],
@@ -3504,19 +3526,21 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                 // Get the first question number from the list
                 const QNO = Get_Qno_info.list[0];
 
+
                 // Find the question in QuestionModule by its number and language
-                const Qno = await QuestionModule.findOne({ tough: QNO, lang: Get_Qno_info.lang, user: user });
+                const Qno = await QuestionModule.findOne({ Qno : QNO.toString(), user: user }).lean();
 
                 const cal_sec = await Seconds_Module.findOne(
                     {
                         category: Qno.sub_lang,
                         Tough: Qno.tough,
-                        "seconds.user": user
+                        seconds: { $elemMatch: { user } }
                     },
                     {
-                        "seconds.$": 1 // project only the matching array element
+                        "seconds.$": 1
                     }
-                );
+                    );
+
 
                 // console.log(cal_sec.seconds)
 
@@ -3536,6 +3560,7 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                     const data = {
                         _id: Qno._id,
                         img: Qno.img,
+                        Qno : Qno.Qno,
                         Question: Qno.Questio,
                         options: Qno.options,
                         seconds: sec_cal,
@@ -3690,11 +3715,11 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
             }
 
             if (User_List.list.length === 1 || User_List.list.length === 0) {
-                // await User_List.updateOne({ $pull: { list: User_List.list[0] } })
-                await QuestionListmodule.updateOne(
-                    { user },
-                    { $pop: { list: -1 } }   // remove first element
-                );
+                await User_List.updateOne({ $pull: { list: User_List.list[0] } })
+                // await QuestionListmodule.updateOne(
+                //     { user },
+                //     { $pop: { list: -1 } }   // remove first element
+                // );
 
                 const won = await Wonmodule.find({})
                 const CuponDat = await Cuponmodule.findOne({ no: won.length + 1 })
@@ -3772,12 +3797,12 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
 
 
             } else {
-                // await User_List.updateOne({ $pull: { list: User_List.list[0] } })
-                await QuestionListmodule.updateOne(
-                    { user },
-                    { $pop: { list: -1 } }   // remove first element
-                );
-                //ki1931ck add code here
+                await User_List.updateOne({ $pull: { list: User_List.list[0] } })
+                // await QuestionListmodule.updateOne(
+                //     { user },
+                //     { $pop: { list: -1 } }   // remove first element
+                // );
+                // //ki1931ck add code here
                 await Answer_Verify.updateOne({ $push: { yes: user } })
                 return res.status(200).json({ Status: "OK" })
 
@@ -7404,7 +7429,7 @@ app.post("/refer/and/earn", async (req, res) => {
 
 
 function One() {
-    return async function (level, user) {
+    return async function (level, user, qno) {
         try {
             const per = await get_per("star_cir_tri", level);
             const DIFFICULTIES = getDifficultiesByPer(per);
@@ -7460,6 +7485,7 @@ function One() {
                 options: options,
                 Ans: hash,
                 tough: level,
+                Qno : qno,
                 seconds: 50,
                 sub_lang: "star_cir_tri",
                 yes: [],
@@ -7481,7 +7507,7 @@ function One() {
 
 
 function Two() {
-    return async function (level, user) {
+    return async function (level, user, qno) {
         try {
 
             const per = await get_per("news_side", level);
@@ -7540,6 +7566,7 @@ function Two() {
                     options: options,
                     Ans: hash,
                     tough: level,
+                    Qno : qno,
                     seconds: 50,
                     sub_lang: "news_side",
                     yes: [],
@@ -7607,7 +7634,7 @@ function Two() {
 
 
 function Three() {
-    return async function (level, user) {
+    return async function (level, user, qno) {
 
         try {
             const per = await get_per("plus", level);
@@ -7631,6 +7658,7 @@ function Three() {
                 options: data.question.options,
                 Ans: hash,
                 tough: level,
+                Qno : qno,
                 seconds: 50,
                 sub_lang: "plus",
                 yes: [],
@@ -7650,7 +7678,7 @@ function Three() {
 
 
 function Four() {
-    return async function (level, user) {
+    return async function (level, user, qno) {
         try {
             // const level = req.query.level || "Easy";
             const per = await get_per("two_leters_word", level);
@@ -7673,6 +7701,7 @@ function Four() {
                 options: options,
                 Ans: hash,
                 tough: level,
+                Qno : qno,
                 seconds: 50,
                 sub_lang: "two_leters_word",
                 yes: [],
@@ -7698,7 +7727,7 @@ function Four() {
 
 
 function Five() {
-    return async function (level, user) {
+    return async function (level, user, qno) {
         try {
             // const level = req.query.level || "Easy";
             const per = await get_per("singel_word", level);
@@ -7722,6 +7751,7 @@ function Five() {
                 options: data.options,
                 Ans: hash,
                 tough: level,
+                Qno : qno,
                 seconds: 50,
                 sub_lang: "singel_word",
                 yes: [],
@@ -7751,7 +7781,7 @@ function Five() {
 
 
 function Six() {
-    return async function (level, user) {
+    return async function (level, user, qno) {
         try {
             
             const per = await get_per("ran_leters", level);
@@ -7779,6 +7809,7 @@ function Six() {
                     options: out.options,
                     Ans: hash,
                     tough: level,
+                    Qno : qno,
                     seconds: 50,
                     sub_lang: "ran_leters",
                     yes: [],
@@ -7820,7 +7851,7 @@ function Six() {
 
 
 function Seven() {
-    return async function (level, user) {
+    return async function (level, user, qno) {
             try{
         const per = await get_per("less_grtr", level);
 
@@ -7855,6 +7886,7 @@ function Seven() {
             options: data.options,
             Ans: hash,
             tough: level,
+            Qno : qno,
             seconds: 50,
             sub_lang: "less_grtr",
             yes: [],

@@ -713,11 +713,7 @@
 
 
 
-
-
-
-
-import puppeteer from "puppeteer";
+import { createCanvas, loadImage } from "canvas";
 
 // ================================
 // CONFIG
@@ -727,28 +723,14 @@ const HEIGHT = 250;
 const letters = 'abcdefghijklmnopqrstuvwxyz';
 
 function getLevelMap(per) {
-    let LEVEL_MAP = {};
-
-    if (per < 10) {
-        LEVEL_MAP = { "Too Easy": 6, "Easy": 8, "Medium": 10, "Tough": 14, "Too Tough": 18 };
-    } else if (per < 20) {
-        LEVEL_MAP = { "Too Easy": 10, "Easy": 14, "Medium": 18, "Tough": 20, "Too Tough": 30 };
-    } else if (per < 30) {
-        LEVEL_MAP = { "Too Easy": 14, "Easy": 18, "Medium": 22, "Tough": 35, "Too Tough": 40 };
-    } else if (per < 40) {
-        LEVEL_MAP = { "Too Easy": 18, "Easy": 22, "Medium": 26, "Tough": 45, "Too Tough": 50 };
-    } else if (per < 50) {
-        LEVEL_MAP = { "Too Easy": 22, "Easy": 28, "Medium": 34, "Tough": 55, "Too Tough": 60 };
-    } else {
-        LEVEL_MAP = { "Too Easy": 28, "Easy": 34, "Medium": 40, "Tough": 65, "Too Tough": 70 };
-    }
-
-    return LEVEL_MAP;
+    if (per < 10) return { "Too Easy": 6, "Easy": 8, "Medium": 10, "Tough": 14, "Too Tough": 18 };
+    if (per < 20) return { "Too Easy": 10, "Easy": 14, "Medium": 18, "Tough": 20, "Too Tough": 30 };
+    if (per < 30) return { "Too Easy": 14, "Easy": 18, "Medium": 22, "Tough": 35, "Too Tough": 40 };
+    if (per < 40) return { "Too Easy": 18, "Easy": 22, "Medium": 26, "Tough": 45, "Too Tough": 50 };
+    if (per < 50) return { "Too Easy": 22, "Easy": 28, "Medium": 34, "Tough": 55, "Too Tough": 60 };
+    return { "Too Easy": 28, "Easy": 34, "Medium": 40, "Tough": 65, "Too Tough": 70 };
 }
 
-// ================================
-// CORE HELPERS
-// ================================
 function randomLetters(n) {
     let t = ''; while (n--) t += letters[Math.floor(Math.random() * letters.length)];
     return t;
@@ -770,46 +752,28 @@ function countRightSide(text, l1, l2) {
     return count;
 }
 
-/* =====================================================
-   🔧 FIXED: makeText ALWAYS includes the target pair
-   -----------------------------------------------------
-   - guaranteedAppearances = ensures target exists
-   - random chaos after generating mandatory ones
-   - % chance to add extra targets (makes random answers)
-===================================================== */
 function makeText(target, baseRepeats, level) {
     let guaranteedAppearances = Math.max(2, Math.floor(baseRepeats / 3));
     let out = "";
 
-    // place guaranteed appearances of target in random positions
     for (let i = 0; i < guaranteedAppearances; i++) {
-        out += randomLetters(Math.floor(Math.random() * 3) + 1);
-        out += target;
+        out += randomLetters(Math.floor(Math.random() * 3) + 1) + target;
     }
 
-    // add extra chaotic random characters + sometimes extra targets
     let fillerCount = baseRepeats * 2;
     for (let i = 0; i < fillerCount; i++) {
-        if (Math.random() < 0.25) {
-            out += target;
-        } else {
-            out += randomLetters(Math.floor(Math.random() * 4) + 1);
-        }
+        out += Math.random() < 0.25 ? target : randomLetters(Math.floor(Math.random() * 4) + 1);
     }
-
     return out;
 }
 
 function generateUntilFits(target, level, per) {
     const dif = getLevelMap(per);
     let baseRepeats = dif[level];
-    let attempt = 0;
-
-    while (attempt < 40 && baseRepeats > 2) {
+    for (let attempt = 0; attempt < 40 && baseRepeats > 2; attempt++) {
         let txt = makeText(target, baseRepeats, level);
         if (txt.length < 700) return txt;
         baseRepeats--;
-        attempt++;
     }
     return makeText(target, 5, level);
 }
@@ -824,7 +788,7 @@ function generateOptions(correct) {
 }
 
 // ================================
-// MAIN
+// MAIN with CANVAS
 // ================================
 export async function createChallenge(level, per) {
     const l1 = letters[Math.floor(Math.random() * letters.length)];
@@ -841,72 +805,30 @@ export async function createChallenge(level, per) {
 
     const questionMain  = `How many exact "${target}" exist in the box?`;
     const questionTwist = `How many times '${l2}' exists right side of '${l1}'?`;
+    const qst = ((["Too Tough","Tough"].includes(level) && per > 20) ? questionTwist : questionMain);
 
-    const browser = await puppeteer.launch({ headless: "new" });
-    const page = await browser.newPage();
-    await page.setViewport({ width: WIDTH, height: HEIGHT });
+    // ---- CANVAS RENDER -----
+    const canvas = createCanvas(WIDTH, HEIGHT);
+    const ctx = canvas.getContext("2d");
 
-    const html = `
+    ctx.fillStyle = "#eee";
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<style>
-    html, body {
-        margin:0;
-        padding:0;
-        width:100%;
-        height:100%;
-        background:#eee;
-        font-family:Arial, sans-serif;
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+    ctx.fillStyle = "black";
+    ctx.font = "16px Arial";
+
+    const words = txt.match(/.{1,50}/g) || [txt];
+    let y = 20;
+    for (let line of words) {
+        if (y > HEIGHT - 5) break;
+        ctx.fillText(line, 10, y);
+        y += 18;
     }
-</style>
-</head>
 
-<body>
-    <div style="
-        width:100%;
-        height:100%;
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        box-sizing:border-box;
-    ">
-        <div style="
-            width:${WIDTH}px;
-            height:${HEIGHT}px;
-            background:white;
-            border:1px solid black;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            box-sizing:border-box;
-        ">
-            <p style="
-                margin:10px;
-                font-size:16px;
-                text-align:center;
-                word-break:break-word;
-            ">
-                ${txt}
-            </p>
-        </div>
-    </div>
-</body>
-</html>
-
-    `;
-
-    await page.setContent(html, { waitUntil: "networkidle0" });
-    const imgBuffer = await page.screenshot({ type: "png" });
-    const base64img = imgBuffer.toString("base64");
-    await browser.close();
-
-    const qst =
-    (["Too Tough", "Tough"].includes(level) && per > 20)
-        ? questionTwist
-        : questionMain;
+    const base64img = canvas.toBuffer("image/png").toString("base64");
 
     return {
         txt,
@@ -922,9 +844,6 @@ export async function createChallenge(level, per) {
 export async function uploadBase64(base64img) {
     return base64img.toString("base64");
 }
-
-
-
 
 
 
