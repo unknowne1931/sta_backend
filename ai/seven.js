@@ -255,19 +255,19 @@ function diff_level(per) {
         };
     } else if (per < 40) {
         DIFFICULTIES = {
-            "Too Easy": { count: 30, range: [0, 8] },
-            "Easy": { count: 35, range: [0, 12] },
-            "Medium": { count: 40, range: [0, 15] },
-            "Tough": { count: 45, range: [0, 18] },
-            "Too Tough": { count: 50, range: [0, 26] }
+            "Too Easy": { count: 25, range: [0, 8] },
+            "Easy": { count: 30, range: [0, 12] },
+            "Medium": { count: 35, range: [0, 15] },
+            "Tough": { count: 40, range: [0, 18] },
+            "Too Tough": { count: 45, range: [0, 26] }
         };
     } else {
         DIFFICULTIES = {
-            "Too Easy": { count: 40, range: [0, 9] },
-            "Easy": { count: 45, range: [0, 13] },
-            "Medium": { count: 50, range: [0, 16] },
-            "Tough": { count: 55, range: [0, 20] },
-            "Too Tough": { count: 60, range: [0, 30] }
+            "Too Easy": { count: 30, range: [0, 9] },
+            "Easy": { count: 35, range: [0, 13] },
+            "Medium": { count: 40, range: [0, 16] },
+            "Tough": { count: 45, range: [0, 20] },
+            "Too Tough": { count: 50, range: [0, 30] }
         };
     }
 

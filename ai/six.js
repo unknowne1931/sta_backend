@@ -724,11 +724,11 @@ const letters = 'abcdefghijklmnopqrstuvwxyz';
 
 function getLevelMap(per) {
     if (per < 10) return { "Too Easy": 6, "Easy": 8, "Medium": 10, "Tough": 14, "Too Tough": 18 };
-    if (per < 20) return { "Too Easy": 10, "Easy": 14, "Medium": 18, "Tough": 20, "Too Tough": 30 };
-    if (per < 30) return { "Too Easy": 14, "Easy": 18, "Medium": 22, "Tough": 35, "Too Tough": 40 };
-    if (per < 40) return { "Too Easy": 18, "Easy": 22, "Medium": 26, "Tough": 45, "Too Tough": 50 };
-    if (per < 50) return { "Too Easy": 22, "Easy": 28, "Medium": 34, "Tough": 55, "Too Tough": 60 };
-    return { "Too Easy": 28, "Easy": 34, "Medium": 40, "Tough": 65, "Too Tough": 70 };
+    if (per < 20) return { "Too Easy": 8, "Easy": 10, "Medium": 12, "Tough": 16, "Too Tough": 20 };
+    if (per < 30) return { "Too Easy": 10, "Easy": 12, "Medium": 14, "Tough": 18, "Too Tough": 22 };
+    if (per < 40) return { "Too Easy": 12, "Easy": 14, "Medium": 16, "Tough": 20, "Too Tough": 24 };
+    if (per < 50) return { "Too Easy": 14, "Easy": 16, "Medium": 18, "Tough": 22, "Too Tough": 26 };
+    return { "Too Easy": 15, "Easy": 34, "Medium": 18, "Tough": 19, "Too Tough": 28 };
 }
 
 function randomLetters(n) {
