@@ -37,12 +37,59 @@ import { generateData, renderImageBase64 } from "./ai/four.js"
 import { generateData1, renderImageBase641 } from "./ai/five.js"
 import { createChallenge, uploadBase64 } from "./ai/six.js";
 import {createAdvancedNumberMCQ} from "./ai/seven.js";
-
-
+import { time } from 'console';
 
 
 
 const app = express();
+app.use(express.static('public'))
+// app.use(express.json());
+
+
+
+app.use(express.json());
+app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: true }));
+
+
+
+
+
+const Amount_free_count_Schema = new mongoose.Schema({
+    Time: String,
+    count: Number,
+    user : {
+        default : "kick",
+        type : String
+    },
+    user_id : [{
+        user : String,
+        time : String,
+        rupee : String,
+        tr_id : String
+    }]
+}, { timestamps: true });
+
+const Amount_Free_Count_Module = mongoose.model('Amount', Amount_free_count_Schema);
+
+const Amount_in_wallet_count_Schema = new mongoose.Schema({
+    Time: String,
+    count: Number,
+    user : {
+        default : "kick",
+        type : String
+    },
+    user_id : [{
+        user : String,
+        time : String,
+        rupee : String
+    }]
+}, { timestamps: true });
+
+const Amount_in_wallet_Count_Module = mongoose.model('Amount_wallet', Amount_in_wallet_count_Schema);
+
+
+
 app.post(
     "/razorpay/webhook",
     express.raw({ type: "application/json" }),
@@ -72,6 +119,8 @@ app.post(
             const data = JSON.parse(rawBody.toString("utf8"));
             const payment = data?.payload?.payment?.entity;
 
+            console.log("Razorpay Webhook received:", data);
+
             if (!payment || payment.status !== "captured") {
                 console.log("❗ Payment not captured or invalid");
                 return res.status(200).json({ success: false });
@@ -80,6 +129,8 @@ app.post(
             // ✅ Extract user from Razorpay notes
             const user = payment.notes?.user;
             const rp_i = payment.amount / 100
+
+            console.log("Payment details:", { user, amount: rp_i });
             if (!user) {
                 console.log("⚠️ No user found in payment notes");
                 return res.status(400).json({ success: false, message: "User missing in notes" });
@@ -94,6 +145,7 @@ app.post(
 
             // ✅ Find user balance
             const userData = await Balancemodule.findOne({ user });
+            console.log("User found:", userData);
             if (!userData) {
                 console.log("❌ User not found:", user);
                 return res.status(404).json({ success: false, message: "User not found" });
@@ -115,12 +167,39 @@ app.post(
             userData.balance = int_bal
             await userData.save();
 
+            const admin_bal_wallet = await Amount_in_wallet_Count_Module.findOne({ user: "kick  " });
+
+            const num = Number(rp_i)
+            console.log("User found:", userData);
+            console.log("Credit amount:", creditAmount);
+            console.log("Admin balance wallet:", admin_bal_wallet);
+
+
+            if( admin_bal_wallet ){
+                await Amount_in_wallet_Count_Module.updateOne(
+                    { user: "kick" },
+                    { $inc: { count: num },
+                    $push: { user_id: { user: user, rupee : toString(rp_i), tr_id : payment.id, time: Time } } }
+                );
+                // admin_bal_wallet.count = parseInt(admin_bal_wallet.count) + rp_i
+                // await admin_bal_wallet.save()
+            }else{
+                // await Amount_in_wallet_Count_Module.create
+                await Amount_in_wallet_Count_Module.create({
+                    Time: new Date().toISOString(),
+                    count: Number(rp_i),
+                    user: "kick",
+                    
+                    user_id: [{ user: user, rupee : toString(rp_i), tr_id : payment.id, time: Time }]
+                });
+            }
+
 
             // ✅ Log transaction
             await Historymodule.create({
                 Time: new Date().toISOString(),
                 user,
-                rupee: toString(rp_i),
+                rupee: rp_i,
                 type: "Credited",
                 tp: "Rupee",
             });
@@ -132,6 +211,26 @@ app.post(
                 const new_bal = parseInt(get_referd_user.balance) + 40;
                 get_referd_user.balance = new_bal;
                 await get_referd_user.save();
+                const admin_bal = await Amount_Free_Count_Module.findOne({ user: "kick  " });
+                if( admin_bal ){
+                    await Amount_Free_Count_Module.updateOne(
+                        { user: "kick" },
+                        { $inc: { count: 40 },
+                        $push: { user_id: { user: cred_to.referd_user_d_id, tr_id : payment.id , time: new Date().toLocaleString("en-US", {}) } } }  
+                    ); 
+                    // admin_bal.count = parseInt(admin_bal.count) + 40
+                    // await admin_bal.save()
+                }else{
+                    // await Amount_Free_Count_Module.create({ Time, user: "kick", count: 40 })
+
+                    await Amount_Free_Count_Module.create({
+                        Time: new Date().toISOString(),
+                        user: "kick",
+                        count: 40,
+                        user_id: [{ user: cred_to.referd_user_d_id, tr_id : payment.id , time: new Date().toLocaleString("en-US", {}) }]
+                    });
+
+                }
                 await Historymodule.create({
                     Time: new Date().toISOString(),
                     user: cred_to.referd_user_d_id,
@@ -143,6 +242,7 @@ app.post(
                 await cred_to.save();
             }
 
+
             console.log(`✅ ₹${rp_i} credited to user: ${user}`);
             return res.status(200).json({ success: true });
         } catch (err) {
@@ -152,17 +252,9 @@ app.post(
     }
 );
 
-app.use(express.static('public'))
-// app.use(express.json());
 
 
-
-app.use(express.json());
-app.use(bodyParser.json());
-app.use(express.urlencoded({ extended: true }));
-
-
-// app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // 🟡 RAW BODY middleware for webhook
 // app.use(
@@ -1437,6 +1529,16 @@ app.get('/get/requested/coins/admin', adminMidleware, async (req, res) => {
 });
 
 
+const Refund_data_Schema = new mongoose.Schema({
+    Time: String,
+    user: String,
+    count : String,
+    users : []
+}, { timestamps: true });
+
+const Refund_d_Module = mongoose.model('Refund_data', Refund_data_Schema);
+
+
 
 app.delete("/find/by/id/and/delete/req/coins/:id", async (req, res) => {
     const id = req.params.id;
@@ -1464,7 +1566,22 @@ app.delete("/find/by/id/and/delete/req/coins/:id", async (req, res) => {
             //type => Coin or Money
             await PendingNotimodule.findOneAndDelete({ idd: data.ID })
             await PendingNotimodule.create({ Time, user: data.user, idd: data._id, type: "Coin", title: data.title, sub: "completed" })
+            
+
+            const title = data.title;
+            const num = title.replace(/\D/g, "");
+
+            const refund_user = await Refund_d_Module.findOne({ user: "kick" })
+            if (refund_user) {
+                const updated_count = parseInt(refund_user.count) + parseInt(num);
+                refund_user.users.push(data.user);
+                refund_user.count = updated_count;
+                await refund_user.save();
+            } else {
+                await Refund_d_Module.create({ Time, user: "kick", count: num, users: [data.user] });
+            }
             await data.deleteOne();
+
             return res.status(202).json({ Status: "OK" })
         } else {
             return res.status(202).json({ Status: "BAD" })
@@ -1728,19 +1845,23 @@ app.post('/login/to/admin/account', async (req, res) => {
             });
 
             // if(user.valid === "Yes"){
-            //     const dat = await bcrypt.compare(pass, user.pass)
+            //     const dat = bcrypt.compare(pass, user.pass)
             //     if(dat){
-            //         const token = jwt.sign({ username : user.username }, "kanna_stawro_founders_withhh_1931_liketha_pass-worff_admin_gadi_passkey__", { expiresIn: "24h" });
+            //         const token = jwt.sign({ username : user.username }, "kanna_stawro_founders_withhh_1931_psycho_keeerthiii_01_", { expiresIn: "24h" });
             //         return res.status(202).json({Status : "OK", token })
             //     }else{
+            //         console.log("Password Not Match")
             //         return res.status(202).json({Status : "BAD"})
             //     }
             // }else{
+
+            //     console.log("Admin Not Verified")
             //     return res.status(202).json({Status : "BAD"})
             // }
 
 
         } else {
+            console.log("No User Found")
             return res.status(202).json({ Status: "BAD" })
         }
     } catch (error) {
@@ -1839,7 +1960,7 @@ app.post('/verify/otp/and/pass/by/admin', async (req, res) => {
                 // Generate JWT token
                 const token = jwt.sign(
                     { username },
-                    "kanna_stawro_founders_withhh_1931_liketha_pass-worff_admin_gadi_passkey__", // Use environment variable for secret key
+                    "kanna_stawro_founders_withhh_1931_psycho_keeerthiii_01_", // Use environment variable for secret key
                     { expiresIn: "24h" }
                 );
 
@@ -2611,9 +2732,13 @@ app.post('/start/playing/by/debit/amount', authMiddleware, async (req, res) => {
 const Amount_count_Schema = new mongoose.Schema({
     Time: String,
     count: Number,
+    user : {
+        default : "kick",
+        type : String
+    }
 }, { timestamps: true });
 
-const Amount_Count_Module = mongoose.model('Amount', Amount_count_Schema);
+const Amount_Count_Module = mongoose.model('Amount_admin', Amount_count_Schema);
 
 
 //new version
@@ -2733,13 +2858,30 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
             await _dec_bal.save();
         }
 
-        
+        const wal_cnt_mod = await Amount_walet_count_Module.findOne({ user: user });
 
+        if (wal_cnt_mod) {
+            wal_cnt_mod.count = parseInt(wal_cnt_mod.count) + feesNum;
+            
+            wal_cnt_mod.user_id.push({
+                Time,
+                user,
+                rupee: feesNum,
+            });
 
-
-
-
-
+            await wal_cnt_mod.save();
+        } else {
+            await Amount_walet_count_Module.create({
+                Time,
+                user: "kick",   // <-- ADD THIS
+                count: feesNum,
+                user_id: [{
+                    Time,
+                    user,
+                    rupee: feesNum
+                }]
+            });
+        }
 
 
         // ✅ Convert updated balance back to string
@@ -2750,6 +2892,15 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
                 { user },
                 { $set: { balance: updatedBal.balance.toString() } }
             );
+        }
+
+        const balance_to_admin_account = await Amount_Count_Module.findOne({ user: "kick" });
+
+        if( balance_to_admin_account ){
+            balance_to_admin_account.count = parseInt(balance_to_admin_account.count) + parseInt(fees.rupee)
+            await balance_to_admin_account.save()
+        }else{
+            await Amount_Count_Module.create({ Time, user: "kick", count: fees.rupee })
         }
 
 
@@ -7352,6 +7503,29 @@ app.post("/refund/data/and/add/to/users", adminMidleware, async (req, res) => {
             bal.balance = new_bal;
             await bal.save();
 
+            const admin_acc_listing_data = await Refund_Tickets.findOne({ user: "kick" });
+            if (admin_acc_listing_data) {
+                admin_acc_listing_data.count = parseInt(admin_acc_listing_data.count) + parseInt(fees.rupee);
+                admin_acc_listing_data.user_id.push({
+                    user: data.user,
+                    rupee: fees.rupee,
+                    Time: Time
+                })
+                    
+                await admin_acc_listing_data.save();
+            } else {
+                await Refund_Tickets.create({
+                    Time: Time, 
+                    count: fees.rupee,
+                    user: "kick",
+                    user_id: [{
+                        user: data.user,
+                        rupee: fees.rupee,  
+                        Time: Time
+                    }]
+                });
+            }
+
             return res.status(200).json({ Status: "OK" });
         }
 
@@ -7902,6 +8076,103 @@ function Seven() {
     }
 }
 
+app.get("/admin/balance/played", adminMiddleware, async (req, res) => {
+    try {
+        const all_bal = await Amount_Count_Module.findOne({ user: "kick" });
+        return res.status(200).json({ Status: "OK", data: all_bal });
+    } catch (error) {   
+        console.error("Error fetching balance:", error);
+        return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch balance" });
+    }
+});
+ 
+
+app.get("/admin/balance/free/played", adminMiddleware, async (req, res) => {
+    try {
+        const all_bal = await Amount_Free_Count_Module.findOne({ user: "kick" });
+        return res.status(200).json({ Status: "OK", data: all_bal });
+    }
+    catch (error) {
+        console.error("Error fetching balance:", error);
+        return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch balance" });
+    }   
+});
+
+
+const amount_walet_count_Schema = new mongoose.Schema({
+    Time: String,
+    count: Number,
+    user : {
+        default : "kick",
+        type : String
+    },
+    user_id : [{
+        user : String,
+        time : String,
+        rupee : String,
+    }]
+}, { timestamps: true });
+
+const Amount_walet_count_Module = mongoose.model('Amount_one', amount_walet_count_Schema);
+
+
+
+app.get("/admin/balance/wallet", adminMiddleware, async (req, res) => {
+    try {
+        const all_bal = await Amount_walet_count_Module.findOne({ user: "kick" });
+        if(all_bal){
+            console.log(all_bal)
+        } else {
+            return res.status(200).json({ Status: "OK", data: "No Data Found" });
+        }
+        return res.status(200).json({ Status: "OK", data: all_bal });
+    } catch (error) {
+        console.error("Error fetching balance:", error);
+        return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch balance" });
+    }
+});
+
+app.get("/admin/refund/data/list", adminMidleware, async (req, res) => {
+    try {
+        const all_data = await Refund_d_Module.findOne({user : "kick"});
+        return res.status(200).json({ Status: "OK", data: all_data });
+    } catch (error) {
+        console.error("Error fetching refund data:", error);
+        return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch refund data" });
+    }
+});
+
+const Amount_refund_Tickets_Schema = new mongoose.Schema({
+    Time: String,
+    count: Number,
+    user : {
+        default : "kick",
+        type : String
+    },
+    user_id : [{
+        user : String,
+        time : String,
+        rupee : String,
+    }]
+}, { timestamps: true });
+
+const Refund_Tickets = mongoose.model('Refund_Tickets', Amount_refund_Tickets_Schema);
+
+
+app.get("/admin/refund/tickets/list", adminMiddleware, async (req, res) => {
+    try {
+        const all_bal = await Refund_Tickets.findOne({ user: "kick" });
+        if(all_bal){
+            return res.status(200).json({ Status: "OK", data: all_bal });
+        } else {
+            return res.status(200).json({ Status: "OK", data: "No Data Found" });
+        }
+        
+    } catch (error) {
+        console.error("Error fetching balance:", error);
+        return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch balance" });
+    }
+});
 
 
 process.on('uncaughtException', (err) => {
