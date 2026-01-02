@@ -31,7 +31,7 @@ import { generateData, renderImageBase64 } from "./ai/four.js"
 import { generateData1, renderImageBase641 } from "./ai/five.js"
 import { createChallenge, uploadBase64 } from "./ai/six.js";
 import {createAdvancedNumberMCQ} from "./ai/seven.js";
-import { time } from 'console';
+import {generatePuzzle, drawCircles} from "./ai/eight.js"
 
 
 
@@ -2802,7 +2802,7 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
 
         const dif_l = getDifficultyDistribution(get_per)
 
-        const qst_gen = [One(), Two(), Three(), Four(), Five(), Six(), Seven(), Two(), Three(), Four()];
+        const qst_gen = [One(), Two(), Three(), Four(), Five(), Six(), Seven(), Eight(), Three(), Four()];
         const dif = [];
 
 
@@ -8015,7 +8015,7 @@ function Six() {
             console.log(error)
         }
     }
-}
+} 
 
 
 function Seven() {
@@ -8069,6 +8069,55 @@ function Seven() {
     }
     }
 }
+
+
+
+function Eight(){
+    return async function(level, user, qno) {
+        const level = req.query.level || "Medium";
+        const per = await get_per("circle_pieces", level);
+        const puzzle = generatePuzzle(level, per);
+        const canvas = drawCircles(puzzle.circles);
+        const base64Image = canvas.toBuffer('image/png').toString('base64');
+
+
+        const hash = crypto
+            .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+            .update(puzzle.correct.toString())
+            .digest("hex");
+
+        
+        await QuestionModule.create({
+            Time: Time,
+            user: user,
+            img: base64Image,
+            Questio: puzzle.question,
+            options: puzzle.options,
+            Ans: hash,
+            tough: level,
+            Qno : qno,
+            seconds: 50,
+            sub_lang: "circle_pieces",
+            yes: [],
+            no: []
+        })
+
+        return 1
+
+
+        // res.json({
+        //     Questio: puzzle.question,
+        //     Ans: puzzle.correct.toString(),
+        //     options: puzzle.options,
+        //     img: base64Image,
+        //     sub_lang: "circle_pieces",
+        //     tough: level
+        // })
+        
+    }
+}
+
+
 
 app.get("/admin/balance/played", adminMiddleware, async (req, res) => {
     try {
@@ -8169,6 +8218,9 @@ app.get("/admin/refund/tickets/list", adminMiddleware, async (req, res) => {
 });
 
 
+
+
+
 process.on('uncaughtException', (err) => {
     console.error('Uncaught Exception:', err);
 });
@@ -8177,5 +8229,4 @@ process.on('uncaughtException', (err) => {
 process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection:', reason);
 });
-
 
