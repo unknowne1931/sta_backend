@@ -386,6 +386,8 @@ export function generatePuzzle(difficulty, per) {
     }
 
     const options = [...answers].sort(() => Math.random() - 0.5);
-
     return { circles, question, correct, options };
+
 }
+
+

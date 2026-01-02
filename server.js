@@ -32,6 +32,7 @@ import { generateData1, renderImageBase641 } from "./ai/five.js"
 import { createChallenge, uploadBase64 } from "./ai/six.js";
 import {createAdvancedNumberMCQ} from "./ai/seven.js";
 import {generatePuzzle, drawCircles} from "./ai/eight.js"
+import {generateEmojiPuzzle} from "./ai/nine.js"
 
 
 
@@ -8114,6 +8115,23 @@ function Eight(){
         //     tough: level
         // })
         
+    }
+}
+
+function Nine(){
+    return async function(level, user, qno){
+        const puzzle = generateEmojiPuzzle();
+        console.log(puzzle);
+
+        res.json({
+            Questio : puzzle.question,
+            Ans : puzzle.correct,
+            options : puzzle.options,
+            img : puzzle.image,
+            sub_lang : "emoji_01",
+            tough : level
+        })
+
     }
 }
 
