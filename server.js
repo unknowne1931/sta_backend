@@ -342,11 +342,17 @@ const generateOTP = () => {
 //https end
 
 
-export async function get_per(sub_lang, tough) {
+export async function get_per(sub_lang, tough, user) {
     try {
-        const data = await users_db.findOne({ sub_lang: sub_lang, tough: tough });
-        if (data) {
-            const total = data.yes.length + data.no.length;
+        const data = await users_db.findOne({ sub_lang, tough });
+        if (!data) return 0;
+
+        // check if the user exists in the seconds array
+        const userObj = data.seconds.find(item => item.user === user);
+
+        if (userObj) {
+            const total = (data.yes?.length || 0) + (data.no?.length || 0);
+            if (total === 0) return 0;
             const per = (data.yes.length / total) * 100;
             return per;
         } else {
@@ -354,7 +360,8 @@ export async function get_per(sub_lang, tough) {
         }
 
     } catch (err) {
-        return res.status(500).json({ error: err.message });
+        console.error(err);
+        return 0; // return 0 if any error occurs
     }
 }
 
@@ -7613,7 +7620,7 @@ app.post("/refer/and/earn", async (req, res) => {
 function One() {
     return async function (level, user, qno) {
         try {
-            const per = await get_per("star_cir_tri", level);
+            const per = await get_per("star_cir_tri", level, user);
             const DIFFICULTIES = getDifficultiesByPer(per);
 
             const difficulty = DIFFICULTIES[level];
@@ -7679,7 +7686,7 @@ function Two() {
     return async function (level, user, qno) {
         try {
 
-            const per = await get_per("news_side", level);
+            const per = await get_per("news_side", level, user);
 
             // 1) Generate random arrows
             const angles = generateArrows(per, level);
@@ -7791,7 +7798,7 @@ function Three() {
     return async function (level, user, qno) {
 
         try {
-            const per = await get_per("plus", level);
+            const per = await get_per("plus", level, user);
             const data = await generatePlusQuestionImage(per, level);
 
             // const hash = crypto
@@ -7835,7 +7842,7 @@ function Four() {
     return async function (level, user, qno) {
         try {
             // const level = req.query.level || "Easy";
-            const per = await get_per("two_leters_word", level);
+            const per = await get_per("two_leters_word", level, user);
 
 
             const { words, question, correctAnswer, options } = generateData(level, per);
@@ -7873,7 +7880,7 @@ function Five() {
     return async function (level, user, qno) {
         try {
             // const level = req.query.level || "Easy";
-            const per = await get_per("singel_word", level);
+            const per = await get_per("singel_word", level, , user);
             const data = generateData1(level, per);
 
             console.log(data);
@@ -7911,7 +7918,7 @@ function Five() {
 
 function Six() {
     return async function (level, user, qno) {
-        const per = await get_per("ran_leters", level);
+        const per = await get_per("ran_leters", level, user);
 
 
 
@@ -7954,7 +7961,7 @@ function Six() {
 function Seven() {
     return async function (level, user, qno) {
         try {
-            const per = await get_per("less_grtr", level);
+            const per = await get_per("less_grtr", level, user);
 
 
             const data = await createAdvancedNumberMCQ(level, per);
@@ -7992,7 +7999,7 @@ function Seven() {
 
 function Eight() {
     return async function (level, user, qno) {
-        const per = await get_per("circle_pieces", level);
+        const per = await get_per("circle_pieces", level, user);
         const puzzle = generatePuzzle(level, per);
         const canvas = drawCircles(puzzle.circles);
         const base64Image = canvas.toBuffer('image/png').toString('base64');
@@ -8025,7 +8032,7 @@ function Eight() {
 function Nine() {
     return async function (level, user, qno) {
 
-        const per = await get_per("emoji_01", level);
+        const per = await get_per("emoji_01", level, user);
         const puzzle = generateEmojiPuzzle(level, per);
         // console.log(puzzle);
 
@@ -8055,7 +8062,7 @@ function Nine() {
 
 function Ten() {
     return async function (level, user, qno) {
-        const per = await get_per("maze", level);
+        const per = await get_per("maze", level, user);
         // const per = 100
         const mazeQuestion = generateMazeQuestion({ level: level, per: per });
 
@@ -8086,7 +8093,7 @@ function Ten() {
 
 function Eleven(){
     return async function(level, user, qno){
-        const per = await get_per("colours", level);
+        const per = await get_per("colours", level, user);
         const result = generateColorMatchQuestion({
         level, per
         });
@@ -8119,7 +8126,7 @@ function Eleven(){
 function Tweleve(){
     return async function(level, user, qno){
 
-        const per = await get_per("code_int_char", level);
+        const per = await get_per("code_int_char", level, user);
 
         const test = createStringCountImage(level, per);
 
