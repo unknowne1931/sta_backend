@@ -8082,7 +8082,6 @@ function Seven() {
 
 function Eight() {
     return async function (level, user, qno) {
-        const level = req.query.level || "Medium";
         const per = await get_per("circle_pieces", level);
         const puzzle = generatePuzzle(level, per);
         const canvas = drawCircles(puzzle.circles);
@@ -8169,7 +8168,6 @@ function Nine() {
 
 function Ten() {
     return async function (level, user, qno) {
-        const level = req.query.level;
         const per = await get_per("maze", level);
         // const per = 100
         const mazeQuestion = generateMazeQuestion({ level: level, per: per });
