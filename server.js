@@ -7742,9 +7742,6 @@ function Two() {
                     no: []
                 })
 
-                return 1;
-
-
             }
 
             // -------------------------
@@ -7774,22 +7771,12 @@ function Two() {
                 options: optionsDouble,
                 Ans: hash,
                 tough : level,
+                Qno : qno,
                 seconds: 50,
                 sub_lang: "news_side",
                 yes: [],
                 no: []
             })
-
-
-
-            // res.json({
-            //     sub_lang: "news_side",
-            //     tough: level,
-            //     img: imageURL,
-            //     Questio: `How many arrows are facing ${dir1.dir.name} and ${dir2.dir.name}?`,
-            //     options: optionsDouble,
-            //     Ans: correctDouble,
-            // });
 
         } catch (err) {
             console.error(err);
