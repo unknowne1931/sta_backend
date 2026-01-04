@@ -120,7 +120,7 @@ app.post(
             userData.balance = int_bal
             await userData.save();
 
-            const admin_bal_wallet = await Amount_in_wallet_Count_Module.findOne({ user: "kick  " });
+            const admin_bal_wallet = await Amount_in_wallet_Count_Module.findOne({ user: "kick" });
 
             const num = Number(rp_i)
             console.log("User found:", userData);
@@ -144,7 +144,6 @@ app.post(
                     Time: new Date().toISOString(),
                     count: Number(rp_i),
                     user: "kick",
-
                     user_id: [{ user: user, rupee: toString(rp_i), tr_id: payment.id, time: Time }]
                 });
             }
@@ -361,7 +360,7 @@ export async function get_per(sub_lang, tough) {
 
 
 app.get('/', (req, res) => {
-    res.send('Hello, world Vs : 1.3.3 ; Last Updated : 04-01-2026 ; Type : Live');
+    res.send('Hello, world Vs : 5.0.0 ; Last Updated : 04-01-2026 ; Type : Live');
 });
 
 
@@ -2709,8 +2708,8 @@ app.post('/start/playing/by/debit/amount', authMiddleware, async (req, res) => {
             }
         });
 
-        const newListData = await QuestionListmodule.findOne({ user }).lean();
-        if (newListData?.list?.length < 10) {
+        const newListData = await QuestionModule.findOne({ user }).lean();
+        if (newListData?.list?.length < 10 || newListData?.list?.length > 10 ) {
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
@@ -2809,18 +2808,23 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
 
         const dif_l = getDifficultyDistribution(get_per)
 
-        const qst_gen = [One(), Two(), Three(), Four(), Five(), Six(), Seven(), Eight(), Nine(), Ten(), Eleven(), Tweleve()];
+        const qst_gen = [
+        One(), Two(), Three(), Four(), Five(), Six(),
+        Seven(), Eight(), Nine(), Ten(), Eleven(), Tweleve()
+        ];
+
+        const shuffled = [...qst_gen]
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 10);
+
         const dif = [];
-
-        const shuffled = [...qst_gen].sort(() => Math.random() - 0.5);
-
-
 
 
         shuffled.forEach((data, i) => {
             const num = (i + 1).toString();
             dif.push(num);
-            qst_gen[i](data, user, i + 1); // qst_gen[i] is a function, so this works
+            const lvl = dif_l[i]
+            data(lvl,user, num)
         });
 
 
@@ -2862,7 +2866,7 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
             await _dec_bal.save();
         }
 
-        const wal_cnt_mod = await Amount_walet_count_Module.findOne({ user: user });
+        const wal_cnt_mod = await Amount_walet_count_Module.findOne({ user: "kick" });
 
         if (wal_cnt_mod) {
             wal_cnt_mod.count = parseInt(wal_cnt_mod.count) + feesNum;
@@ -3677,7 +3681,7 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
 
         // Check if the user is valid and has a question list
         if (Data && Data.valid === "yes") {
-            if (Get_Qno_info && Get_Qno_info.list.length > 0) {
+            if (Get_Qno_info && Get_Qno_info.list.length >= 0) {
                 // Get the first question number from the list
                 const QNO = Get_Qno_info.list[0];
 
@@ -3726,13 +3730,13 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
 
                     return res.status(200).json({ data });
                 } else {
-                    return res.status(404).json({ Status: "BAD" });
+                    return res.status(404).json({ Status: "BAD", message : "No Question Found" });
                 }
             } else {
-                return res.status(202).json({ Status: "BAD" });
+                return res.status(202).json({ Status: "BAD", message : "No Question Found"  });
             }
         } else {
-            return res.status(202).json({ Status: "BAD" });
+            return res.status(202).json({ Status: "BAD",message : "Not Valid to Yes"  });
         }
     } catch (error) {
         console.log(error);
@@ -7613,42 +7617,34 @@ function One() {
             const DIFFICULTIES = getDifficultiesByPer(per);
 
             const difficulty = DIFFICULTIES[level];
-
             const boxes = generateBoxesData(difficulty);
 
             let question, correct;
-            // 30% chance to ask total boxes
+
             // 30% chance to ask total boxes
             if (Math.random() < 0.3) {
-                const completeBoxes = boxes.filter(b => b.complete); // only complete boxes
+                const completeBoxes = boxes.filter(b => b.complete);
                 question = "How many boxes are there in total?";
                 correct = completeBoxes.length;
             } else {
-                // Normal shape question, only complete boxes count
                 const target = pickValidShape(boxes);
-                if (!target) return res.json({ error: "No valid question this round" });
-                correct = boxes.filter(b => b.shape === target && b.complete).length;
+
+                // ✅ FIX: res removed, safe exit instead
+                if (!target) {
+                    return null;
+                }
+
+                correct = boxes.filter(
+                    b => b.shape === target && b.complete
+                ).length;
+
                 question = `How many boxes have ${target}s?`;
             }
 
-            // options
             const options = generateOptions(correct);
 
-            // upload image
             const imageBuf = drawImage(boxes);
             const upload = await uploadImage(imageBuf);
-
-            // respond
-            // res.json({
-            //     difficulty: level,
-            //     question,
-            //     correctAnswer: correct,
-            //     options,
-            //     sub_lang: "star_cir_tri",
-            //     per,
-            //     totalBoxes: boxes.filter(b => b.complete).length, // only complete boxes
-            //     imagePath: upload.image
-            // });
 
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
@@ -7668,18 +7664,13 @@ function One() {
                 sub_lang: "star_cir_tri",
                 yes: [],
                 no: []
-            })
-
-            return 1;
-
-            // console.log(question)
-            // console.log(upload.image)
-
+            });
 
         } catch (err) {
-            res.status(500).json({ error: err.message });
+            // ✅ FIX: no res → rethrow so caller can handle
+            throw err;
         }
-    }
+    };
 }
 
 
@@ -7743,7 +7734,7 @@ function Two() {
                     Questio: `How many arrows are facing ${picked.dir.name}?`,
                     options: options,
                     Ans: hash,
-                    tough: level,
+                    tough : level,
                     Qno: qno,
                     seconds: 50,
                     sub_lang: "news_side",
@@ -7782,14 +7773,12 @@ function Two() {
                 Questio: `How many arrows are facing ${dir1.dir.name} and ${dir2.dir.name}?`,
                 options: optionsDouble,
                 Ans: hash,
-                tough: level,
+                tough : level,
                 seconds: 50,
                 sub_lang: "news_side",
                 yes: [],
                 no: []
             })
-
-            return 1;
 
 
 
@@ -7835,7 +7824,7 @@ function Three() {
                 Questio: "How many “+” are formed?",
                 options: data.question.options,
                 Ans: hash,
-                tough: level,
+                tough : level,
                 Qno: qno,
                 seconds: 50,
                 sub_lang: "plus",
@@ -7843,11 +7832,11 @@ function Three() {
                 no: []
             })
 
-            return 1;
+
 
 
         } catch (error) {
-            console.log(error)
+            throw err;
         }
 
     }
@@ -7878,7 +7867,7 @@ function Four() {
                 Questio: question,
                 options: options,
                 Ans: hash,
-                tough: level,
+                tough : level,
                 Qno: qno,
                 seconds: 50,
                 sub_lang: "two_leters_word",
@@ -7886,19 +7875,8 @@ function Four() {
                 no: []
             })
 
-            return 1;
-
-            res.json({
-
-                Questio: question,
-                Ans: correctAnswer,
-                Options: options,
-                img: base64Image,
-                sub_lang: "two_leters_word",
-                tough: level,
-            })
         } catch (error) {
-            console.log(error)
+            throw err;
         }
     }
 }
@@ -7928,26 +7906,12 @@ function Five() {
                 Questio: data.question,
                 options: data.options,
                 Ans: hash,
-                tough: level,
+                tough : level,
                 Qno: qno,
                 seconds: 50,
                 sub_lang: "singel_word",
                 yes: [],
                 no: []
-            })
-
-            return 1;
-
-
-
-            res.json({
-                Questio: data.question,
-                Ans: data.correctAnswer,
-                options: data.options,
-                img: base64Image,
-                sub_lang: "singel_word"
-
-
             })
 
         } catch (error) {
@@ -7960,9 +7924,7 @@ function Five() {
 
 function Six() {
     return async function (level, user, qno) {
-        try {
-
-            const per = await get_per("ran_leters", level);
+        const per = await get_per("ran_leters", level);
 
 
 
@@ -7986,7 +7948,7 @@ function Six() {
                     Questio: out.qst,
                     options: out.options,
                     Ans: hash,
-                    tough: level,
+                    tough : level,
                     Qno: qno,
                     seconds: 50,
                     sub_lang: "ran_leters",
@@ -7994,36 +7956,10 @@ function Six() {
                     no: []
                 })
 
-                return 1;
-
-                res.json({
-                    Questio: out.qst,
-                    Ans: out.correct,
-                    options: out.options,
-                    img: img,
-                    sub_lang: "ran_leters"
-                })
 
 
             });
 
-
-            // if (process.argv[1].includes("challenge.js")) {
-            //     const per = 35; // change here to test
-            //     createChallenge(per).then(res => {
-            //         console.log(res.question);
-            //         console.log("Options:", res.options);
-            //         console.log("Correct:", res.correct);
-            //         console.log("Base64 length:", res.base64img.length);
-            //     });
-            // }
-
-
-
-
-        } catch (error) {
-            console.log(error)
-        }
     }
 }
 
@@ -8035,20 +7971,6 @@ function Seven() {
 
 
             const data = await createAdvancedNumberMCQ(level, per);
-            // console.log("Question:", data.question);
-            // console.log("Difficulty:", data.difficulty);
-            // console.log("Options:", data.options);
-            // console.log("Correct Answer:", data.correct);
-
-            // res.json({
-            //     Questio: data.question,
-            //     Ans: data.correct,
-            //     options: data.options,
-            //     img: data.image,
-            //     sub_lang: "ran_leters",
-            //     tough : level
-            // })
-
 
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
@@ -8063,7 +7985,7 @@ function Seven() {
                 Questio: data.question,
                 options: data.options,
                 Ans: hash,
-                tough: level,
+                tough : level,
                 Qno: qno,
                 seconds: 50,
                 sub_lang: "less_grtr",
@@ -8071,11 +7993,10 @@ function Seven() {
                 no: []
             })
 
-            return 1
 
 
         } catch (error) {
-            console.log(error)
+            throw err;
         }
     }
 }
@@ -8103,25 +8024,13 @@ function Eight() {
             Questio: puzzle.question,
             options: puzzle.options,
             Ans: hash,
-            tough: level,
+            tough : level,
             Qno: qno,
             seconds: 50,
             sub_lang: "circle_pieces",
             yes: [],
             no: []
         })
-
-        return 1
-
-
-        // res.json({
-        //     Questio: puzzle.question,
-        //     Ans: puzzle.correct.toString(),
-        //     options: puzzle.options,
-        //     img: base64Image,
-        //     sub_lang: "circle_pieces",
-        //     tough: level
-        // })
 
     }
 }
@@ -8146,24 +8055,13 @@ function Nine() {
             Questio: puzzle.question,
             options: puzzle.options,
             Ans: hash,
-            tough: level,
+            tough : level,
             Qno: qno,
             seconds: 50,
             sub_lang: "emoji_01",
             yes: [],
             no: []
         })
-
-        return 1
-
-        // res.json({
-        //     Questio: puzzle.question,
-        //     Ans: puzzle.correct,
-        //     options: puzzle.options,
-        //     img: puzzle.image,
-        //     sub_lang: "emoji_01",
-        //     tough: level
-        // })
     }
 }
 
@@ -8187,7 +8085,7 @@ function Ten() {
             Questio: mazeQuestion.question,
             options: mazeQuestion.options,
             Ans: hash,
-            tough: level,
+            tough : level,
             Qno: qno,
             seconds: 50,
             sub_lang: "maze",
@@ -8195,15 +8093,6 @@ function Ten() {
             no: []
         })
 
-
-        // res.json({
-        //     Questio: mazeQuestion.question,
-        //     Ans: mazeQuestion.answer,
-        //     options: mazeQuestion.options,
-        //     img: mazeQuestion.image,
-        //     sub_lang: "maze",
-        //     tough: level
-        // })
     }
 }
 
@@ -8228,7 +8117,7 @@ function Eleven(){
             Questio: result.question,
             options: result.options,
             Ans: hash,
-            tough: level,
+            tough : level,
             Qno: qno,
             seconds: 50,
             sub_lang: "colours",
@@ -8236,15 +8125,6 @@ function Eleven(){
             no: []
         })
 
-
-        // res.json({
-        //     Questio: result.question,
-        //     Ans: result.answer,
-        //     options: result.options,
-        //     img: result.image,
-        //     sub_lang: "colours",
-        //     tough: level
-        // })
     }
 }
 
@@ -8254,7 +8134,7 @@ function Tweleve(){
 
         const per = await get_per("code_int_char", level);
 
-        const test = createStringCountImage(level);
+        const test = createStringCountImage(level, per);
 
         const hash = crypto
             .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
@@ -8269,7 +8149,7 @@ function Tweleve(){
             Questio: test.data.question,
             options: test.data.options,
             Ans: hash,
-            tough: level,
+            tough : level,
             Qno: qno,
             seconds: 50,
             sub_lang: "code_int_char",
@@ -8277,15 +8157,6 @@ function Tweleve(){
             no: []
         })
         
-
-        // res.json({
-        //     Questio : test.data.question,
-        //     options : test.data.options,
-        //     Ans : test.data.correct,
-        //     img : test.imageBase64,
-        //     sub_lang : "code_int_char",
-        //     tough : level
-        // })
     }
 }
 

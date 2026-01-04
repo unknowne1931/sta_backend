@@ -1,6 +1,5 @@
 import { createCanvas, loadImage } from "canvas";
 
-
 const WIDTH = 400;
 const HEIGHT = 250;
 
@@ -20,11 +19,31 @@ function diff_data(per) {
   const step = Math.floor(per / 10);
 
   return {
-    "Too Easy": { w1: [base.w1[0]+step, base.w1[1]+step], w2: [base.w2[0]+step, base.w2[1]+step], indexMax: base.indexMax + step*2 },
-    "Easy":     { w1: [base.w1[0]+step+1, base.w1[1]+step+1], w2: [base.w2[0]+step+1, base.w2[1]+step+1], indexMax: base.indexMax + step*2 + 2 },
-    "Medium":   { w1: [base.w1[0]+step+2, base.w1[1]+step+2], w2: [base.w2[0]+step+2, base.w2[1]+step+2], indexMax: base.indexMax + step*2 + 4 },
-    "Tough":    { w1: [base.w1[0]+step+3, base.w1[1]+step+3], w2: [base.w2[0]+step+3, base.w2[1]+step+3], indexMax: base.indexMax + step*2 + 6 },
-    "Too Tough":{ w1: [base.w1[0]+step+4, base.w1[1]+step+4], w2: [base.w2[0]+step+4, base.w2[1]+step+4], indexMax: base.indexMax + step*2 + 8 }
+    "Too Easy": {
+      w1: [base.w1[0] + step, base.w1[1] + step],
+      w2: [base.w2[0] + step, base.w2[1] + step],
+      indexMax: base.indexMax + step * 2
+    },
+    "Easy": {
+      w1: [base.w1[0] + step + 1, base.w1[1] + step + 1],
+      w2: [base.w2[0] + step + 1, base.w2[1] + step + 1],
+      indexMax: base.indexMax + step * 2 + 2
+    },
+    "Medium": {
+      w1: [base.w1[0] + step + 2, base.w1[1] + step + 2],
+      w2: [base.w2[0] + step + 2, base.w2[1] + step + 2],
+      indexMax: base.indexMax + step * 2 + 4
+    },
+    "Tough": {
+      w1: [base.w1[0] + step + 3, base.w1[1] + step + 3],
+      w2: [base.w2[0] + step + 3, base.w2[1] + step + 3],
+      indexMax: base.indexMax + step * 2 + 6
+    },
+    "Too Tough": {
+      w1: [base.w1[0] + step + 4, base.w1[1] + step + 4],
+      w2: [base.w2[0] + step + 4, base.w2[1] + step + 4],
+      indexMax: base.indexMax + step * 2 + 8
+    }
   };
 }
 
@@ -46,8 +65,22 @@ function ordinal(n) {
 
 // ------------------- CORE GAME DATA -------------------
 export function generateData1(difficulty, per) {
-  const diff = diff_data(per)[difficulty];
-  if (!diff) throw new Error("invalid difficulty");
+  const normalizedDifficulty =
+    typeof difficulty === "string"
+      ? difficulty.trim().toLowerCase()
+      : "";
+
+  const DIFF_MAP = {
+    "too easy": "Too Easy",
+    "easy": "Easy",
+    "medium": "Medium",
+    "tough": "Tough",
+    "too tough": "Too Tough"
+  };
+
+  // ✅ FIX: fallback to Medium
+  const diffKey = DIFF_MAP[normalizedDifficulty] || "Medium";
+  const diff = diff_data(per)[diffKey];
 
   const s1 = generateSentence(rand(...diff.w1));
   const s2 = generateSentence(rand(...diff.w2));
@@ -58,9 +91,9 @@ export function generateData1(difficulty, per) {
   let question = "";
 
   const modePool =
-    difficulty === "Too Tough"
+    diffKey === "Too Tough"
       ? ["single", "before", "after", "right", "dual"]
-      : difficulty === "Tough"
+      : diffKey === "Tough"
         ? ["single", "before", "after", "right"]
         : ["single"];
 
@@ -73,7 +106,9 @@ export function generateData1(difficulty, per) {
     index2 = rand(2, diff.indexMax - 2);
     while (index2 === index) index2 = rand(2, diff.indexMax - 2);
 
-    correctAnswer = allWords[index - 1].length + allWords[index2 - 1].length;
+    correctAnswer =
+      allWords[index - 1].length + allWords[index2 - 1].length;
+
     question = `Count letters of word ${ordinal(index)} and ${ordinal(index2)}`;
   } else {
     index = rand(2, diff.indexMax - 1);
@@ -95,7 +130,6 @@ export function generateData1(difficulty, per) {
     correctAnswer = word.length;
   }
 
-  // ----- OPTIONS -----
   const opts = new Set([correctAnswer]);
   let d = 1;
   while (opts.size < 4) {
@@ -110,16 +144,14 @@ export function generateData1(difficulty, per) {
 }
 
 
-
+// ------------------- IMAGE RENDER -------------------
 export async function renderImageBase641(text) {
   const canvas = createCanvas(WIDTH, HEIGHT);
   const ctx = canvas.getContext("2d");
 
-  // background
   ctx.fillStyle = "white";
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-  // rounded border style
   const border = 3;
   const radius = 10;
 
@@ -138,25 +170,21 @@ export async function renderImageBase641(text) {
   ctx.quadraticCurveTo(border, border, radius, border);
   ctx.stroke();
 
-  // container padding
   const padding = 14;
   const maxWidth = WIDTH - padding * 2;
 
-  // text style
   ctx.fillStyle = "black";
   ctx.font = "16px Arial";
   ctx.textBaseline = "middle";
 
-  // ---- word wrap ----
   const words = text.split(" ");
   let line = "";
-  let y = HEIGHT / 2 - 30; // start slightly above center
+  let y = HEIGHT / 2 - 30;
   const lineHeight = 22;
 
   for (let i = 0; i < words.length; i++) {
     const testLine = line + words[i] + " ";
-    const metrics = ctx.measureText(testLine);
-    if (metrics.width > maxWidth && i > 0) {
+    if (ctx.measureText(testLine).width > maxWidth && i > 0) {
       ctx.fillText(line, (WIDTH - ctx.measureText(line).width) / 2, y);
       line = words[i] + " ";
       y += lineHeight;
@@ -165,7 +193,6 @@ export async function renderImageBase641(text) {
     }
   }
 
-  // final line
   ctx.fillText(line, (WIDTH - ctx.measureText(line).width) / 2, y);
 
   return canvas.toBuffer("image/png").toString("base64");

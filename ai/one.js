@@ -135,6 +135,8 @@ export function drawBoxBorderWithGap(ctx, x, y, size, hasGap) {
 }
 
 export function generateBoxesData(difficulty) {
+    if (!difficulty) return [];   // ✅ FIX: prevent undefined access
+
     const boxesData = [];
     const total = rand(...difficulty.boxes);
     let brokenLeft = rand(...difficulty.broken);

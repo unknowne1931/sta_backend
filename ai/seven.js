@@ -351,7 +351,8 @@ function renderToBase64(numbers) {
 export async function createAdvancedNumberMCQ(level, per) {
 
     const DIFFICULTIES = diff_level(per);
-    const diff = DIFFICULTIES[level];
+    const diff = DIFFICULTIES[level] || DIFFICULTIES["Medium"];
+
 
     const qType = QUESTION_TYPES[rand(0, QUESTION_TYPES.length - 1)];
 

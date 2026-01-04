@@ -1,4 +1,3 @@
-// emoji_missing_mcq.js
 import { createCanvas } from "canvas";
 
 // ==========================
@@ -11,7 +10,6 @@ const HEIGHT = 250;
 // DIFFICULTY SELECTOR
 // ==========================
 function sel_dif(per) {
-
   if (per < 10) {
     return {
       "Too Easy": ["😣", "😙", "😗"],
@@ -20,9 +18,7 @@ function sel_dif(per) {
       "Tough": ["😣", "😙", "😗", "😑", "😒", "😋"],
       "Too Tough": ["😣", "😙", "😗", "😑", "😒", "😋", "😁"]
     };
-  }
-
-  else if (per < 20) {
+  } else if (per < 20) {
     return {
       "Too Easy": ["😣", "😙", "😗", "😑"],
       "Easy": ["😣", "😙", "😗", "😑", "😒"],
@@ -30,9 +26,7 @@ function sel_dif(per) {
       "Tough": ["😣", "😙", "😗", "😑", "😒", "😋", "😁"],
       "Too Tough": ["😣", "😙", "😗", "😑", "😒", "😋", "😁", "😊"]
     };
-  }
-
-  else if (per < 30) {
+  } else if (per < 30) {
     return {
       "Too Easy": ["😣", "😙", "😗", "😑", "😒"],
       "Easy": ["😣", "😙", "😗", "😑", "😒", "😋"],
@@ -40,9 +34,7 @@ function sel_dif(per) {
       "Tough": ["😣", "😙", "😗", "😑", "😒", "😋", "😁", "😊"],
       "Too Tough": ["😣", "😙", "😗", "😑", "😒", "😋", "😁", "😊", "😍"]
     };
-  }
-
-  else if (per < 40) {
+  } else if (per < 40) {
     return {
       "Too Easy": ["😣", "😙", "😗", "😑", "😒", "😋"],
       "Easy": ["😣", "😙", "😗", "😑", "😒", "😋", "😁"],
@@ -52,7 +44,6 @@ function sel_dif(per) {
     };
   }
 
-  // per >= 40
   return {
     "Too Easy": ["😣", "😙", "😗", "😑", "😒", "😋", "😁"],
     "Easy": ["😣", "😙", "😗", "😑", "😒", "😋", "😁", "😊"],
@@ -63,20 +54,26 @@ function sel_dif(per) {
       "😋","😁","😊","😍","😐",
       "🙄","😬","😵","🤯","😡",
       "😱","🥴","😤","😖","😫"
-    ] // exactly 20
+    ]
   };
 }
 
 // ==========================
 // MAIN FUNCTION
 // ==========================
-export function generateEmojiPuzzle(level = "Too Tough", per = 80) {
-
+export function generateEmojiPuzzle(level, per) {
   const difficultyMap = sel_dif(per);
-  const EMOJIS = difficultyMap[level];
+
+  // ✅ HARD GUARANTEE: EMOJIS is always an array
+  const EMOJIS = Array.isArray(difficultyMap[level])
+    ? difficultyMap[level]
+    : difficultyMap["Easy"];
+
+  if (!EMOJIS || EMOJIS.length < 2) {
+    throw new Error("Invalid emoji configuration");
+  }
 
   const size = 30;
-
   const canvas = createCanvas(WIDTH, HEIGHT);
   const ctx = canvas.getContext("2d");
 
@@ -98,13 +95,12 @@ export function generateEmojiPuzzle(level = "Too Tough", per = 80) {
   ctx.fillText("Group A", 70, 30);
   ctx.fillText("Group B", WIDTH / 2 + 70, 30);
 
-  // shuffle base emojis
+  // ✅ SAFE shuffle
   const baseEmojis = shuffle([...EMOJIS]);
 
   let groupA = [...baseEmojis];
   let groupB = [...baseEmojis];
 
-  // remove one emoji
   const missingIndex = Math.floor(Math.random() * baseEmojis.length);
   const missingEmoji = baseEmojis[missingIndex];
   const missingGroup = Math.random() < 0.5 ? "A" : "B";
@@ -116,7 +112,6 @@ export function generateEmojiPuzzle(level = "Too Tough", per = 80) {
 
   const boxHeight = HEIGHT - 100;
 
-  // random scatter draw
   drawGroup(ctx, groupA, 20, 60, WIDTH / 2 - 40, boxHeight, size);
   drawGroup(ctx, groupB, WIDTH / 2 + 20, 60, WIDTH / 2 - 40, boxHeight, size);
 
@@ -141,13 +136,11 @@ export function generateEmojiPuzzle(level = "Too Tough", per = 80) {
 function drawGroup(ctx, emojis, boxX, boxY, boxW, boxH, size) {
   const positions = [];
   const minDist = size + 6;
-  const maxAttempts = 2000;
 
   emojis.forEach((emoji) => {
     let placed = false;
-    let attempts = 0;
 
-    while (!placed && attempts < maxAttempts) {
+    for (let i = 0; i < 2000 && !placed; i++) {
       const x = boxX + Math.random() * (boxW - size);
       const y = boxY + Math.random() * (boxH - size);
 
@@ -160,13 +153,12 @@ function drawGroup(ctx, emojis, boxX, boxY, boxW, boxH, size) {
         ctx.fillText(emoji, x, y);
         placed = true;
       }
-      attempts++;
     }
   });
 }
 
 // ==========================
-// SHUFFLE
+// SHUFFLE (Fisher–Yates)
 // ==========================
 function shuffle(arr) {
   for (let i = arr.length - 1; i > 0; i--) {

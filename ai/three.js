@@ -3,57 +3,54 @@ import { createCanvas } from "canvas";
 import axios from "axios";
 import FormData from "form-data";
 
-
 // ======================= PERFORMANCE DIFFICULTY ==========================
 export function getPlusLevels(per) {
     let LEVELS;
 
     if (per < 10) {
         LEVELS = {
-            "Too Easy" :  { h: 3, v: 3, gap: 62 },
-            "Easy" :     { h: 5, v: 5, gap: 55 },
-            "Medium" :   { h: 6, v: 6, gap: 48 },
-            "Tough" :    { h: 9, v: 9, gap: 40 },
-            "Too Tough" : { h: 12, v: 12, gap: 32 }
+            "Too Easy":  { h: 3, v: 3, gap: 62 },
+            "Easy":      { h: 5, v: 5, gap: 55 },
+            "Medium":    { h: 6, v: 6, gap: 48 },
+            "Tough":     { h: 9, v: 9, gap: 40 },
+            "Too Tough": { h: 12, v: 12, gap: 32 }
         };
     } else if (per < 20) {
         LEVELS = {
             "Too Easy":  { h: 4, v: 4, gap: 60 },
-            "Easy":     { h: 6, v: 6, gap: 50 },
-            "Medium":   { h: 7, v: 7, gap: 40 },
-            "Tough":    { h: 10, v: 10, gap: 32 },
+            "Easy":      { h: 6, v: 6, gap: 50 },
+            "Medium":    { h: 7, v: 7, gap: 40 },
+            "Tough":     { h: 10, v: 10, gap: 32 },
             "Too Tough": { h: 14, v: 14, gap: 26 }
         };
     } else if (per < 40) {
         LEVELS = {
             "Too Easy":  { h: 5, v: 5, gap: 58 },
-            "Easy":     { h: 7, v: 7, gap: 46 },
-            "Medium":   { h: 8, v: 8, gap: 36 },
-            "Tough":    { h: 11, v: 11, gap: 28 },
+            "Easy":      { h: 7, v: 7, gap: 46 },
+            "Medium":    { h: 8, v: 8, gap: 36 },
+            "Tough":     { h: 11, v: 11, gap: 28 },
             "Too Tough": { h: 16, v: 16, gap: 22 }
         };
     } else if (per < 60) {
         LEVELS = {
             "Too Easy":  { h: 6, v: 6, gap: 54 },
-            "Easy":     { h: 8, v: 8, gap: 42 },
-            "Medium":   { h: 9, v: 9, gap: 30 },
-            "Tough":    { h: 13, v: 13, gap: 24 },
+            "Easy":      { h: 8, v: 8, gap: 42 },
+            "Medium":    { h: 9, v: 9, gap: 30 },
+            "Tough":     { h: 13, v: 13, gap: 24 },
             "Too Tough": { h: 18, v: 18, gap: 20 }
         };
     } else {
-        // very high performance = max difficulty
         LEVELS = {
             "Too Easy":  { h: 7, v: 7, gap: 48 },
-            "Easy":     { h: 9, v: 9, gap: 36 },
-            "Medium":   { h: 10, v: 10, gap: 28 },
-            "Tough":    { h: 15, v: 15, gap: 22 },
+            "Easy":      { h: 9, v: 9, gap: 36 },
+            "Medium":    { h: 10, v: 10, gap: 28 },
+            "Tough":     { h: 15, v: 15, gap: 22 },
             "Too Tough": { h: 22, v: 22, gap: 18 }
         };
     }
 
     return LEVELS;
 }
-
 
 // ========================== HELPERS =====================================
 function rand(min, max) {
@@ -65,18 +62,20 @@ function isTruePlus(hLine, vLine) {
     const iy = hLine.y;
     if (ix < hLine.x1 || ix > hLine.x2 || iy < vLine.y1 || iy > vLine.y2) return false;
 
-    const hasLeft  = ix > hLine.x1;
-    const hasRight = ix < hLine.x2;
-    const hasUp    = iy > vLine.y1;
-    const hasDown  = iy < vLine.y2;
-
-    return hasLeft && hasRight && hasUp && hasDown;
+    return (
+        ix > hLine.x1 &&
+        ix < hLine.x2 &&
+        iy > vLine.y1 &&
+        iy < vLine.y2
+    );
 }
-
 
 // ======================== CORE GENERATOR =================================
 export function generatePlusData(level = "Medium", LEVELS, width = 620, height = 360) {
-    const { h, v, gap } = LEVELS[level] || LEVELS.medium;
+
+    // ✅ FIX: correct fallback key + guaranteed object
+    const cfg = LEVELS[level] || LEVELS["Medium"];
+    const { h, v, gap } = cfg;
 
     const horizontals = [];
     const verticals = [];
@@ -144,8 +143,7 @@ export function generatePlusQuestion(per, level = "Medium") {
     return { ...data, options };
 }
 
-
-// =========================== IMAGE & UPLOAD ================================
+// =========================== IMAGE ======================================
 export function renderPlusImage(data, width = 620, height = 360) {
     const canvas = createCanvas(width, height);
     const ctx = canvas.getContext("2d");
@@ -173,43 +171,14 @@ export function renderPlusImage(data, width = 620, height = 360) {
     return canvas.toBuffer("image/png");
 }
 
-// export async function uploadPlusImage(buffer) {
-//     const form = new FormData();
-//     form.append("screenshot", buffer, "plus.png");
-
-//     const res = await axios.post(
-//         "https://backend.stawro.com/stawro/upload.php",
-//         form,
-//         { headers: form.getHeaders() }
-//     );
-
-//     return res.data?.path
-//         ? `https://backend.stawro.com/stawro/${res.data.path}`
-//         : null;
-// }
-
-
-/* 🧾 just print image data (no upload) */
 export async function showPlusImageData(buffer) {
-
-    // OR print base64 if you want to inspect / send to frontend
-    const base64 = buffer.toString("base64");
-    // console.log("data:image/png;base64," + base64);
-
-    return base64; // optional return
+    return buffer.toString("base64");
 }
-
 
 // ========================== FULL FLOW =====================================
 export async function generatePlusQuestionImage(per, level = "Medium") {
     const question = generatePlusQuestion(per, level);
-    // const buffer = renderPlusImage(question);
-    // const imageUrl = await uploadPlusImage(buffer);
-
     const buf = renderPlusImage(question);
     const imageUrl = await showPlusImageData(buf);
-    
-
-
     return { question, imageUrl };
 }
