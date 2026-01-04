@@ -359,7 +359,7 @@ export async function get_per(sub_lang, tough) {
 
 
 app.get('/', (req, res) => {
-    res.send('Hello, world Vs : 1.3.3 ; Last Updated : 01-01-2026 ; Type : Live');
+    res.send('Hello, world Vs : 1.3.3 ; Last Updated : 04-01-2026 ; Type : Live');
 });
 
 
