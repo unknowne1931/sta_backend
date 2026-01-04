@@ -45,47 +45,6 @@ app.use(express.static('public'))
 
 
 
-app.use(express.json());
-app.use(bodyParser.json());
-app.use(express.urlencoded({ extended: true }));
-
-
-
-
-
-const Amount_free_count_Schema = new mongoose.Schema({
-    Time: String,
-    count: Number,
-    user: {
-        default: "kick",
-        type: String
-    },
-    user_id: [{
-        user: String,
-        time: String,
-        rupee: String,
-        tr_id: String
-    }]
-}, { timestamps: true });
-
-const Amount_Free_Count_Module = mongoose.model('Amount', Amount_free_count_Schema);
-
-const Amount_in_wallet_count_Schema = new mongoose.Schema({
-    Time: String,
-    count: Number,
-    user: {
-        default: "kick",
-        type: String
-    },
-    user_id: [{
-        user: String,
-        time: String,
-        rupee: String
-    }]
-}, { timestamps: true });
-
-const Amount_in_wallet_Count_Module = mongoose.model('Amount_wallet', Amount_in_wallet_count_Schema);
-
 
 
 app.post(
@@ -196,6 +155,48 @@ app.post(
         }
     }
 );
+
+app.use(express.json());
+app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: true }));
+
+
+
+const Amount_free_count_Schema = new mongoose.Schema({
+    Time: String,
+    count: Number,
+    user: {
+        default: "kick",
+        type: String
+    },
+    user_id: [{
+        user: String,
+        time: String,
+        rupee: String,
+        tr_id: String
+    }]
+}, { timestamps: true });
+
+const Amount_Free_Count_Module = mongoose.model('Amount', Amount_free_count_Schema);
+
+const Amount_in_wallet_count_Schema = new mongoose.Schema({
+    Time: String,
+    count: Number,
+    user: {
+        default: "kick",
+        type: String
+    },
+    user_id: [{
+        user: String,
+        time: String,
+        rupee: String
+    }]
+}, { timestamps: true });
+
+const Amount_in_wallet_Count_Module = mongoose.model('Amount_wallet', Amount_in_wallet_count_Schema);
+
+
+
 
 
 app.use(bodyParser.urlencoded({ extended: true }));
