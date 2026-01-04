@@ -24,17 +24,18 @@ import {
     pickValidShape
 } from './ai/one.js';
 
-import { generateArrows, drawArrowsImage, uploadImage1, generateMCQOptions, DIRECTIONS } from "./ai/two.js"
+import { generateArrows, drawArrowsImage, uploadImage1, generateMCQOptions, DIRECTIONS } from "./ai/two.js";
 import { fromJSON } from 'postcss';
-import { generatePlusQuestionImage } from "./ai/three.js"
-import { generateData, renderImageBase64 } from "./ai/four.js"
-import { generateData1, renderImageBase641 } from "./ai/five.js"
+import { generatePlusQuestionImage } from "./ai/three.js";
+import { generateData, renderImageBase64 } from "./ai/four.js";
+import { generateData1, renderImageBase641 } from "./ai/five.js";
 import { createChallenge, uploadBase64 } from "./ai/six.js";
 import { createAdvancedNumberMCQ } from "./ai/seven.js";
-import { generatePuzzle, drawCircles } from "./ai/eight.js"
-import { generateEmojiPuzzle } from "./ai/nine.js"
-import {generateMazeQuestion} from "./ai/ten.js"
-import {generateColorMatchQuestion} from "./ai/eleven.js"
+import { generatePuzzle, drawCircles } from "./ai/eight.js";
+import { generateEmojiPuzzle } from "./ai/nine.js";
+import {generateMazeQuestion} from "./ai/ten.js";
+import {generateColorMatchQuestion} from "./ai/eleven.js";
+import {createStringCountImage} from "./ai/tweleve.js";
 
 
 
@@ -2804,16 +2805,12 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
 
         await QuestionModule.deleteMany({ user });
 
-
-
-
         const dif_l = getDifficultyDistribution(get_per)
 
-        const qst_gen = [One(), Two(), Three(), Four(), Five(), Six(), Seven(), Eight(), Nine(), Ten(), Eleven()];
+        const qst_gen = [One(), Two(), Three(), Four(), Five(), Six(), Seven(), Eight(), Nine(), Ten(), Eleven(), Tweleve()];
         const dif = [];
 
         const shuffled = [...qst_gen].sort(() => Math.random() - 0.5);
-
 
 
 
@@ -8251,6 +8248,46 @@ function Eleven(){
     }
 }
 
+
+function Tweleve(){
+    return async function(level, user, qno){
+
+        const per = await get_per("code_int_char", level);
+
+        const test = createStringCountImage(level);
+
+        const hash = crypto
+            .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+            .update(test.data.correct.toString())
+            .digest("hex");
+
+
+        await QuestionModule.create({
+            Time: Time,
+            user: user,
+            img: test.imageBase64,
+            Questio: test.data.question,
+            options: test.data.options,
+            Ans: hash,
+            tough: level,
+            Qno: qno,
+            seconds: 50,
+            sub_lang: "code_int_char",
+            yes: [],
+            no: []
+        })
+        
+
+        // res.json({
+        //     Questio : test.data.question,
+        //     options : test.data.options,
+        //     Ans : test.data.correct,
+        //     img : test.imageBase64,
+        //     sub_lang : "code_int_char",
+        //     tough : level
+        // })
+    }
+}
 
 app.get("/admin/balance/played", adminMiddleware, async (req, res) => {
     try {
