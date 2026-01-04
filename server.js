@@ -301,7 +301,7 @@ export async function get_per(sub_lang, tough) {
 
 
 app.get('/', (req, res) => {
-    res.send('Hello, world Vs : 1.3.3 ; Last Updated : 04-01-2026 ; Type : Live');
+    res.send('Hello, world Vs : 2.0.0 ; Last Updated : 04-01-2026 ; Type : Live');
 });
 
 
