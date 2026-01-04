@@ -43,10 +43,6 @@ const app = express();
 app.use(express.static('public'))
 // app.use(express.json());
 
-
-
-
-
 app.post(
     "/razorpay/webhook",
     express.raw({ type: "application/json" }),
@@ -76,6 +72,8 @@ app.post(
             const data = JSON.parse(rawBody.toString("utf8"));
             const payment = data?.payload?.payment?.entity;
 
+            console.log("Razorpay Webhook received:", data);
+
             if (!payment || payment.status !== "captured") {
                 console.log("❗ Payment not captured or invalid");
                 return res.status(200).json({ success: false });
@@ -84,6 +82,8 @@ app.post(
             // ✅ Extract user from Razorpay notes
             const user = payment.notes?.user;
             const rp_i = payment.amount / 100
+
+            console.log("Payment details:", { user, amount: rp_i });
             if (!user) {
                 console.log("⚠️ No user found in payment notes");
                 return res.status(400).json({ success: false, message: "User missing in notes" });
@@ -98,6 +98,7 @@ app.post(
 
             // ✅ Find user balance
             const userData = await Balancemodule.findOne({ user });
+            console.log("User found:", userData);
             if (!userData) {
                 console.log("❌ User not found:", user);
                 return res.status(404).json({ success: false, message: "User not found" });
@@ -119,26 +120,77 @@ app.post(
             userData.balance = int_bal
             await userData.save();
 
+            const admin_bal_wallet = await Amount_in_wallet_Count_Module.findOne({ user: "kick  " });
+
+            const num = Number(rp_i)
+            console.log("User found:", userData);
+            console.log("Credit amount:", creditAmount);
+            console.log("Admin balance wallet:", admin_bal_wallet);
+
+
+            if (admin_bal_wallet) {
+                await Amount_in_wallet_Count_Module.updateOne(
+                    { user: "kick" },
+                    {
+                        $inc: { count: num },
+                        $push: { user_id: { user: user, rupee: toString(rp_i), tr_id: payment.id, time: Time } }
+                    }
+                );
+                // admin_bal_wallet.count = parseInt(admin_bal_wallet.count) + rp_i
+                // await admin_bal_wallet.save()
+            } else {
+                // await Amount_in_wallet_Count_Module.create
+                await Amount_in_wallet_Count_Module.create({
+                    Time: new Date().toISOString(),
+                    count: Number(rp_i),
+                    user: "kick",
+
+                    user_id: [{ user: user, rupee: toString(rp_i), tr_id: payment.id, time: Time }]
+                });
+            }
+
 
             // ✅ Log transaction
             await Historymodule.create({
                 Time: new Date().toISOString(),
                 user,
-                rupee: toString(rp_i),
+                rupee: rp_i,
                 type: "Credited",
                 tp: "Rupee",
             });
 
             const cred_to = await referandearnModule.findOne({ user: user });
 
-            if(cred_to && cred_to.ac_deb !== "Yes" && rp_i > 20){
+            if (cred_to && cred_to.ac_deb !== "Yes" && rp_i >= 20) {
                 const get_referd_user = await Balancemodule.findOne({ user: cred_to.referd_user_d_id });
                 const new_bal = parseInt(get_referd_user.balance) + 40;
                 get_referd_user.balance = new_bal;
                 await get_referd_user.save();
+                const admin_bal = await Amount_Free_Count_Module.findOne({ user: "kick  " });
+                if (admin_bal) {
+                    await Amount_Free_Count_Module.updateOne(
+                        { user: "kick" },
+                        {
+                            $inc: { count: 40 },
+                            $push: { user_id: { user: cred_to.referd_user_d_id, tr_id: payment.id, time: new Date().toLocaleString("en-US", {}) } }
+                        }
+                    );
+                    // admin_bal.count = parseInt(admin_bal.count) + 40
+                    // await admin_bal.save()
+                } else {
+                    // await Amount_Free_Count_Module.create({ Time, user: "kick", count: 40 })
+
+                    await Amount_Free_Count_Module.create({
+                        Time: new Date().toISOString(),
+                        user: "kick",
+                        count: 40,
+                        user_id: [{ user: cred_to.referd_user_d_id, tr_id: payment.id, time: new Date().toLocaleString("en-US", {}) }]
+                    });
+
+                }
                 await Historymodule.create({
                     Time: new Date().toISOString(),
-                    user : cred_to.referd_user_d_id,
+                    user: cred_to.referd_user_d_id,
                     rupee: "40",
                     type: "Credited",
                     tp: "Rupee",
@@ -146,6 +198,7 @@ app.post(
                 cred_to.ac_deb = "Yes";
                 await cred_to.save();
             }
+
 
             console.log(`✅ ₹${rp_i} credited to user: ${user}`);
             return res.status(200).json({ success: true });
@@ -156,9 +209,13 @@ app.post(
     }
 );
 
+
+
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: true }));
+
+
 
 
 
@@ -194,6 +251,8 @@ const Amount_in_wallet_count_Schema = new mongoose.Schema({
 }, { timestamps: true });
 
 const Amount_in_wallet_Count_Module = mongoose.model('Amount_wallet', Amount_in_wallet_count_Schema);
+
+
 
 
 
@@ -302,7 +361,7 @@ export async function get_per(sub_lang, tough) {
 
 
 app.get('/', (req, res) => {
-    res.send('Hello, world Vs : 2.0.0 ; Last Updated : 04-01-2026 ; Type : Live');
+    res.send('Hello, world Vs : 1.3.3 ; Last Updated : 04-01-2026 ; Type : Live');
 });
 
 
