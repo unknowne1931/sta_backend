@@ -283,7 +283,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 
 app.use(cors({
-    origin: "*", // Allow any origin
+    origin: ["https://stawro.com", "https://www.stawro.com"], // Allow any origin
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
@@ -7880,7 +7880,7 @@ function Five() {
     return async function (level, user, qno) {
         try {
             // const level = req.query.level || "Easy";
-            const per = await get_per("singel_word", level, , user);
+            const per = await get_per("singel_word", level, user);
             const data = generateData1(level, per);
 
             console.log(data);
