@@ -30,9 +30,11 @@ import { generatePlusQuestionImage } from "./ai/three.js"
 import { generateData, renderImageBase64 } from "./ai/four.js"
 import { generateData1, renderImageBase641 } from "./ai/five.js"
 import { createChallenge, uploadBase64 } from "./ai/six.js";
-import {createAdvancedNumberMCQ} from "./ai/seven.js";
-import {generatePuzzle, drawCircles} from "./ai/eight.js"
-import {generateEmojiPuzzle} from "./ai/nine.js"
+import { createAdvancedNumberMCQ } from "./ai/seven.js";
+import { generatePuzzle, drawCircles } from "./ai/eight.js"
+import { generateEmojiPuzzle } from "./ai/nine.js"
+import {generateMazeQuestion} from "./ai/ten.js"
+import {generateColorMatchQuestion} from "./ai/eleven.js"
 
 
 
@@ -53,15 +55,15 @@ app.use(express.urlencoded({ extended: true }));
 const Amount_free_count_Schema = new mongoose.Schema({
     Time: String,
     count: Number,
-    user : {
-        default : "kick",
-        type : String
+    user: {
+        default: "kick",
+        type: String
     },
-    user_id : [{
-        user : String,
-        time : String,
-        rupee : String,
-        tr_id : String
+    user_id: [{
+        user: String,
+        time: String,
+        rupee: String,
+        tr_id: String
     }]
 }, { timestamps: true });
 
@@ -70,14 +72,14 @@ const Amount_Free_Count_Module = mongoose.model('Amount', Amount_free_count_Sche
 const Amount_in_wallet_count_Schema = new mongoose.Schema({
     Time: String,
     count: Number,
-    user : {
-        default : "kick",
-        type : String
+    user: {
+        default: "kick",
+        type: String
     },
-    user_id : [{
-        user : String,
-        time : String,
-        rupee : String
+    user_id: [{
+        user: String,
+        time: String,
+        rupee: String
     }]
 }, { timestamps: true });
 
@@ -170,22 +172,24 @@ app.post(
             console.log("Admin balance wallet:", admin_bal_wallet);
 
 
-            if( admin_bal_wallet ){
+            if (admin_bal_wallet) {
                 await Amount_in_wallet_Count_Module.updateOne(
                     { user: "kick" },
-                    { $inc: { count: num },
-                    $push: { user_id: { user: user, rupee : toString(rp_i), tr_id : payment.id, time: Time } } }
+                    {
+                        $inc: { count: num },
+                        $push: { user_id: { user: user, rupee: toString(rp_i), tr_id: payment.id, time: Time } }
+                    }
                 );
                 // admin_bal_wallet.count = parseInt(admin_bal_wallet.count) + rp_i
                 // await admin_bal_wallet.save()
-            }else{
+            } else {
                 // await Amount_in_wallet_Count_Module.create
                 await Amount_in_wallet_Count_Module.create({
                     Time: new Date().toISOString(),
                     count: Number(rp_i),
                     user: "kick",
-                    
-                    user_id: [{ user: user, rupee : toString(rp_i), tr_id : payment.id, time: Time }]
+
+                    user_id: [{ user: user, rupee: toString(rp_i), tr_id: payment.id, time: Time }]
                 });
             }
 
@@ -207,22 +211,24 @@ app.post(
                 get_referd_user.balance = new_bal;
                 await get_referd_user.save();
                 const admin_bal = await Amount_Free_Count_Module.findOne({ user: "kick  " });
-                if( admin_bal ){
+                if (admin_bal) {
                     await Amount_Free_Count_Module.updateOne(
                         { user: "kick" },
-                        { $inc: { count: 40 },
-                        $push: { user_id: { user: cred_to.referd_user_d_id, tr_id : payment.id , time: new Date().toLocaleString("en-US", {}) } } }  
-                    ); 
+                        {
+                            $inc: { count: 40 },
+                            $push: { user_id: { user: cred_to.referd_user_d_id, tr_id: payment.id, time: new Date().toLocaleString("en-US", {}) } }
+                        }
+                    );
                     // admin_bal.count = parseInt(admin_bal.count) + 40
                     // await admin_bal.save()
-                }else{
+                } else {
                     // await Amount_Free_Count_Module.create({ Time, user: "kick", count: 40 })
 
                     await Amount_Free_Count_Module.create({
                         Time: new Date().toISOString(),
                         user: "kick",
                         count: 40,
-                        user_id: [{ user: cred_to.referd_user_d_id, tr_id : payment.id , time: new Date().toLocaleString("en-US", {}) }]
+                        user_id: [{ user: cred_to.referd_user_d_id, tr_id: payment.id, time: new Date().toLocaleString("en-US", {}) }]
                     });
 
                 }
@@ -1527,8 +1533,8 @@ app.get('/get/requested/coins/admin', adminMidleware, async (req, res) => {
 const Refund_data_Schema = new mongoose.Schema({
     Time: String,
     user: String,
-    count : String,
-    users : []
+    count: String,
+    users: []
 }, { timestamps: true });
 
 const Refund_d_Module = mongoose.model('Refund_data', Refund_data_Schema);
@@ -1561,7 +1567,7 @@ app.delete("/find/by/id/and/delete/req/coins/:id", async (req, res) => {
             //type => Coin or Money
             await PendingNotimodule.findOneAndDelete({ idd: data.ID })
             await PendingNotimodule.create({ Time, user: data.user, idd: data._id, type: "Coin", title: data.title, sub: "completed" })
-            
+
 
             const title = data.title;
             const num = title.replace(/\D/g, "");
@@ -2727,9 +2733,9 @@ app.post('/start/playing/by/debit/amount', authMiddleware, async (req, res) => {
 const Amount_count_Schema = new mongoose.Schema({
     Time: String,
     count: Number,
-    user : {
-        default : "kick",
-        type : String
+    user: {
+        default: "kick",
+        type: String
     }
 }, { timestamps: true });
 
@@ -2803,12 +2809,16 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
 
         const dif_l = getDifficultyDistribution(get_per)
 
-        const qst_gen = [One(), Two(), Three(), Four(), Five(), Six(), Seven(), Eight(), Three(), Four()];
+        const qst_gen = [One(), Two(), Three(), Four(), Five(), Six(), Seven(), Eight(), Nine(), Ten(), Eleven()];
         const dif = [];
 
+        const shuffled = [...qst_gen].sort(() => Math.random() - 0.5);
 
 
-        dif_l.forEach((data, i) => {
+
+
+
+        shuffled.forEach((data, i) => {
             const num = (i + 1).toString();
             dif.push(num);
             qst_gen[i](data, user, i + 1); // qst_gen[i] is a function, so this works
@@ -2832,7 +2842,7 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
             Totalusermodule.create({ Time, user }),
             Historymodule.create({ Time, user, rupee: fees.rupee, type: "Debited", tp: "Rupee" }),
             QuestionListmodule.updateOne(
-                { user : user },
+                { user: user },
                 {
                     $set: { list: dif },
                     $push: { oldlist: dif },
@@ -2857,7 +2867,7 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
 
         if (wal_cnt_mod) {
             wal_cnt_mod.count = parseInt(wal_cnt_mod.count) + feesNum;
-            
+
             wal_cnt_mod.user_id.push({
                 Time,
                 user,
@@ -2891,16 +2901,16 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
 
         const balance_to_admin_account = await Amount_Count_Module.findOne({ user: "kick" });
 
-        if( balance_to_admin_account ){
+        if (balance_to_admin_account) {
             balance_to_admin_account.count = parseInt(balance_to_admin_account.count) + parseInt(fees.rupee)
             await balance_to_admin_account.save()
-        }else{
+        } else {
             await Amount_Count_Module.create({ Time, user: "kick", count: fees.rupee })
         }
 
 
 
-        
+
 
 
         const newListData = await QuestionListmodule.findOne({ user }).lean();
@@ -3554,7 +3564,7 @@ const QnoSchema = new mongoose.Schema({
         type: String
     },
     tough: String,
-    Qno : String,
+    Qno: String,
     seconds: String,
     sub_lang: String,
     yes: [],
@@ -3674,7 +3684,7 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
 
 
                 // Find the question in QuestionModule by its number and language
-                const Qno = await QuestionModule.findOne({ Qno : QNO.toString(), user: user }).lean();
+                const Qno = await QuestionModule.findOne({ Qno: QNO.toString(), user: user }).lean();
 
                 const cal_sec = await Seconds_Module.findOne(
                     {
@@ -3685,7 +3695,7 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                     {
                         "seconds.$": 1
                     }
-                    );
+                );
 
 
                 // console.log(cal_sec.seconds)
@@ -3706,7 +3716,7 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                     const data = {
                         _id: Qno._id,
                         img: Qno.img,
-                        Qno : Qno.Qno,
+                        Qno: Qno.Qno,
                         Question: Qno.Questio,
                         options: Qno.options,
                         seconds: sec_cal,
@@ -7506,16 +7516,16 @@ app.post("/refund/data/and/add/to/users", adminMidleware, async (req, res) => {
                     rupee: fees.rupee,
                     Time: Time
                 })
-                    
+
                 await admin_acc_listing_data.save();
             } else {
                 await Refund_Tickets.create({
-                    Time: Time, 
+                    Time: Time,
                     count: fees.rupee,
                     user: "kick",
                     user_id: [{
                         user: data.user,
-                        rupee: fees.rupee,  
+                        rupee: fees.rupee,
                         Time: Time
                     }]
                 });
@@ -7654,7 +7664,7 @@ function One() {
                 options: options,
                 Ans: hash,
                 tough: level,
-                Qno : qno,
+                Qno: qno,
                 seconds: 50,
                 sub_lang: "star_cir_tri",
                 yes: [],
@@ -7735,7 +7745,7 @@ function Two() {
                     options: options,
                     Ans: hash,
                     tough: level,
-                    Qno : qno,
+                    Qno: qno,
                     seconds: 50,
                     sub_lang: "news_side",
                     yes: [],
@@ -7827,7 +7837,7 @@ function Three() {
                 options: data.question.options,
                 Ans: hash,
                 tough: level,
-                Qno : qno,
+                Qno: qno,
                 seconds: 50,
                 sub_lang: "plus",
                 yes: [],
@@ -7870,7 +7880,7 @@ function Four() {
                 options: options,
                 Ans: hash,
                 tough: level,
-                Qno : qno,
+                Qno: qno,
                 seconds: 50,
                 sub_lang: "two_leters_word",
                 yes: [],
@@ -7920,7 +7930,7 @@ function Five() {
                 options: data.options,
                 Ans: hash,
                 tough: level,
-                Qno : qno,
+                Qno: qno,
                 seconds: 50,
                 sub_lang: "singel_word",
                 yes: [],
@@ -7952,7 +7962,7 @@ function Five() {
 function Six() {
     return async function (level, user, qno) {
         try {
-            
+
             const per = await get_per("ran_leters", level);
 
 
@@ -7969,7 +7979,7 @@ function Six() {
                     .update(out.correct.toString())
                     .digest("hex");
 
-                
+
                 await QuestionModule.create({
                     Time: Time,
                     user: user,
@@ -7978,7 +7988,7 @@ function Six() {
                     options: out.options,
                     Ans: hash,
                     tough: level,
-                    Qno : qno,
+                    Qno: qno,
                     seconds: 50,
                     sub_lang: "ran_leters",
                     yes: [],
@@ -8016,65 +8026,65 @@ function Six() {
             console.log(error)
         }
     }
-} 
+}
 
 
 function Seven() {
     return async function (level, user, qno) {
-            try{
-        const per = await get_per("less_grtr", level);
+        try {
+            const per = await get_per("less_grtr", level);
 
 
-        const data = await createAdvancedNumberMCQ(level, per);
-        // console.log("Question:", data.question);
-        // console.log("Difficulty:", data.difficulty);
-        // console.log("Options:", data.options);
-        // console.log("Correct Answer:", data.correct);
+            const data = await createAdvancedNumberMCQ(level, per);
+            // console.log("Question:", data.question);
+            // console.log("Difficulty:", data.difficulty);
+            // console.log("Options:", data.options);
+            // console.log("Correct Answer:", data.correct);
 
-        // res.json({
-        //     Questio: data.question,
-        //     Ans: data.correct,
-        //     options: data.options,
-        //     img: data.image,
-        //     sub_lang: "ran_leters",
-        //     tough : level
-        // })
+            // res.json({
+            //     Questio: data.question,
+            //     Ans: data.correct,
+            //     options: data.options,
+            //     img: data.image,
+            //     sub_lang: "ran_leters",
+            //     tough : level
+            // })
 
 
-        const hash = crypto
-            .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-            .update(data.correct.toString())
-            .digest("hex");
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(data.correct.toString())
+                .digest("hex");
 
-        
-        await QuestionModule.create({
-            Time: Time,
-            user: user,
-            img: data.image,
-            Questio: data.question,
-            options: data.options,
-            Ans: hash,
-            tough: level,
-            Qno : qno,
-            seconds: 50,
-            sub_lang: "less_grtr",
-            yes: [],
-            no: []
-        })
 
-        return 1
-        
+            await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: data.image,
+                Questio: data.question,
+                options: data.options,
+                Ans: hash,
+                tough: level,
+                Qno: qno,
+                seconds: 50,
+                sub_lang: "less_grtr",
+                yes: [],
+                no: []
+            })
 
-    }catch(error){
-        console.log(error)
-    }
+            return 1
+
+
+        } catch (error) {
+            console.log(error)
+        }
     }
 }
 
 
 
-function Eight(){
-    return async function(level, user, qno) {
+function Eight() {
+    return async function (level, user, qno) {
         const level = req.query.level || "Medium";
         const per = await get_per("circle_pieces", level);
         const puzzle = generatePuzzle(level, per);
@@ -8087,7 +8097,7 @@ function Eight(){
             .update(puzzle.correct.toString())
             .digest("hex");
 
-        
+
         await QuestionModule.create({
             Time: Time,
             user: user,
@@ -8096,7 +8106,7 @@ function Eight(){
             options: puzzle.options,
             Ans: hash,
             tough: level,
-            Qno : qno,
+            Qno: qno,
             seconds: 50,
             sub_lang: "circle_pieces",
             yes: [],
@@ -8114,39 +8124,144 @@ function Eight(){
         //     sub_lang: "circle_pieces",
         //     tough: level
         // })
-        
+
     }
 }
 
-function Nine(){
-    return async function(level, user, qno){
-        const puzzle = generateEmojiPuzzle();
-        console.log(puzzle);
+function Nine() {
+    return async function (level, user, qno) {
 
-        res.json({
-            Questio : puzzle.question,
-            Ans : puzzle.correct,
-            options : puzzle.options,
-            img : puzzle.image,
-            sub_lang : "emoji_01",
-            tough : level
+        const per = await get_per("emoji_01", level);
+        const puzzle = generateEmojiPuzzle(level, per);
+        // console.log(puzzle);
+
+        const hash = crypto
+            .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+            .update(puzzle.correct.toString())
+            .digest("hex");
+
+
+        await QuestionModule.create({
+            Time: Time,
+            user: user,
+            img: puzzle.image,
+            Questio: puzzle.question,
+            options: puzzle.options,
+            Ans: hash,
+            tough: level,
+            Qno: qno,
+            seconds: 50,
+            sub_lang: "emoji_01",
+            yes: [],
+            no: []
         })
 
+        return 1
+
+        // res.json({
+        //     Questio: puzzle.question,
+        //     Ans: puzzle.correct,
+        //     options: puzzle.options,
+        //     img: puzzle.image,
+        //     sub_lang: "emoji_01",
+        //     tough: level
+        // })
     }
 }
 
+
+function Ten() {
+    return async function (level, user, qno) {
+        const level = req.query.level;
+        const per = await get_per("maze", level);
+        // const per = 100
+        const mazeQuestion = generateMazeQuestion({ level: level, per: per });
+
+        const hash = crypto
+            .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+            .update(mazeQuestion.answer.toString())
+            .digest("hex");
+
+
+        await QuestionModule.create({
+            Time: Time,
+            user: user,
+            img: mazeQuestion.image,
+            Questio: mazeQuestion.question,
+            options: mazeQuestion.options,
+            Ans: hash,
+            tough: level,
+            Qno: qno,
+            seconds: 50,
+            sub_lang: "maze",
+            yes: [],
+            no: []
+        })
+
+
+        // res.json({
+        //     Questio: mazeQuestion.question,
+        //     Ans: mazeQuestion.answer,
+        //     options: mazeQuestion.options,
+        //     img: mazeQuestion.image,
+        //     sub_lang: "maze",
+        //     tough: level
+        // })
+    }
+}
+
+
+function Eleven(){
+    return async function(level, user, qno){
+        const per = await get_per("colours", level);
+        const result = generateColorMatchQuestion({
+        level, per
+        });
+
+        const hash = crypto
+            .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+            .update(result.answer.toString())
+            .digest("hex");
+
+
+        await QuestionModule.create({
+            Time: Time,
+            user: user,
+            img: result.image,
+            Questio: result.question,
+            options: result.options,
+            Ans: hash,
+            tough: level,
+            Qno: qno,
+            seconds: 50,
+            sub_lang: "colours",
+            yes: [],
+            no: []
+        })
+
+
+        // res.json({
+        //     Questio: result.question,
+        //     Ans: result.answer,
+        //     options: result.options,
+        //     img: result.image,
+        //     sub_lang: "colours",
+        //     tough: level
+        // })
+    }
+}
 
 
 app.get("/admin/balance/played", adminMiddleware, async (req, res) => {
     try {
         const all_bal = await Amount_Count_Module.findOne({ user: "kick" });
         return res.status(200).json({ Status: "OK", data: all_bal });
-    } catch (error) {   
+    } catch (error) {
         console.error("Error fetching balance:", error);
         return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch balance" });
     }
 });
- 
+
 
 app.get("/admin/balance/free/played", adminMiddleware, async (req, res) => {
     try {
@@ -8156,21 +8271,21 @@ app.get("/admin/balance/free/played", adminMiddleware, async (req, res) => {
     catch (error) {
         console.error("Error fetching balance:", error);
         return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch balance" });
-    }   
+    }
 });
 
 
 const amount_walet_count_Schema = new mongoose.Schema({
     Time: String,
     count: Number,
-    user : {
-        default : "kick",
-        type : String
+    user: {
+        default: "kick",
+        type: String
     },
-    user_id : [{
-        user : String,
-        time : String,
-        rupee : String,
+    user_id: [{
+        user: String,
+        time: String,
+        rupee: String,
     }]
 }, { timestamps: true });
 
@@ -8181,7 +8296,7 @@ const Amount_walet_count_Module = mongoose.model('Amount_one', amount_walet_coun
 app.get("/admin/balance/wallet", adminMiddleware, async (req, res) => {
     try {
         const all_bal = await Amount_walet_count_Module.findOne({ user: "kick" });
-        if(all_bal){
+        if (all_bal) {
             console.log(all_bal)
         } else {
             return res.status(200).json({ Status: "OK", data: "No Data Found" });
@@ -8195,7 +8310,7 @@ app.get("/admin/balance/wallet", adminMiddleware, async (req, res) => {
 
 app.get("/admin/refund/data/list", adminMidleware, async (req, res) => {
     try {
-        const all_data = await Refund_d_Module.findOne({user : "kick"});
+        const all_data = await Refund_d_Module.findOne({ user: "kick" });
         return res.status(200).json({ Status: "OK", data: all_data });
     } catch (error) {
         console.error("Error fetching refund data:", error);
@@ -8206,14 +8321,14 @@ app.get("/admin/refund/data/list", adminMidleware, async (req, res) => {
 const Amount_refund_Tickets_Schema = new mongoose.Schema({
     Time: String,
     count: Number,
-    user : {
-        default : "kick",
-        type : String
+    user: {
+        default: "kick",
+        type: String
     },
-    user_id : [{
-        user : String,
-        time : String,
-        rupee : String,
+    user_id: [{
+        user: String,
+        time: String,
+        rupee: String,
     }]
 }, { timestamps: true });
 
@@ -8223,12 +8338,12 @@ const Refund_Tickets = mongoose.model('Refund_Tickets', Amount_refund_Tickets_Sc
 app.get("/admin/refund/tickets/list", adminMiddleware, async (req, res) => {
     try {
         const all_bal = await Refund_Tickets.findOne({ user: "kick" });
-        if(all_bal){
+        if (all_bal) {
             return res.status(200).json({ Status: "OK", data: all_bal });
         } else {
             return res.status(200).json({ Status: "OK", data: "No Data Found" });
         }
-        
+
     } catch (error) {
         console.error("Error fetching balance:", error);
         return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch balance" });
