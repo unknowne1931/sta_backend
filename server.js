@@ -209,6 +209,13 @@ app.post(
 );
 
 
+app.use(cors({
+    origin : "*",
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+}));
+
+
 
 app.use(express.json());
 app.use(bodyParser.json());
@@ -282,12 +289,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 
 
-app.use(cors({
-    origin : "*",
-    // origin: ["https://stawro.com", "https://www.stawro.com"], // Allow any origin
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true
-}));
+
 
 
 
@@ -345,20 +347,25 @@ const generateOTP = () => {
 
 export async function get_per(sub_lang, tough, user) {
     try {
+
+        return 0;
         const data = await users_db.findOne({ sub_lang, tough });
-        if (!data) return 0;
+        // if (!data) return 0;
 
-        // safely check if seconds exists
-        const userObj = (data.seconds || []).find(item => item.user === user);
+        // // safely check if seconds exists
 
-        if (userObj) {
-            const total = (data.yes?.length || 0) + (data.no?.length || 0);
-            if (total === 0) return 0;
-            const per = (data.yes?.length || 0) / total * 100;
-            return per;
-        } else {
-            return 0;
-        }
+        // const userObj = await data.yes.includes(user)
+        
+        
+
+        // if (userObj) {
+        //     const total = (data.yes?.length || 0) + (data.no?.length || 0);
+        //     if (total === 0) return 0;
+        //     const per = (data.yes?.length || 0) / total * 100;
+        //     return per;
+        // } else {
+        //     return 0;
+        // }
 
     } catch (err) {
         console.error(err);
@@ -2925,13 +2932,16 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
 
         const newListData = await QuestionListmodule.findOne({ user }).lean();
         const newQstData = await QuestionModule.countDocuments({ user: user });
-        if (newListData?.list?.length < 10 && newQstData < 10) {
+        console.log("Len From Old :" , newListData.list.length)
+        console.log("Len :" , newListData.list)
+        if (newListData.list.length < 10 || newQstData.list < 10 || newQstData.list > 10) {
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
+            await QuestionModule.deleteMany({user})
             bal_dt.balance = lat.toString()
             await bal_dt.save()
-            // resetResult = "BAD";
+            resetResult = "BAD";
             console.log("BAD")
             return res.status(200).json({ Status: "BAD_CR" })
         }
@@ -7682,115 +7692,217 @@ function One() {
 
 
 
-function Two() {
+// function Two() {
+//     return async function (level, user, qno) {
+//         try {
+
+//             const per = await get_per("news_side", level, user);
+
+//             // 1) Generate random arrows
+//             const angles = generateArrows(per, level);
+
+//             // 2) Draw & upload image
+//             const buffer = drawArrowsImage(angles);
+//             const imageURL = await uploadImage1(buffer);
+//             if (!imageURL) return res.status(500).json({ error: "Upload failed" });
+
+//             const totalArrows = angles.length;
+
+//             // --- Count arrows direction-wise ---
+//             const directionCounts = DIRECTIONS.map(dir => ({
+//                 dir,
+//                 count: angles.filter(a => a === dir.angle).length
+//             })).filter(d => d.count > 0);
+
+//             if (directionCounts.length === 0) {
+//                 return res.json({ message: "No arrows found" });
+//             }
+
+//             // Pick single or double direction question
+//             const askDouble = (Math.random() < 0.4) && directionCounts.length >= 2;
+
+//             // -------------------------
+//             // SINGLE QUESTION
+//             // -------------------------
+
+//             if (!askDouble) {
+//                 const picked = directionCounts[Math.floor(Math.random() * directionCounts.length)];
+//                 const correct = picked.count;
+//                 const options = generateMCQOptions(correct, totalArrows);
+
+//                 // return res.json({
+//                 //     sub_lang: "news_side",
+//                 //     tough: level,
+//                 //     img: imageURL,
+//                 //     Questio: `How many arrows are facing ${picked.dir.name}?`,
+//                 //     options: options,
+//                 //     Ans: correct,
+//                 // });
+
+//                 const hash = crypto
+//                     .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+//                     .update(correct.toString())
+//                     .digest("hex");
+
+//                 await QuestionModule.create({
+//                     Time: Time,
+//                     user: user,
+//                     img: imageURL,
+//                     Questio: `How many arrows are facing ${picked.dir.name}?`,
+//                     options: options,
+//                     Ans: hash,
+//                     tough : level,
+//                     Qno: qno,
+//                     seconds: 50,
+//                     sub_lang: "news_side",
+//                     yes: [],
+//                     no: []
+//                 })
+
+//             }
+
+//             // -------------------------
+//             // DOUBLE QUESTION
+//             // -------------------------
+//             const shuffled = [...directionCounts].sort(() => Math.random() - 0.5);
+//             const dir1 = shuffled[0];
+//             const dir2 = shuffled[1];
+
+//             const correctDouble = dir1.count + dir2.count;
+//             const optionsDouble = generateMCQOptions(correctDouble, totalArrows);
+
+
+//             const hash = crypto
+//                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+//                 .update(correctDouble.toString())
+//                 .digest("hex");
+
+
+
+
+//             await QuestionModule.create({
+//                 Time: Time,
+//                 user: user,
+//                 img: imageURL,
+//                 Questio: `How many arrows are facing ${dir1.dir.name} and ${dir2.dir.name}?`,
+//                 options: optionsDouble,
+//                 Ans: hash,
+//                 tough : level,
+//                 Qno : qno,
+//                 seconds: 50,
+//                 sub_lang: "news_side",
+//                 yes: [],
+//                 no: []
+//             })
+
+//         } catch (err) {
+//             console.error(err);
+//             res.status(500).json({ error: err.message });
+//         }
+//     }
+// }
+
+
+
+function Two(){
     return async function (level, user, qno) {
-        try {
+    try {
+        const per = await get_per("news_side", level, user);
 
-            const per = await get_per("news_side", level, user);
+        // 1) Generate arrows
+        const angles = generateArrows(per, level);
 
-            // 1) Generate random arrows
-            const angles = generateArrows(per, level);
+        // 2) Draw & upload image
+        const buffer = drawArrowsImage(angles);
+        const imageURL = await uploadImage1(buffer);
+        if (!imageURL) return;
 
-            // 2) Draw & upload image
-            const buffer = drawArrowsImage(angles);
-            const imageURL = await uploadImage1(buffer);
-            if (!imageURL) return res.status(500).json({ error: "Upload failed" });
+        const totalArrows = angles.length;
 
-            const totalArrows = angles.length;
-
-            // --- Count arrows direction-wise ---
-            const directionCounts = DIRECTIONS.map(dir => ({
+        const directionCounts = DIRECTIONS
+            .map(dir => ({
                 dir,
                 count: angles.filter(a => a === dir.angle).length
-            })).filter(d => d.count > 0);
+            }))
+            .filter(d => d.count > 0);
 
-            if (directionCounts.length === 0) {
-                return res.json({ message: "No arrows found" });
-            }
+        if (directionCounts.length === 0) return;
 
-            // Pick single or double direction question
-            const askDouble = (Math.random() < 0.4) && directionCounts.length >= 2;
+        const askDouble = Math.random() < 0.4 && directionCounts.length >= 2;
 
-            // -------------------------
-            // SINGLE QUESTION
-            // -------------------------
+        // =========================
+        // SINGLE QUESTION
+        // =========================
+        if (!askDouble) {
+            const picked = directionCounts[
+                Math.floor(Math.random() * directionCounts.length)
+            ];
 
-            if (!askDouble) {
-                const picked = directionCounts[Math.floor(Math.random() * directionCounts.length)];
-                const correct = picked.count;
-                const options = generateMCQOptions(correct, totalArrows);
-
-                // return res.json({
-                //     sub_lang: "news_side",
-                //     tough: level,
-                //     img: imageURL,
-                //     Questio: `How many arrows are facing ${picked.dir.name}?`,
-                //     options: options,
-                //     Ans: correct,
-                // });
-
-                const hash = crypto
-                    .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                    .update(correct.toString())
-                    .digest("hex");
-
-                await QuestionModule.create({
-                    Time: Time,
-                    user: user,
-                    img: imageURL,
-                    Questio: `How many arrows are facing ${picked.dir.name}?`,
-                    options: options,
-                    Ans: hash,
-                    tough : level,
-                    Qno: qno,
-                    seconds: 50,
-                    sub_lang: "news_side",
-                    yes: [],
-                    no: []
-                })
-
-            }
-
-            // -------------------------
-            // DOUBLE QUESTION
-            // -------------------------
-            const shuffled = [...directionCounts].sort(() => Math.random() - 0.5);
-            const dir1 = shuffled[0];
-            const dir2 = shuffled[1];
-
-            const correctDouble = dir1.count + dir2.count;
-            const optionsDouble = generateMCQOptions(correctDouble, totalArrows);
-
+            const correct = picked.count;
+            const options = generateMCQOptions(correct, totalArrows);
 
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(correctDouble.toString())
+                .update(correct.toString())
                 .digest("hex");
 
-
-
-
             await QuestionModule.create({
-                Time: Time,
-                user: user,
+                Time,
+                user,
                 img: imageURL,
-                Questio: `How many arrows are facing ${dir1.dir.name} and ${dir2.dir.name}?`,
-                options: optionsDouble,
+                Questio: `How many arrows are facing ${picked.dir.name}?`,
+                options,
                 Ans: hash,
-                tough : level,
-                Qno : qno,
+                tough: level,
+                Qno: qno,
                 seconds: 50,
                 sub_lang: "news_side",
                 yes: [],
                 no: []
-            })
+            });
 
-        } catch (err) {
-            console.error(err);
-            res.status(500).json({ error: err.message });
+            return; // ✅ STOP HERE
         }
+
+        // =========================
+        // DOUBLE QUESTION
+        // =========================
+        const shuffled = [...directionCounts].sort(() => Math.random() - 0.5);
+        const dir1 = shuffled[0];
+        const dir2 = shuffled[1];
+
+        const correctDouble = dir1.count + dir2.count;
+        const optionsDouble = generateMCQOptions(correctDouble, totalArrows);
+
+        const hash = crypto
+            .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+            .update(correctDouble.toString())
+            .digest("hex");
+
+        await QuestionModule.create({
+            Time,
+            user,
+            img: imageURL,
+            Questio: `How many arrows are facing ${dir1.dir.name} and ${dir2.dir.name}?`,
+            options: optionsDouble,
+            Ans: hash,
+            tough: level,
+            Qno: qno,
+            seconds: 50,
+            sub_lang: "news_side",
+            yes: [],
+            no: []
+        });
+
+        return; // optional but explicit
+
+    } catch (err) {
+        console.error(err);
     }
 }
+
+}
+
 
 
 
@@ -7830,7 +7942,7 @@ function Three() {
 
 
         } catch (error) {
-            throw err;
+            console.log(error)
         }
 
     }
@@ -7870,7 +7982,7 @@ function Four() {
             })
 
         } catch (error) {
-            throw err;
+            console.log(error)
         }
     }
 }
@@ -7918,7 +8030,9 @@ function Five() {
 
 function Six() {
     return async function (level, user, qno) {
-        const per = await get_per("ran_leters", level, user);
+
+        try{
+            const per = await get_per("ran_leters", level, user);
 
 
 
@@ -7953,6 +8067,10 @@ function Six() {
 
 
             });
+        }catch(error){
+            console.log(error)
+        }
+        
 
     }
 }
@@ -7990,7 +8108,7 @@ function Seven() {
 
 
         } catch (error) {
-            throw err;
+            console.log(error)
         }
     }
 }
@@ -7999,7 +8117,8 @@ function Seven() {
 
 function Eight() {
     return async function (level, user, qno) {
-        const per = await get_per("circle_pieces", level, user);
+        try{
+            const per = await get_per("circle_pieces", level, user);
         const puzzle = generatePuzzle(level, per);
         const canvas = drawCircles(puzzle.circles);
         const base64Image = canvas.toBuffer('image/png').toString('base64');
@@ -8025,6 +8144,10 @@ function Eight() {
             yes: [],
             no: []
         })
+        }catch(error){
+            console.log(error)
+        }
+        
 
     }
 }
@@ -8032,7 +8155,9 @@ function Eight() {
 function Nine() {
     return async function (level, user, qno) {
 
-        const per = await get_per("emoji_01", level, user);
+        try{
+
+            const per = await get_per("emoji_01", level, user);
         const puzzle = generateEmojiPuzzle(level, per);
         // console.log(puzzle);
 
@@ -8056,13 +8181,18 @@ function Nine() {
             yes: [],
             no: []
         })
+
+        }catch(error){
+            console.log(error)
+        }
     }
 }
 
 
 function Ten() {
     return async function (level, user, qno) {
-        const per = await get_per("maze", level, user);
+        try{
+            const per = await get_per("maze", level, user);
         // const per = 100
         const mazeQuestion = generateMazeQuestion(level, per);
 
@@ -8086,6 +8216,9 @@ function Ten() {
             yes: [],
             no: []
         })
+        }catch(error){
+            console.log(error)
+        }
 
     }
 }
@@ -8093,7 +8226,8 @@ function Ten() {
 
 function Eleven(){
     return async function(level, user, qno){
-        const per = await get_per("colours", level, user);
+        try{
+            const per = await get_per("colours", level, user);
         const result = generateColorMatchQuestion({
         level, per
         });
@@ -8118,6 +8252,10 @@ function Eleven(){
             yes: [],
             no: []
         })
+        }catch(error){
+            console.log(error)
+        }
+        
 
     }
 }
@@ -8126,7 +8264,8 @@ function Eleven(){
 function Tweleve(){
     return async function(level, user, qno){
 
-        const per = await get_per("code_int_char", level, user);
+        try{
+            const per = await get_per("code_int_char", level, user);
 
         const test = createStringCountImage(level, per);
 
@@ -8150,6 +8289,9 @@ function Tweleve(){
             yes: [],
             no: []
         })
+        }catch(error){
+            console.log(error)
+        }
         
     }
 }

@@ -1,53 +1,51 @@
+
+
 // plusCounter.js
 import { createCanvas } from "canvas";
 
 // ======================= PERFORMANCE DIFFICULTY ==========================
 export function getPlusLevels(per) {
-    let LEVELS;
-
     if (per < 10) {
-        LEVELS = {
-            "Too Easy":  { h: 3, v: 3, gap: 62 },
-            "Easy":      { h: 5, v: 5, gap: 55 },
-            "Medium":    { h: 6, v: 6, gap: 48 },
-            "Tough":     { h: 9, v: 9, gap: 40 },
+        return {
+            "Too Easy":  { h: 3,  v: 3,  gap: 62 },
+            "Easy":      { h: 5,  v: 5,  gap: 55 },
+            "Medium":    { h: 6,  v: 6,  gap: 48 },
+            "Tough":     { h: 9,  v: 9,  gap: 40 },
             "Too Tough": { h: 12, v: 12, gap: 32 }
         };
     } else if (per < 20) {
-        LEVELS = {
-            "Too Easy":  { h: 4, v: 4, gap: 60 },
-            "Easy":      { h: 6, v: 6, gap: 50 },
-            "Medium":    { h: 7, v: 7, gap: 40 },
+        return {
+            "Too Easy":  { h: 4,  v: 4,  gap: 60 },
+            "Easy":      { h: 6,  v: 6,  gap: 50 },
+            "Medium":    { h: 7,  v: 7,  gap: 40 },
             "Tough":     { h: 10, v: 10, gap: 32 },
             "Too Tough": { h: 14, v: 14, gap: 26 }
         };
     } else if (per < 40) {
-        LEVELS = {
-            "Too Easy":  { h: 5, v: 5, gap: 58 },
-            "Easy":      { h: 7, v: 7, gap: 46 },
-            "Medium":    { h: 8, v: 8, gap: 36 },
+        return {
+            "Too Easy":  { h: 5,  v: 5,  gap: 58 },
+            "Easy":      { h: 7,  v: 7,  gap: 46 },
+            "Medium":    { h: 8,  v: 8,  gap: 36 },
             "Tough":     { h: 11, v: 11, gap: 28 },
             "Too Tough": { h: 16, v: 16, gap: 22 }
         };
     } else if (per < 60) {
-        LEVELS = {
-            "Too Easy":  { h: 6, v: 6, gap: 54 },
-            "Easy":      { h: 8, v: 8, gap: 42 },
-            "Medium":    { h: 9, v: 9, gap: 30 },
+        return {
+            "Too Easy":  { h: 6,  v: 6,  gap: 54 },
+            "Easy":      { h: 8,  v: 8,  gap: 42 },
+            "Medium":    { h: 9,  v: 9,  gap: 30 },
             "Tough":     { h: 13, v: 13, gap: 24 },
             "Too Tough": { h: 18, v: 18, gap: 20 }
         };
     } else {
-        LEVELS = {
-            "Too Easy":  { h: 7, v: 7, gap: 48 },
-            "Easy":      { h: 9, v: 9, gap: 36 },
+        return {
+            "Too Easy":  { h: 7,  v: 7,  gap: 48 },
+            "Easy":      { h: 9,  v: 9,  gap: 36 },
             "Medium":    { h: 10, v: 10, gap: 28 },
             "Tough":     { h: 15, v: 15, gap: 22 },
             "Too Tough": { h: 22, v: 22, gap: 18 }
         };
     }
-
-    return LEVELS;
 }
 
 // ========================== HELPERS =====================================
@@ -55,8 +53,22 @@ function rand(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-// ✅ NEW RULE IMPLEMENTATION
-// Count only if lines CROSS THROUGH (no T, no touching)
+// Safe placement with attempt limit + graceful fallback
+function placeWithGap(min, max, used, gap, maxTries = 200) {
+    for (let i = 0; i < maxTries; i++) {
+        const value = rand(min, max);
+        if (!used.some(v => Math.abs(v - value) < gap)) {
+            used.push(value);
+            return value;
+        }
+    }
+    // fallback if no perfect spot exists
+    const value = rand(min, max);
+    used.push(value);
+    return value;
+}
+
+// Count only true crosses (no T-shapes, no touching)
 function isTruePlus(hLine, vLine) {
     const ix = vLine.x;
     const iy = hLine.y;
@@ -70,7 +82,7 @@ function isTruePlus(hLine, vLine) {
 }
 
 // ======================== CORE GENERATOR =================================
-export function generatePlusData(level = "Medium", LEVELS, width = 620, height = 360) {
+export function generatePlusData(level, LEVELS, width = 620, height = 360) {
     const cfg = LEVELS[level] || LEVELS["Medium"];
     const { h, v, gap } = cfg;
 
@@ -80,12 +92,7 @@ export function generatePlusData(level = "Medium", LEVELS, width = 620, height =
     const usedX = [];
 
     for (let i = 0; i < h; i++) {
-        let y;
-        do {
-            y = rand(20, height - 20);
-        } while (usedY.some(v => Math.abs(v - y) < gap));
-        usedY.push(y);
-
+        const y = placeWithGap(20, height - 20, usedY, gap);
         horizontals.push({
             y,
             x1: rand(0, width * 0.35),
@@ -94,12 +101,7 @@ export function generatePlusData(level = "Medium", LEVELS, width = 620, height =
     }
 
     for (let i = 0; i < v; i++) {
-        let x;
-        do {
-            x = rand(20, width - 20);
-        } while (usedX.some(v => Math.abs(v - x) < gap));
-        usedX.push(x);
-
+        const x = placeWithGap(20, width - 20, usedX, gap);
         verticals.push({
             x,
             y1: rand(0, height * 0.35),
@@ -170,13 +172,10 @@ export function renderPlusImage(data, width = 620, height = 360) {
     return canvas.toBuffer("image/png");
 }
 
-export async function showPlusImageData(buffer) {
-    return buffer.toString("base64");
-}
-
+// =========================== FINAL API ===================================
 export async function generatePlusQuestionImage(per, level = "Medium") {
     const question = generatePlusQuestion(per, level);
-    const buf = renderPlusImage(question);
-    const imageUrl = await showPlusImageData(buf);
+    const buffer = renderPlusImage(question);
+    const imageUrl = buffer.toString("base64");
     return { question, imageUrl };
 }
