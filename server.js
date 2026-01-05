@@ -283,7 +283,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 
 app.use(cors({
-    origin: ["https://stawro.com", "https://www.stawro.com"], // Allow any origin
+    origin : "*",
+    // origin: ["https://stawro.com", "https://www.stawro.com"], // Allow any origin
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
@@ -347,13 +348,13 @@ export async function get_per(sub_lang, tough, user) {
         const data = await users_db.findOne({ sub_lang, tough });
         if (!data) return 0;
 
-        // check if the user exists in the seconds array
-        const userObj = data.seconds.find(item => item.user === user);
+        // safely check if seconds exists
+        const userObj = (data.seconds || []).find(item => item.user === user);
 
         if (userObj) {
             const total = (data.yes?.length || 0) + (data.no?.length || 0);
             if (total === 0) return 0;
-            const per = (data.yes.length / total) * 100;
+            const per = (data.yes?.length || 0) / total * 100;
             return per;
         } else {
             return 0;
@@ -364,7 +365,6 @@ export async function get_per(sub_lang, tough, user) {
         return 0; // return 0 if any error occurs
     }
 }
-
 
 app.get('/', (req, res) => {
     res.send('Hello, world Vs : 5.0.0 ; Last Updated : 04-01-2026 ; Type : Live');
@@ -8064,7 +8064,7 @@ function Ten() {
     return async function (level, user, qno) {
         const per = await get_per("maze", level, user);
         // const per = 100
-        const mazeQuestion = generateMazeQuestion({ level: level, per: per });
+        const mazeQuestion = generateMazeQuestion(level, per);
 
         const hash = crypto
             .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")

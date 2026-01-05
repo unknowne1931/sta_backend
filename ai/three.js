@@ -1,7 +1,5 @@
 // plusCounter.js
 import { createCanvas } from "canvas";
-import axios from "axios";
-import FormData from "form-data";
 
 // ======================= PERFORMANCE DIFFICULTY ==========================
 export function getPlusLevels(per) {
@@ -57,10 +55,11 @@ function rand(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+// ✅ NEW RULE IMPLEMENTATION
+// Count only if lines CROSS THROUGH (no T, no touching)
 function isTruePlus(hLine, vLine) {
     const ix = vLine.x;
     const iy = hLine.y;
-    if (ix < hLine.x1 || ix > hLine.x2 || iy < vLine.y1 || iy > vLine.y2) return false;
 
     return (
         ix > hLine.x1 &&
@@ -72,8 +71,6 @@ function isTruePlus(hLine, vLine) {
 
 // ======================== CORE GENERATOR =================================
 export function generatePlusData(level = "Medium", LEVELS, width = 620, height = 360) {
-
-    // ✅ FIX: correct fallback key + guaranteed object
     const cfg = LEVELS[level] || LEVELS["Medium"];
     const { h, v, gap } = cfg;
 
@@ -83,12 +80,12 @@ export function generatePlusData(level = "Medium", LEVELS, width = 620, height =
     const usedX = [];
 
     for (let i = 0; i < h; i++) {
-        let y, tries = 0;
-        while (tries++ < 100) {
+        let y;
+        do {
             y = rand(20, height - 20);
-            if (!usedY.some(v => Math.abs(v - y) < gap)) break;
-        }
+        } while (usedY.some(v => Math.abs(v - y) < gap));
         usedY.push(y);
+
         horizontals.push({
             y,
             x1: rand(0, width * 0.35),
@@ -97,12 +94,12 @@ export function generatePlusData(level = "Medium", LEVELS, width = 620, height =
     }
 
     for (let i = 0; i < v; i++) {
-        let x, tries = 0;
-        while (tries++ < 100) {
+        let x;
+        do {
             x = rand(20, width - 20);
-            if (!usedX.some(v => Math.abs(v - x) < gap)) break;
-        }
+        } while (usedX.some(v => Math.abs(v - x) < gap));
         usedX.push(x);
+
         verticals.push({
             x,
             y1: rand(0, height * 0.35),
@@ -125,6 +122,7 @@ export function generatePlusData(level = "Medium", LEVELS, width = 620, height =
     return { horizontals, verticals, plusPoints, correct };
 }
 
+// =========================== OPTIONS =====================================
 export function generatePlusOptions(correct) {
     const set = new Set([correct]);
     let i = 1;
@@ -136,6 +134,7 @@ export function generatePlusOptions(correct) {
     return [...set].sort(() => Math.random() - 0.5);
 }
 
+// =========================== QUESTION FLOW ===============================
 export function generatePlusQuestion(per, level = "Medium") {
     const LEVELS = getPlusLevels(per);
     const data = generatePlusData(level, LEVELS);
@@ -175,7 +174,6 @@ export async function showPlusImageData(buffer) {
     return buffer.toString("base64");
 }
 
-// ========================== FULL FLOW =====================================
 export async function generatePlusQuestionImage(per, level = "Medium") {
     const question = generatePlusQuestion(per, level);
     const buf = renderPlusImage(question);

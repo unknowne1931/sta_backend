@@ -83,7 +83,7 @@ function solve(grid, start, end, cols, rows) {
 // ==========================
 // GENERATOR
 // ==========================
-export function generateMazeQuestion({ level = "Medium", per = 50 } = {}) {
+export function generateMazeQuestion(level, per) {
 
     const data = def_data(per);
     const cellSize = data[level];

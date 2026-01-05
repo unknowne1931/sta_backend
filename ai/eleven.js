@@ -22,116 +22,37 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
 
     let COUNT_MAP;
 
-    if(per < 10){
-        COUNT_MAP = {
-            "Too Easy": 10,
-            "Easy": 15,
-            "Medium": 20,
-            "Tough": 25,
-            "Too Tough": 30
-        }
-    }else if(per < 20){
-        COUNT_MAP = {
-            "Too Easy": 15,
-            "Easy": 20,
-            "Medium": 25,
-            "Tough": 30,
-            "Too Tough": 35
-        }
-    }else if(per < 30){
-        COUNT_MAP = {
-            "Too Easy": 20,
-            "Easy": 25,
-            "Medium": 30,
-            "Tough": 35,
-            "Too Tough": 40
-        }
-    }else if(per < 40){
-        COUNT_MAP = {
-            "Too Easy": 25,
-            "Easy": 30,
-            "Medium": 35,
-            "Tough": 40,
-            "Too Tough": 45
-        }
-    }else if(per < 50){
-        COUNT_MAP = {
-            "Too Easy": 30,
-            "Easy": 35,
-            "Medium": 40,
-            "Tough": 45,
-            "Too Tough": 50
-        }
-    }else{
-        COUNT_MAP = {
-            "Too Easy": 35,
-            "Easy": 40,
-            "Medium": 45,
-            "Tough": 50,
-            "Too Tough": 55
-        }
+    if (per < 10) {
+        COUNT_MAP = { "Too Easy": 10, "Easy": 15, "Medium": 20, "Tough": 25, "Too Tough": 30 };
+    } else if (per < 20) {
+        COUNT_MAP = { "Too Easy": 15, "Easy": 20, "Medium": 25, "Tough": 30, "Too Tough": 35 };
+    } else if (per < 30) {
+        COUNT_MAP = { "Too Easy": 20, "Easy": 25, "Medium": 30, "Tough": 35, "Too Tough": 40 };
+    } else if (per < 40) {
+        COUNT_MAP = { "Too Easy": 25, "Easy": 30, "Medium": 35, "Tough": 40, "Too Tough": 45 };
+    } else if (per < 50) {
+        COUNT_MAP = { "Too Easy": 30, "Easy": 35, "Medium": 40, "Tough": 45, "Too Tough": 50 };
+    } else {
+        COUNT_MAP = { "Too Easy": 35, "Easy": 40, "Medium": 45, "Tough": 50, "Too Tough": 55 };
     }
-
-    
 
     const totalWords = COUNT_MAP[level] || 12;
 
     // --------------------
-    // Decide question type
+    // Generate items
     // --------------------
-    const modeRoll = Math.random();
-    let mode = "MATCH"; // default
-
-    if (modeRoll < 0.33) mode = "MATCH";
-    else if (modeRoll < 0.66) mode = "SAME";
-    else mode = "CROSS";
-
-    let targetWord = null;
-    let targetColor = null;
-
-    if (mode === "SAME") {
-        targetWord = COLORS[Math.floor(Math.random() * COLORS.length)];
-        targetColor = targetWord;
-    }
-
-    if (mode === "CROSS") {
-        targetWord = COLORS[Math.floor(Math.random() * COLORS.length)];
-        do {
-            targetColor = COLORS[Math.floor(Math.random() * COLORS.length)];
-        } while (targetColor.name === targetWord.name);
-    }
-
     const items = [];
     let correctCount = 0;
 
-    // --------------------
-    // Generate items (controlled)
-    // --------------------
     for (let i = 0; i < totalWords; i++) {
         let word = COLORS[Math.floor(Math.random() * COLORS.length)];
         let color = COLORS[Math.floor(Math.random() * COLORS.length)];
 
-        // Force difficulty structure
         if (Math.random() < 0.35) {
             color = word;
         }
 
-        // Guarantee presence for SAME / CROSS modes
-        if ((mode === "SAME" || mode === "CROSS") && i < 2) {
-            word = targetWord;
-            color = targetColor;
-        }
-
-        const isCorrect =
-            (mode === "MATCH" && word.name === color.name) ||
-            (mode === "SAME" &&
-                word.name === targetWord.name &&
-                color.name === targetColor.name) ||
-            (mode === "CROSS" &&
-                word.name === targetWord.name &&
-                color.name === targetColor.name);
-
-        if (isCorrect) correctCount++;
+        if (word.name === color.name) correctCount++;
 
         items.push({
             text: word.name,
@@ -140,17 +61,17 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
     }
 
     // --------------------
-    // Question text
+    // QUESTION TYPE (MATCH or NOT MATCH)
     // --------------------
-    let questionText = "";
+    const isMismatchQuestion = Math.random() < 0.5;
 
-    if (mode === "MATCH") {
-        questionText = "How many color names match their actual color?";
-    } else if (mode === "SAME") {
-        questionText = `How many times does the word "${targetWord.name}" appear in ${targetWord.name} color?`;
-    } else {
-        questionText = `How many times does the word "${targetWord.name}" appear in ${targetColor.name} color?`;
-    }
+    const questionText = isMismatchQuestion
+        ? "How many color names doesnt match their colors?"
+        : "How many color names match their actual color?";
+
+    const finalAnswer = isMismatchQuestion
+        ? totalWords - correctCount
+        : correctCount;
 
     // --------------------
     // Draw canvas
@@ -181,11 +102,11 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
     // --------------------
     // MCQ OPTIONS
     // --------------------
-    const optionsSet = new Set([correctCount]);
+    const optionsSet = new Set([finalAnswer]);
 
     while (optionsSet.size < 4) {
         const delta = Math.floor(Math.random() * 5) - 2;
-        optionsSet.add(Math.max(0, correctCount + delta));
+        optionsSet.add(Math.max(0, finalAnswer + delta));
     }
 
     const options = [...optionsSet].sort(() => Math.random() - 0.5);
@@ -197,7 +118,9 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
         difficulty: level,
         question: questionText,
         options: options.map(String),
-        answer: String(correctCount),
-        image: canvas.toDataURL("image/png").replace(/^data:image\/png;base64,/, "")
+        answer: String(finalAnswer),
+        image: canvas
+            .toDataURL("image/png")
+            .replace(/^data:image\/png;base64,/, "")
     };
 }
