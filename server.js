@@ -36,7 +36,7 @@ import { generateEmojiPuzzle } from "./ai/nine.js";
 import {generateMazeQuestion} from "./ai/ten.js";
 import {generateColorMatchQuestion} from "./ai/eleven.js";
 import {createStringCountImage} from "./ai/tweleve.js";
-
+import {generateNumberPairMCQ} from "./ai/thirteen.js"
 
 
 const app = express();
@@ -2824,7 +2824,7 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
 
         const qst_gen = [
         One(), Two(), Three(), Four(), Five(), Six(),
-        Seven(), Eight(), Nine(), Ten(), Eleven(), Tweleve()
+        Seven(), Eight(), Nine(), Ten(), Eleven(), Tweleve(), Thirteen()
         ];
 
         const shuffled = [...qst_gen]
@@ -8260,7 +8260,6 @@ function Eleven(){
     }
 }
 
-
 function Tweleve(){
     return async function(level, user, qno){
 
@@ -8295,6 +8294,46 @@ function Tweleve(){
         
     }
 }
+
+
+function Thirteen(){
+    return async function(level, user, qno) {
+
+        const per = await get_per("num_pairs", level, user);
+
+        const level = req.query.level;
+        const puzzle = await generateNumberPairMCQ("Too Easy" , 10)
+        // console.log(puzzle.question);
+        // console.log("Answer:", puzzle.correctAnswer);
+        // console.log(puzzle.base64Image);
+
+        const hash = crypto
+            .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+            .update(puzzle.correctAnswer.toString())
+            .digest("hex");
+
+
+        await QuestionModule.create({
+            Time: Time,
+            user: user,
+            img: puzzle.base64Image,
+            Questio: puzzle.question,
+            options: puzzle.options,
+            Ans: hash,
+            tough : level,
+            Qno: qno,
+            seconds: 60,
+            sub_lang: "num_pairs",
+            yes: [],
+            no: []
+        })
+
+
+
+    }
+}
+
+
 
 app.get("/admin/balance/played", adminMiddleware, async (req, res) => {
     try {
