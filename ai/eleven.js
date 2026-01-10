@@ -23,17 +23,93 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
     let COUNT_MAP;
 
     if (per < 10) {
-        COUNT_MAP = { "Too Easy": 10, "Easy": 15, "Medium": 20, "Tough": 25, "Too Tough": 30 };
-    } else if (per < 20) {
-        COUNT_MAP = { "Too Easy": 15, "Easy": 20, "Medium": 25, "Tough": 30, "Too Tough": 35 };
-    } else if (per < 30) {
-        COUNT_MAP = { "Too Easy": 20, "Easy": 25, "Medium": 30, "Tough": 35, "Too Tough": 40 };
-    } else if (per < 40) {
-        COUNT_MAP = { "Too Easy": 25, "Easy": 30, "Medium": 35, "Tough": 40, "Too Tough": 45 };
-    } else if (per < 50) {
-        COUNT_MAP = { "Too Easy": 30, "Easy": 35, "Medium": 40, "Tough": 45, "Too Tough": 50 };
-    } else {
-        COUNT_MAP = { "Too Easy": 35, "Easy": 40, "Medium": 45, "Tough": 50, "Too Tough": 55 };
+        COUNT_MAP = { 
+            "Too Easy": 10, 
+            "Easy": 15, 
+            "Medium": 20, 
+            "Tough": 25, 
+            "Too Tough": 30 
+        };
+    }else if (per < 20) {
+        COUNT_MAP = { 
+            "Too Easy": 15, 
+            "Easy": 20, 
+            "Medium": 25, 
+            "Tough": 30, 
+            "Too Tough": 35 
+        };
+    }else if (per < 30) {
+        COUNT_MAP = { 
+            "Too Easy": 20, 
+            "Easy": 25, 
+            "Medium": 30, 
+            "Tough": 35, 
+            "Too Tough": 40 
+        };
+    }else if (per < 40) {
+        COUNT_MAP = { 
+            "Too Easy": 25, 
+            "Easy": 30, 
+            "Medium": 35, 
+            "Tough": 40, 
+            "Too Tough": 45 
+        };
+    }else if (per < 50) {
+        COUNT_MAP = { 
+            "Too Easy": 30, 
+            "Easy": 35, 
+            "Medium": 40, 
+            "Tough": 45, 
+            "Too Tough": 50 
+        };
+    }else if (per < 50) {
+        COUNT_MAP = { 
+            "Too Easy": 35, 
+            "Easy": 40, 
+            "Medium": 45, 
+            "Tough": 50, 
+            "Too Tough": 55 
+        };
+    }else if (per < 60) {
+        COUNT_MAP = { 
+            "Too Easy": 40, 
+            "Easy": 45, 
+            "Medium": 50, 
+            "Tough": 55, 
+            "Too Tough": 60 
+        };
+    }else if (per < 70) {
+        COUNT_MAP = { 
+            "Too Easy": 45, 
+            "Easy": 50, 
+            "Medium": 55, 
+            "Tough": 60, 
+            "Too Tough": 65 
+        };
+    }else if (per < 80) {
+        COUNT_MAP = { 
+            "Too Easy": 50, 
+            "Easy": 55, 
+            "Medium": 60, 
+            "Tough": 65, 
+            "Too Tough": 70 
+        };
+    }else if (per < 90) {
+        COUNT_MAP = { 
+            "Too Easy": 55, 
+            "Easy": 60, 
+            "Medium": 65, 
+            "Tough": 70, 
+            "Too Tough": 75 
+        };
+    }else{
+        COUNT_MAP = { 
+            "Too Easy": 60, 
+            "Easy": 65, 
+            "Medium": 70, 
+            "Tough": 75, 
+            "Too Tough": 80 
+        };
     }
 
     const totalWords = COUNT_MAP[level] || 12;

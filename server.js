@@ -260,6 +260,16 @@ const Amount_in_wallet_Count_Module = mongoose.model('Amount_wallet', Amount_in_
 
 
 
+const level_Up_Schema = new mongoose.Schema({
+    Time: String,
+    user : String,
+    rank : String,
+}, { timestamps: true });
+
+const Level_up_Module = mongoose.model('Levels_data', level_Up_Schema);
+
+
+
 
 
 
@@ -2793,25 +2803,33 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
             Totalusermodule.countDocuments({ user }),
         ]);
 
-        const get_per = (won_data / (total_play || 1)) * 100;
+        // const get_per = (won_data / (total_play || 1)) * 100;
 
-        function getDifficultyDistribution(winPercent) {
+        const get_user_level = await Level_up_Module.findOne({user})
 
-            if (winPercent <= 0) {
-                return ["Too Easy", "Too Easy", "Easy", "Easy", "Easy", "Easy", "Easy", "Easy", "Tough", "Too Easy"];
+        function getDifficultyDistribution(level_pe) {
 
-            } else if (winPercent > 0 && winPercent < 20) {
-                return ["Easy", "Easy", "Easy", "Medium", "Medium", "Medium", "Tough", "Tough", "Too Tough", "Too Tough"];
+            const level_per = parent(level_pe)
 
-            } else if (winPercent >= 20 && winPercent < 40) {
-                return ["Medium", "Medium", "Medium", "Medium", "Tough", "Tough", "Tough", "Too Tough", "Too Tough", "Too Tough"];
+            if (level_per < 10) {
+                return ["Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy"];
 
-            } else if (winPercent >= 40 && winPercent < 60) {
+            }else if(level_per <20){
+                return ["Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Easy", "Easy", "Easy", "Easy", "Easy"];
+            }else if(level_per <30){
+                return ["Easy", "Easy", "Easy", "Easy", "Easy", "Easy", "Easy", "Easy", "Easy", "Easy"];
+            }else if(level_per < 40){
+                return ["Easy", "Easy", "Easy", "Easy", "Easy", "Medium", "Medium", "Medium", "Medium", "Medium"];
+            }else if(level_per < 50){
+                return ["Medium", "Medium", "Medium", "Medium", "Medium", "Medium", "Medium", "Medium", "Medium", "Medium"];
+            }else if(level_per < 60){
+                return ["Medium", "Medium", "Medium", "Medium", "Medium", "Tough", "Tough", "Tough", "Tough", "Tough"];
+            }else if(level_per < 70){
+                return ["Tough", "Tough", "Tough", "Tough", "Tough", "Tough", "Tough", "Tough", "Tough", "Tough"];
+            }else if(level_per < 80){
                 return ["Tough", "Tough", "Tough", "Tough", "Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough"];
-
-            } else {
-                return ["Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough",
-                    "Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough"];
+            }else{
+                return ["Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough"];
             }
         }
 
@@ -2820,11 +2838,11 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
 
         await QuestionModule.deleteMany({ user });
 
-        const dif_l = getDifficultyDistribution(get_per)
+        const dif_l = getDifficultyDistribution(get_user_level)
 
         const qst_gen = [
-        One(), Two(), Three(), Four(), Five(), Six(),
-        Seven(), Eight(), Nine(), Ten(), Eleven(), Tweleve(), Thirteen()
+            One(), Two(), Three(), Four(), Five(), Six(),
+            Seven(), Eight(), Nine(), Ten(), Eleven(), Tweleve(), Thirteen()
         ];
 
         const shuffled = [...qst_gen]
@@ -3844,6 +3862,8 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
         console.log(check_ans)
 
         if (check_ans) {
+
+
             const get_t_data = await Seconds_Module.findOne({ category: Answer_Verify.sub_lang, Tough: Answer_Verify.tough })
 
             const check_anyl_modl = await module_analysis_module.findOne({ sub_lang: Answer_Verify.sub_lang, tough: Answer_Verify.tough })
@@ -3853,6 +3873,8 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
             } else {
                 await module_analysis_module.create({ sub_lang: Answer_Verify.sub_lang, tough: Answer_Verify.tough, yes: [user], no: [] })
             }
+
+            
 
             if (get_t_data) {
 
@@ -3915,6 +3937,48 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
                     //ki1931ck add code here
                     const rank = toString(won.length + 1)
                     await Answer_Verify.updateOne({ $push: { yes: user } })
+
+                    const [won_data, total_play] = await Promise.all([
+                        Wonmodule.countDocuments({ user }),
+                        Totalusermodule.countDocuments({ user }),
+                    ]);
+
+                    // percentage
+                    const get_per = (won_data / (total_play || 1)) * 100;
+
+                    // fetch level data
+                    const find_level_data = await Level_up_Module.findOne({ user });
+
+                    // decide how much rank to add
+                    let won_dat;
+
+                    if (get_per < 9) {
+                    won_dat = 1;
+                    } else {
+                    won_dat = Math.floor(get_per / 10); // safer than string slicing
+                    }
+
+                    // FIRST TIME USER
+                    if (!find_level_data) {
+                    await Level_up_Module.create({
+                        Time,
+                        user,
+                        rank: Math.min(won_dat, 100).toString(),
+                    });
+                    }
+
+                    // EXISTING USER
+                    else {
+                    const currentRank = parseInt(find_level_data.rank, 10);
+
+                    if (currentRank < 100) {
+                        const newLevel = Math.min(currentRank + won_dat, 100);
+                        find_level_data.rank = newLevel.toString();
+                        await find_level_data.save();
+                    }
+                    }
+
+
                     return res.status(200).json({ Status: "OKK", id: CuponDat._id, rank: rank });
 
 
@@ -3943,6 +4007,50 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
                                 await Historymodule.create({ Time, user, rupee: get_count_data.stars, type: "Credited", tp: "Stars" });
                                 const rank = toString(won.length + 1)
                                 await Answer_Verify.updateOne({ $push: { yes: user } })
+
+
+                                const [won_data, total_play] = await Promise.all([
+                                    Wonmodule.countDocuments({ user }),
+                                    Totalusermodule.countDocuments({ user }),
+                                ]);
+
+                                // percentage
+                                const get_per = (won_data / (total_play || 1)) * 100;
+
+                                // fetch level data
+                                const find_level_data = await Level_up_Module.findOne({ user });
+
+                                // decide how much rank to add
+                                let won_dat;
+
+                                if (get_per < 9) {
+                                    won_dat = 1;
+                                } else {
+                                    won_dat = Math.floor(get_per / 10); // safer than string slicing
+                                }
+
+                                // FIRST TIME USER
+                                if (!find_level_data) {
+                                    await Level_up_Module.create({
+                                        Time,
+                                        user,
+                                        rank: Math.min(won_dat, 100).toString(),
+                                    });
+                                }
+
+                                // EXISTING USER
+                                else {
+                                    const currentRank = parseInt(find_level_data.rank, 10);
+
+                                    if (currentRank < 100) {
+                                        const newLevel = Math.min(currentRank + won_dat, 100);
+                                        find_level_data.rank = newLevel.toString();
+                                        await find_level_data.save();
+                                    }
+                                }
+
+
+
                                 return res.status(200).json({ Status: "STARS", stars: get_count_data.stars, rank: rank });
 
                             }
@@ -3957,6 +4065,49 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
                                 await Historymodule.create({ Time, user, rupee: get_count_data.stars, type: "Credited", tp: "Stars" });
                                 const rank = toString(won.length + 1)
                                 await Answer_Verify.updateOne({ $push: { yes: user } })
+
+
+                                const [won_data, total_play] = await Promise.all([
+                                    Wonmodule.countDocuments({ user }),
+                                    Totalusermodule.countDocuments({ user }),
+                                ]);
+
+                                // percentage
+                                const get_per = (won_data / (total_play || 1)) * 100;
+
+                                // fetch level data
+                                const find_level_data = await Level_up_Module.findOne({ user });
+
+                                // decide how much rank to add
+                                let won_dat;
+
+                                if (get_per < 9) {
+                                    won_dat = 1;
+                                } else {
+                                    won_dat = Math.floor(get_per / 10); // safer than string slicing
+                                }
+
+                                // FIRST TIME USER
+                                if (!find_level_data) {
+                                    await Level_up_Module.create({
+                                        Time,
+                                        user,
+                                        rank: Math.min(won_dat, 100).toString(),
+                                    });
+                                }
+
+                                // EXISTING USER
+                                else {
+                                    const currentRank = parseInt(find_level_data.rank, 10);
+
+                                    if (currentRank < 100) {
+                                        const newLevel = Math.min(currentRank + won_dat, 100);
+                                        find_level_data.rank = newLevel.toString();
+                                        await find_level_data.save();
+                                    }
+                                }
+
+
                                 return res.status(200).json({ Status: "STARS", stars: get_count_data.stars, rank: rank });
 
                             }
@@ -3980,6 +4131,9 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
                 // );
                 // //ki1931ck add code here
                 await Answer_Verify.updateOne({ $push: { yes: user } })
+
+                const find_level_data = await Level_up_Module.findOne({ user });
+
                 return res.status(200).json({ Status: "OK" })
 
             }
@@ -4004,9 +4158,17 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
             } else {
                 await module_analysis_module.create({ sub_lang: Answer_Verify.sub_lang, tough: Answer_Verify.tough, yes: [], no: [user] })
             }
+            const find_level_data = await Level_up_Module.findOne({ user });
 
+            if (!find_level_data) return;
 
+            const currentRank = parseInt(find_level_data.rank, 10);
 
+            // decrease by 1, but not below 0
+            const newRank = Math.max(currentRank - 1, 0);
+
+            find_level_data.rank = newRank.toString();
+            await find_level_data.save();
 
             return res.status(200).json({ Status: "BAD" })
 
@@ -8301,7 +8463,6 @@ function Thirteen(){
 
         const per = await get_per("num_pairs", level, user);
 
-        const level = req.query.level;
         const puzzle = await generateNumberPairMCQ("Too Easy" , 10)
         // console.log(puzzle.question);
         // console.log("Answer:", puzzle.correctAnswer);
@@ -8432,6 +8593,25 @@ app.get("/admin/refund/tickets/list", adminMiddleware, async (req, res) => {
         return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch balance" });
     }
 });
+
+
+app.get("/get/levels/user",authMiddleware, async (req, res) =>{
+    try{
+        const user = req.user;
+
+        const data = await Level_up_Module.findOne({user})
+        if(data){
+            return res.status(200).json({data})
+        }else{
+            return res.status(200).json({message : "No Data"})
+        }
+
+
+    }catch (error) {
+        console.error("Error fetching balance:", error);
+        return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch balance" });
+    }
+})
 
 
 
