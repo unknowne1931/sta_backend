@@ -2838,7 +2838,7 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
 
         await QuestionModule.deleteMany({ user });
 
-        const dif_l = getDifficultyDistribution(get_user_level)
+        const dif_l = getDifficultyDistribution(get_user_level || 0)
 
         const qst_gen = [
             One(), Two(), Three(), Four(), Five(), Six(),

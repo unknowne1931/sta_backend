@@ -229,7 +229,7 @@ const HEIGHT = 270;
 function diff_level(per) {
     let DIFFICULTIES;
 
-    if (per < 10) {
+    if(per < 10){
         DIFFICULTIES = {
             "Too Easy": { count: 10, range: [1, 5] },
             "Easy": { count: 15, range: [0, 9] },
@@ -237,39 +237,121 @@ function diff_level(per) {
             "Tough": { count: 25, range: [0, 15] },
             "Too Tough": { count: 30, range: [0, 20] }
         };
-    } else if (per < 20) {
+    }else if(per < 20){
         DIFFICULTIES = {
-            "Too Easy": { count: 15, range: [0, 6] },
-            "Easy": { count: 20, range: [0, 10] },
-            "Medium": { count: 25, range: [0, 13] },
-            "Tough": { count: 30, range: [0, 16] },
-            "Too Tough": { count: 35, range: [0, 22] }
+            "Too Easy": { count: 20, range: [5, 10] },
+            "Easy": { count: 25, range: [0, 15] },
+            "Medium": { count: 30, range: [0, 12] },
+            "Tough": { count: 35, range: [0, 15] },
+            "Too Tough": { count: 40, range: [0, 20] }
         };
-    } else if (per < 30) {
+    }else if(per < 30){
         DIFFICULTIES = {
-            "Too Easy": { count: 20, range: [0, 7] },
-            "Easy": { count: 25, range: [0, 11] },
-            "Medium": { count: 30, range: [0, 14] },
-            "Tough": { count: 35, range: [0, 17] },
-            "Too Tough": { count: 40, range: [0, 24] }
+            "Too Easy": { count: 25, range: [5, 10] },
+            "Easy": { count: 30, range: [0, 15] },
+            "Medium": { count: 35, range: [0, 12] },
+            "Tough": { count: 40, range: [0, 15] },
+            "Too Tough": { count: 45, range: [0, 20] }
         };
-    } else if (per < 40) {
+    }else if(per < 40){
         DIFFICULTIES = {
-            "Too Easy": { count: 25, range: [0, 8] },
-            "Easy": { count: 30, range: [0, 12] },
-            "Medium": { count: 35, range: [0, 15] },
-            "Tough": { count: 40, range: [0, 18] },
-            "Too Tough": { count: 45, range: [0, 26] }
+            "Too Easy": { count: 30, range: [5, 10] },
+            "Easy": { count: 35, range: [0, 15] },
+            "Medium": { count: 40, range: [0, 12] },
+            "Tough": { count: 45, range: [0, 15] },
+            "Too Tough": { count: 50, range: [0, 20] }
         };
-    } else {
+    }else if(per < 50){
         DIFFICULTIES = {
-            "Too Easy": { count: 30, range: [0, 9] },
-            "Easy": { count: 35, range: [0, 13] },
-            "Medium": { count: 40, range: [0, 16] },
-            "Tough": { count: 45, range: [0, 20] },
-            "Too Tough": { count: 50, range: [0, 30] }
+            "Too Easy": { count: 35, range: [5, 10] },
+            "Easy": { count: 40, range: [0, 15] },
+            "Medium": { count: 45, range: [0, 12] },
+            "Tough": { count: 50, range: [0, 15] },
+            "Too Tough": { count: 55, range: [0, 20] }
+        };
+    }else if(per < 60){
+        DIFFICULTIES = {
+            "Too Easy": { count: 40, range: [5, 10] },
+            "Easy": { count: 45, range: [0, 15] },
+            "Medium": { count: 50, range: [0, 12] },
+            "Tough": { count: 55, range: [0, 15] },
+            "Too Tough": { count: 60, range: [0, 20] }
+        };
+    }else if(per < 70){
+        DIFFICULTIES = {
+            "Too Easy": { count: 45, range: [5, 10] },
+            "Easy": { count: 50, range: [0, 15] },
+            "Medium": { count: 55, range: [0, 12] },
+            "Tough": { count: 60, range: [0, 15] },
+            "Too Tough": { count: 65, range: [0, 20] }
+        };
+    }else if(per < 80){
+        DIFFICULTIES = {
+            "Too Easy": { count: 50, range: [5, 10] },
+            "Easy": { count: 55, range: [0, 15] },
+            "Medium": { count: 60, range: [0, 12] },
+            "Tough": { count: 65, range: [0, 15] },
+            "Too Tough": { count: 70, range: [0, 20] }
+        };
+    }else if(per < 90){
+        DIFFICULTIES = {
+            "Too Easy": { count: 55, range: [5, 10] },
+            "Easy": { count: 60, range: [0, 15] },
+            "Medium": { count: 65, range: [0, 12] },
+            "Tough": { count: 70, range: [0, 15] },
+            "Too Tough": { count: 75, range: [0, 20] }
+        };
+    }else{
+        DIFFICULTIES = {
+            "Too Easy": { count: 60, range: [5, 10] },
+            "Easy": { count: 65, range: [0, 15] },
+            "Medium": { count: 70, range: [0, 12] },
+            "Tough": { count: 75, range: [0, 15] },
+            "Too Tough": { count: 80, range: [0, 20] }
         };
     }
+
+    // if (per < 10) {
+    //     DIFFICULTIES = {
+    //         "Too Easy": { count: 10, range: [1, 5] },
+    //         "Easy": { count: 15, range: [0, 9] },
+    //         "Medium": { count: 20, range: [0, 12] },
+    //         "Tough": { count: 25, range: [0, 15] },
+    //         "Too Tough": { count: 30, range: [0, 20] }
+    //     };
+    // } else if (per < 20) {
+    //     DIFFICULTIES = {
+    //         "Too Easy": { count: 15, range: [0, 6] },
+    //         "Easy": { count: 20, range: [0, 10] },
+    //         "Medium": { count: 25, range: [0, 13] },
+    //         "Tough": { count: 30, range: [0, 16] },
+    //         "Too Tough": { count: 35, range: [0, 22] }
+    //     };
+    // } else if (per < 30) {
+    //     DIFFICULTIES = {
+    //         "Too Easy": { count: 20, range: [0, 7] },
+    //         "Easy": { count: 25, range: [0, 11] },
+    //         "Medium": { count: 30, range: [0, 14] },
+    //         "Tough": { count: 35, range: [0, 17] },
+    //         "Too Tough": { count: 40, range: [0, 24] }
+    //     };
+    // } else if (per < 40) {
+    //     DIFFICULTIES = {
+    //         "Too Easy": { count: 25, range: [0, 8] },
+    //         "Easy": { count: 30, range: [0, 12] },
+    //         "Medium": { count: 35, range: [0, 15] },
+    //         "Tough": { count: 40, range: [0, 18] },
+    //         "Too Tough": { count: 45, range: [0, 26] }
+    //     };
+    // } else {
+    //     DIFFICULTIES = {
+    //         "Too Easy": { count: 30, range: [0, 9] },
+    //         "Easy": { count: 35, range: [0, 13] },
+    //         "Medium": { count: 40, range: [0, 16] },
+    //         "Tough": { count: 45, range: [0, 20] },
+    //         "Too Tough": { count: 50, range: [0, 30] }
+    //     };
+    // }
 
     return DIFFICULTIES;
 }
