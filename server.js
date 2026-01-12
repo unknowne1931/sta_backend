@@ -33,10 +33,13 @@ import { createChallenge, uploadBase64 } from "./ai/six.js";
 import { createAdvancedNumberMCQ } from "./ai/seven.js";
 import { generatePuzzle, drawCircles } from "./ai/eight.js";
 import { generateEmojiPuzzle } from "./ai/nine.js";
-import {generateMazeQuestion} from "./ai/ten.js";
-import {generateColorMatchQuestion} from "./ai/eleven.js";
-import {createStringCountImage} from "./ai/tweleve.js";
-import {generateNumberPairMCQ} from "./ai/thirteen.js"
+import { generateMazeQuestion } from "./ai/ten.js";
+import { generateColorMatchQuestion } from "./ai/eleven.js";
+import { createStringCountImage } from "./ai/tweleve.js";
+import { generateNumberPairMCQ } from "./ai/thirteen.js";
+import { generateOMRQuestion } from "./ai/fourteen.js";
+import { generateOMRQuestion15 } from "./ai/fifteen.js";
+import { generateTrainQuestionImage } from "./ai/sixteen.js";
 
 
 const app = express();
@@ -210,7 +213,7 @@ app.post(
 
 
 app.use(cors({
-    origin : "*",
+    origin: "*",
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
@@ -262,17 +265,11 @@ const Amount_in_wallet_Count_Module = mongoose.model('Amount_wallet', Amount_in_
 
 const level_Up_Schema = new mongoose.Schema({
     Time: String,
-    user : String,
-    rank : String,
+    user: String,
+    rank: String,
 }, { timestamps: true });
 
 const Level_up_Module = mongoose.model('Levels_data', level_Up_Schema);
-
-
-
-
-
-
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -355,18 +352,27 @@ const generateOTP = () => {
 //https end
 
 
-export async function get_per(sub_lang, tough, user) {
+export async function get_per(user) {
     try {
 
-        return 0;
-        const data = await users_db.findOne({ sub_lang, tough });
+
+        const data = await Level_up_Module.findOne({ user })
+        if (data) {
+            return data.rank
+        } else {
+            return 0
+        }
+
+        // return 0;
+        // const data = await users_db.findOne({ sub_lang, tough });
+
         // if (!data) return 0;
 
         // // safely check if seconds exists
 
         // const userObj = await data.yes.includes(user)
-        
-        
+
+
 
         // if (userObj) {
         //     const total = (data.yes?.length || 0) + (data.no?.length || 0);
@@ -2733,7 +2739,7 @@ app.post('/start/playing/by/debit/amount', authMiddleware, async (req, res) => {
         });
 
         const newListData = await QuestionModule.findOne({ user }).lean();
-        if (newListData?.list?.length < 10 || newListData?.list?.length > 10 ) {
+        if (newListData?.list?.length < 10 || newListData?.list?.length > 10) {
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
@@ -2805,30 +2811,30 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
 
         // const get_per = (won_data / (total_play || 1)) * 100;
 
-        const get_user_level = await Level_up_Module.findOne({user})
+        const get_user_level = await Level_up_Module.findOne({ user })
 
         function getDifficultyDistribution(level_pe) {
 
-            const level_per = parent(level_pe)
+            const level_per = parseInt(level_pe)
 
             if (level_per < 10) {
                 return ["Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy"];
 
-            }else if(level_per <20){
+            } else if (level_per < 20) {
                 return ["Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Easy", "Easy", "Easy", "Easy", "Easy"];
-            }else if(level_per <30){
+            } else if (level_per < 30) {
                 return ["Easy", "Easy", "Easy", "Easy", "Easy", "Easy", "Easy", "Easy", "Easy", "Easy"];
-            }else if(level_per < 40){
+            } else if (level_per < 40) {
                 return ["Easy", "Easy", "Easy", "Easy", "Easy", "Medium", "Medium", "Medium", "Medium", "Medium"];
-            }else if(level_per < 50){
+            } else if (level_per < 50) {
                 return ["Medium", "Medium", "Medium", "Medium", "Medium", "Medium", "Medium", "Medium", "Medium", "Medium"];
-            }else if(level_per < 60){
+            } else if (level_per < 60) {
                 return ["Medium", "Medium", "Medium", "Medium", "Medium", "Tough", "Tough", "Tough", "Tough", "Tough"];
-            }else if(level_per < 70){
+            } else if (level_per < 70) {
                 return ["Tough", "Tough", "Tough", "Tough", "Tough", "Tough", "Tough", "Tough", "Tough", "Tough"];
-            }else if(level_per < 80){
+            } else if (level_per < 80) {
                 return ["Tough", "Tough", "Tough", "Tough", "Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough"];
-            }else{
+            } else {
                 return ["Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough"];
             }
         }
@@ -2838,16 +2844,17 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
 
         await QuestionModule.deleteMany({ user });
 
-        const dif_l = getDifficultyDistribution(get_user_level || 0)
+        const dif_l = getDifficultyDistribution(get_user_level.rank || 0)
 
         const qst_gen = [
             One(), Two(), Three(), Four(), Five(), Six(),
-            Seven(), Eight(), Nine(), Ten(), Eleven(), Tweleve(), Thirteen()
+            Seven(), Eight(), Nine(), Ten(), Eleven(), Tweleve(), Thirteen(),
+            Fourteen(), Fifteen(), Sixteen()
         ];
 
         const shuffled = [...qst_gen]
-        .sort(() => Math.random() - 0.5)
-        .slice(0, 10);
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 10);
 
         const dif = [];
 
@@ -2856,7 +2863,7 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
             const num = (i + 1).toString();
             dif.push(num);
             const lvl = dif_l[i]
-            data(lvl,user, num)
+            data(lvl, user, num)
         });
 
 
@@ -2950,13 +2957,13 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
 
         const newListData = await QuestionListmodule.findOne({ user }).lean();
         const newQstData = await QuestionModule.countDocuments({ user: user });
-        console.log("Len From Old :" , newListData.list.length)
-        console.log("Len :" , newListData.list)
+        console.log("Len From Old :", newListData.list.length)
+        console.log("Len :", newListData.list)
         if (newListData.list.length < 10 || newQstData.list < 10 || newQstData.list > 10) {
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
-            await QuestionModule.deleteMany({user})
+            await QuestionModule.deleteMany({ user })
             bal_dt.balance = lat.toString()
             await bal_dt.save()
             resetResult = "BAD";
@@ -3765,13 +3772,13 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
 
                     return res.status(200).json({ data });
                 } else {
-                    return res.status(404).json({ Status: "BAD", message : "No Question Found" });
+                    return res.status(404).json({ Status: "BAD", message: "No Question Found" });
                 }
             } else {
-                return res.status(202).json({ Status: "BAD", message : "No Question Found"  });
+                return res.status(202).json({ Status: "BAD", message: "No Question Found" });
             }
         } else {
-            return res.status(202).json({ Status: "BAD",message : "Not Valid to Yes"  });
+            return res.status(202).json({ Status: "BAD", message: "Not Valid to Yes" });
         }
     } catch (error) {
         console.log(error);
@@ -3874,7 +3881,7 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
                 await module_analysis_module.create({ sub_lang: Answer_Verify.sub_lang, tough: Answer_Verify.tough, yes: [user], no: [] })
             }
 
-            
+
 
             if (get_t_data) {
 
@@ -3953,29 +3960,29 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
                     let won_dat;
 
                     if (get_per < 9) {
-                    won_dat = 1;
+                        won_dat = 1;
                     } else {
-                    won_dat = Math.floor(get_per / 10); // safer than string slicing
+                        won_dat = Math.floor(get_per / 10); // safer than string slicing
                     }
 
                     // FIRST TIME USER
                     if (!find_level_data) {
-                    await Level_up_Module.create({
-                        Time,
-                        user,
-                        rank: Math.min(won_dat, 100).toString(),
-                    });
+                        await Level_up_Module.create({
+                            Time,
+                            user,
+                            rank: Math.min(won_dat, 100).toString(),
+                        });
                     }
 
                     // EXISTING USER
                     else {
-                    const currentRank = parseInt(find_level_data.rank, 10);
+                        const currentRank = parseInt(find_level_data.rank, 10);
 
-                    if (currentRank < 100) {
-                        const newLevel = Math.min(currentRank + won_dat, 100);
-                        find_level_data.rank = newLevel.toString();
-                        await find_level_data.save();
-                    }
+                        if (currentRank < 100) {
+                            const newLevel = Math.min(currentRank + won_dat, 100);
+                            find_level_data.rank = newLevel.toString();
+                            await find_level_data.save();
+                        }
                     }
 
 
@@ -7966,54 +7973,87 @@ function One() {
 
 
 
-function Two(){
+function Two() {
     return async function (level, user, qno) {
-    try {
-        const per = await get_per("news_side", level, user);
+        try {
+            const per = await get_per("news_side", level, user);
 
-        // 1) Generate arrows
-        const angles = generateArrows(per, level);
+            // 1) Generate arrows
+            const angles = generateArrows(per, level);
 
-        // 2) Draw & upload image
-        const buffer = drawArrowsImage(angles);
-        const imageURL = await uploadImage1(buffer);
-        if (!imageURL) return;
+            // 2) Draw & upload image
+            const buffer = drawArrowsImage(angles);
+            const imageURL = await uploadImage1(buffer);
+            if (!imageURL) return;
 
-        const totalArrows = angles.length;
+            const totalArrows = angles.length;
 
-        const directionCounts = DIRECTIONS
-            .map(dir => ({
-                dir,
-                count: angles.filter(a => a === dir.angle).length
-            }))
-            .filter(d => d.count > 0);
+            const directionCounts = DIRECTIONS
+                .map(dir => ({
+                    dir,
+                    count: angles.filter(a => a === dir.angle).length
+                }))
+                .filter(d => d.count > 0);
 
-        if (directionCounts.length === 0) return;
+            if (directionCounts.length === 0) return;
 
-        const askDouble = Math.random() < 0.4 && directionCounts.length >= 2;
+            const askDouble = Math.random() < 0.4 && directionCounts.length >= 2;
 
-        // =========================
-        // SINGLE QUESTION
-        // =========================
-        if (!askDouble) {
-            const picked = directionCounts[
-                Math.floor(Math.random() * directionCounts.length)
-            ];
+            // =========================
+            // SINGLE QUESTION
+            // =========================
+            if (!askDouble) {
+                const picked = directionCounts[
+                    Math.floor(Math.random() * directionCounts.length)
+                ];
 
-            const correct = picked.count;
-            const options = generateMCQOptions(correct, totalArrows);
+                const correct = picked.count;
+                const options = generateMCQOptions(correct, totalArrows);
+
+                const hash = crypto
+                    .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                    .update(correct.toString())
+                    .digest("hex");
+
+                await QuestionModule.create({
+                    Time,
+                    user,
+                    img: imageURL,
+                    Questio: `How many arrows are facing ${picked.dir.name}?`,
+                    options,
+                    Ans: hash,
+                    tough: level,
+                    Qno: qno,
+                    seconds: 50,
+                    sub_lang: "news_side",
+                    yes: [],
+                    no: []
+                });
+
+                return; // ✅ STOP HERE
+            }
+
+            // =========================
+            // DOUBLE QUESTION
+            // =========================
+            const shuffled = [...directionCounts].sort(() => Math.random() - 0.5);
+            const dir1 = shuffled[0];
+            const dir2 = shuffled[1];
+
+            const correctDouble = dir1.count + dir2.count;
+            const optionsDouble = generateMCQOptions(correctDouble, totalArrows);
 
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(correct.toString())
+                .update(correctDouble.toString())
                 .digest("hex");
 
             await QuestionModule.create({
                 Time,
                 user,
                 img: imageURL,
-                Questio: `How many arrows are facing ${picked.dir.name}?`,
-                options,
+                Questio: `How many arrows are facing ${dir1.dir.name} and ${dir2.dir.name}?`,
+                options: optionsDouble,
                 Ans: hash,
                 tough: level,
                 Qno: qno,
@@ -8023,45 +8063,12 @@ function Two(){
                 no: []
             });
 
-            return; // ✅ STOP HERE
+            return; // optional but explicit
+
+        } catch (err) {
+            console.error(err);
         }
-
-        // =========================
-        // DOUBLE QUESTION
-        // =========================
-        const shuffled = [...directionCounts].sort(() => Math.random() - 0.5);
-        const dir1 = shuffled[0];
-        const dir2 = shuffled[1];
-
-        const correctDouble = dir1.count + dir2.count;
-        const optionsDouble = generateMCQOptions(correctDouble, totalArrows);
-
-        const hash = crypto
-            .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-            .update(correctDouble.toString())
-            .digest("hex");
-
-        await QuestionModule.create({
-            Time,
-            user,
-            img: imageURL,
-            Questio: `How many arrows are facing ${dir1.dir.name} and ${dir2.dir.name}?`,
-            options: optionsDouble,
-            Ans: hash,
-            tough: level,
-            Qno: qno,
-            seconds: 50,
-            sub_lang: "news_side",
-            yes: [],
-            no: []
-        });
-
-        return; // optional but explicit
-
-    } catch (err) {
-        console.error(err);
     }
-}
 
 }
 
@@ -8092,7 +8099,7 @@ function Three() {
                 Questio: "How many “+” are formed?",
                 options: data.question.options,
                 Ans: hash,
-                tough : level,
+                tough: level,
                 Qno: qno,
                 seconds: 50,
                 sub_lang: "plus",
@@ -8135,7 +8142,7 @@ function Four() {
                 Questio: question,
                 options: options,
                 Ans: hash,
-                tough : level,
+                tough: level,
                 Qno: qno,
                 seconds: 50,
                 sub_lang: "two_leters_word",
@@ -8174,7 +8181,7 @@ function Five() {
                 Questio: data.question,
                 options: data.options,
                 Ans: hash,
-                tough : level,
+                tough: level,
                 Qno: qno,
                 seconds: 50,
                 sub_lang: "singel_word",
@@ -8193,7 +8200,7 @@ function Five() {
 function Six() {
     return async function (level, user, qno) {
 
-        try{
+        try {
             const per = await get_per("ran_leters", level, user);
 
 
@@ -8218,7 +8225,7 @@ function Six() {
                     Questio: out.qst,
                     options: out.options,
                     Ans: hash,
-                    tough : level,
+                    tough: level,
                     Qno: qno,
                     seconds: 50,
                     sub_lang: "ran_leters",
@@ -8229,10 +8236,10 @@ function Six() {
 
 
             });
-        }catch(error){
+        } catch (error) {
             console.log(error)
         }
-        
+
 
     }
 }
@@ -8259,7 +8266,7 @@ function Seven() {
                 Questio: data.question,
                 options: data.options,
                 Ans: hash,
-                tough : level,
+                tough: level,
                 Qno: qno,
                 seconds: 50,
                 sub_lang: "less_grtr",
@@ -8279,37 +8286,37 @@ function Seven() {
 
 function Eight() {
     return async function (level, user, qno) {
-        try{
+        try {
             const per = await get_per("circle_pieces", level, user);
-        const puzzle = generatePuzzle(level, per);
-        const canvas = drawCircles(puzzle.circles);
-        const base64Image = canvas.toBuffer('image/png').toString('base64');
+            const puzzle = generatePuzzle(level, per);
+            const canvas = drawCircles(puzzle.circles);
+            const base64Image = canvas.toBuffer('image/png').toString('base64');
 
 
-        const hash = crypto
-            .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-            .update(puzzle.correct.toString())
-            .digest("hex");
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(puzzle.correct.toString())
+                .digest("hex");
 
 
-        await QuestionModule.create({
-            Time: Time,
-            user: user,
-            img: base64Image,
-            Questio: puzzle.question,
-            options: puzzle.options,
-            Ans: hash,
-            tough : level,
-            Qno: qno,
-            seconds: 50,
-            sub_lang: "circle_pieces",
-            yes: [],
-            no: []
-        })
-        }catch(error){
+            await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: base64Image,
+                Questio: puzzle.question,
+                options: puzzle.options,
+                Ans: hash,
+                tough: level,
+                Qno: qno,
+                seconds: 50,
+                sub_lang: "circle_pieces",
+                yes: [],
+                no: []
+            })
+        } catch (error) {
             console.log(error)
         }
-        
+
 
     }
 }
@@ -8317,34 +8324,34 @@ function Eight() {
 function Nine() {
     return async function (level, user, qno) {
 
-        try{
+        try {
 
             const per = await get_per("emoji_01", level, user);
-        const puzzle = generateEmojiPuzzle(level, per);
-        // console.log(puzzle);
+            const puzzle = generateEmojiPuzzle(level, per);
+            // console.log(puzzle);
 
-        const hash = crypto
-            .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-            .update(puzzle.correct.toString())
-            .digest("hex");
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(puzzle.correct.toString())
+                .digest("hex");
 
 
-        await QuestionModule.create({
-            Time: Time,
-            user: user,
-            img: puzzle.image,
-            Questio: puzzle.question,
-            options: puzzle.options,
-            Ans: hash,
-            tough : level,
-            Qno: qno,
-            seconds: 50,
-            sub_lang: "emoji_01",
-            yes: [],
-            no: []
-        })
+            await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: puzzle.question,
+                options: puzzle.options,
+                Ans: hash,
+                tough: level,
+                Qno: qno,
+                seconds: 50,
+                sub_lang: "emoji_01",
+                yes: [],
+                no: []
+            })
 
-        }catch(error){
+        } catch (error) {
             console.log(error)
         }
     }
@@ -8353,32 +8360,32 @@ function Nine() {
 
 function Ten() {
     return async function (level, user, qno) {
-        try{
+        try {
             const per = await get_per("maze", level, user);
-        // const per = 100
-        const mazeQuestion = generateMazeQuestion(level, per);
+            // const per = 100
+            const mazeQuestion = generateMazeQuestion(level, per);
 
-        const hash = crypto
-            .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-            .update(mazeQuestion.answer.toString())
-            .digest("hex");
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(mazeQuestion.answer.toString())
+                .digest("hex");
 
 
-        await QuestionModule.create({
-            Time: Time,
-            user: user,
-            img: mazeQuestion.image,
-            Questio: mazeQuestion.question,
-            options: mazeQuestion.options,
-            Ans: hash,
-            tough : level,
-            Qno: qno,
-            seconds: 50,
-            sub_lang: "maze",
-            yes: [],
-            no: []
-        })
-        }catch(error){
+            await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: mazeQuestion.image,
+                Questio: mazeQuestion.question,
+                options: mazeQuestion.options,
+                Ans: hash,
+                tough: level,
+                Qno: qno,
+                seconds: 50,
+                sub_lang: "maze",
+                yes: [],
+                no: []
+            })
+        } catch (error) {
             console.log(error)
         }
 
@@ -8386,84 +8393,84 @@ function Ten() {
 }
 
 
-function Eleven(){
-    return async function(level, user, qno){
-        try{
+function Eleven() {
+    return async function (level, user, qno) {
+        try {
             const per = await get_per("colours", level, user);
-        const result = generateColorMatchQuestion({
-        level, per
-        });
+            const result = generateColorMatchQuestion({
+                level, per
+            });
 
-        const hash = crypto
-            .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-            .update(result.answer.toString())
-            .digest("hex");
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(result.answer.toString())
+                .digest("hex");
 
 
-        await QuestionModule.create({
-            Time: Time,
-            user: user,
-            img: result.image,
-            Questio: result.question,
-            options: result.options,
-            Ans: hash,
-            tough : level,
-            Qno: qno,
-            seconds: 50,
-            sub_lang: "colours",
-            yes: [],
-            no: []
-        })
-        }catch(error){
+            await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: result.image,
+                Questio: result.question,
+                options: result.options,
+                Ans: hash,
+                tough: level,
+                Qno: qno,
+                seconds: 50,
+                sub_lang: "colours",
+                yes: [],
+                no: []
+            })
+        } catch (error) {
             console.log(error)
         }
-        
+
 
     }
 }
 
-function Tweleve(){
-    return async function(level, user, qno){
+function Tweleve() {
+    return async function (level, user, qno) {
 
-        try{
+        try {
             const per = await get_per("code_int_char", level, user);
 
-        const test = createStringCountImage(level, per);
+            const test = createStringCountImage(level, per);
 
-        const hash = crypto
-            .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-            .update(test.data.correct.toString())
-            .digest("hex");
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(test.data.correct.toString())
+                .digest("hex");
 
 
-        await QuestionModule.create({
-            Time: Time,
-            user: user,
-            img: test.imageBase64,
-            Questio: test.data.question,
-            options: test.data.options,
-            Ans: hash,
-            tough : level,
-            Qno: qno,
-            seconds: 50,
-            sub_lang: "code_int_char",
-            yes: [],
-            no: []
-        })
-        }catch(error){
+            await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: test.imageBase64,
+                Questio: test.data.question,
+                options: test.data.options,
+                Ans: hash,
+                tough: level,
+                Qno: qno,
+                seconds: 50,
+                sub_lang: "code_int_char",
+                yes: [],
+                no: []
+            })
+        } catch (error) {
             console.log(error)
         }
-        
+
     }
 }
 
 
-function Thirteen(){
-    return async function(level, user, qno) {
+function Thirteen() {
+    return async function (level, user, qno) {
 
         const per = await get_per("num_pairs", level, user);
 
-        const puzzle = await generateNumberPairMCQ("Too Easy" , 10)
+        const puzzle = await generateNumberPairMCQ("Too Easy", 10)
         // console.log(puzzle.question);
         // console.log("Answer:", puzzle.correctAnswer);
         // console.log(puzzle.base64Image);
@@ -8481,7 +8488,7 @@ function Thirteen(){
             Questio: puzzle.question,
             options: puzzle.options,
             Ans: hash,
-            tough : level,
+            tough: level,
             Qno: qno,
             seconds: 60,
             sub_lang: "num_pairs",
@@ -8494,6 +8501,133 @@ function Thirteen(){
     }
 }
 
+
+function Fourteen() {
+    return async function (level, user, qno) {
+        const per = await get_per("OMR_1", level);
+        const puzzle = generateOMRQuestion(level, per);
+        // console.log(puzzle.question);
+        // console.log("Answer:", puzzle.correctAnswer);
+        // console.log(puzzle.base64Image);
+
+
+        const hash = crypto
+            .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+            .update(puzzle.answerValue.toString())
+            .digest("hex");
+
+
+        await QuestionModule.create({
+            Time: Time,
+            user: user,
+            img: puzzle.base64Image,
+            Questio: puzzle.question,
+            options: puzzle.options,
+            Ans: hash,
+            tough: level,
+            Qno: qno,
+            seconds: 60,
+            sub_lang: "OMR_1",
+            yes: [],
+            no: []
+        })
+
+        // res.json({
+        //     Questio : puzzle.question,
+        //     options : puzzle.options,
+        //     Ans : puzzle.answerValue,
+        //     img : puzzle.base64Image,
+        //     sub_lang : "OMR_1",
+        //     tough : level
+        // })
+
+    }
+}
+
+
+function Fifteen() {
+    return async function (level, user, qno) {
+        const per = await get_per("OMR", level);
+        const puzzle = generateOMRQuestion15(level, per);
+        // console.log(puzzle.question);
+        // console.log("Answer:", puzzle.correctAnswer);
+        // console.log(puzzle.base64Image);
+
+
+        const hash = crypto
+            .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+            .update(puzzle.answerValue.toString())
+            .digest("hex");
+
+
+        await QuestionModule.create({
+            Time: Time,
+            user: user,
+            img: puzzle.base64Image,
+            Questio: puzzle.question,
+            options: puzzle.options,
+            Ans: hash,
+            tough: level,
+            Qno: qno,
+            seconds: 60,
+            sub_lang: "OMR",
+            yes: [],
+            no: []
+        })
+
+        // res.json({
+        //     Questio: puzzle.question,
+        //     options: puzzle.options,
+        //     Ans: puzzle.answerValue,
+        //     img: puzzle.base64Image,
+        //     sub_lang: "OMR",
+        //     tough: level
+        // })
+    }
+}
+
+
+function Sixteen(){
+    return async function(level, user, qno){
+        const per = await get_per("Train", level);
+        const puzzle = generateTrainQuestionImage(level, per);
+        // console.log(puzzle.question);
+        // console.log("Answer:", puzzle.correctAnswer);
+        // console.log(puzzle.base64Image);
+
+        const hash = crypto
+            .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+            .update((await puzzle).answer.toString())
+            .digest("hex");
+
+
+        await QuestionModule.create({
+            Time: Time,
+            user: user,
+            img: (await puzzle).base64Image,
+            Questio: (await puzzle).question,
+            options: (await puzzle).options,
+            Ans: hash,
+            tough: level,
+            Qno: qno,
+            seconds: 60,
+            sub_lang: "Train",
+            yes: [],
+            no: []
+        })
+
+
+
+        // res.json({
+        //     Questio : (await puzzle).question || "No Q",
+        //     options : (await puzzle).options || ["kick"],
+        //     Ans : (await puzzle).answer || "No A",
+        //     img : (await puzzle).base64Image,
+        //     sub_lang : "OMR",
+        //     tough : level
+        // })
+    }
+}
 
 
 app.get("/admin/balance/played", adminMiddleware, async (req, res) => {
@@ -8595,23 +8729,76 @@ app.get("/admin/refund/tickets/list", adminMiddleware, async (req, res) => {
 });
 
 
-app.get("/get/levels/user",authMiddleware, async (req, res) =>{
-    try{
+app.get("/get/levels/user", authMiddleware, async (req, res) => {
+    try {
         const user = req.user;
 
-        const data = await Level_up_Module.findOne({user})
-        if(data){
-            return res.status(200).json({data})
-        }else{
-            return res.status(200).json({message : "No Data"})
+        const data = await Level_up_Module.findOne({ user }).lean()
+        if (data) {
+            return res.status(200).json({ data: data.rank })
+        } else {
+            return res.status(200).json({ message: "No Data" })
         }
 
 
-    }catch (error) {
+    } catch (error) {
         console.error("Error fetching balance:", error);
         return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch balance" });
     }
 })
+
+
+
+
+app.get(
+    "/get/all/user/data/new/for/kick/dataa/:data",
+    adminMiddleware,
+    async (req, res) => {
+        try {
+            const data = decodeURIComponent(req.params.data).trim();
+            console.log("Searching:", data);
+
+            let user = null;
+
+            // 1️⃣ If it's a valid ObjectId → search by _id
+            if (mongoose.Types.ObjectId.isValid(data)) {
+                user = await Usermodule.findById(data).lean()
+            }
+
+            // 2️⃣ Otherwise (or fallback) → search by email
+            if (!user) {
+                user = await Usermodule.findOne({ email: data }).lean()
+            }
+
+            if (!user) {
+                return res.status(200).json({
+                    Status: "NOT_FOUND",
+                    message: "User not found",
+                });
+            }
+
+            const user_balance = await Balancemodule.findOne({ user: user._id }).lean()
+            const bank_acc = await UPImodule.findOne({ user: user._id }).lean()
+
+            return res.status(200).json({
+                Status: "OK",
+                data: user,
+                balance: user_balance || "No",
+                bank: bank_acc || "No"
+            });
+
+        } catch (error) {
+            console.error("Error fetching user data:", error);
+
+            return res.status(500).json({
+                status: "SERVER_ERR",
+                message: "Failed to fetch user data",
+            });
+        }
+    }
+);
+
+
 
 
 

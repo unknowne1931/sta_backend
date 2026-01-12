@@ -50,13 +50,45 @@ function def_tough(per = 80) {
             "Tough": 45, 
             "Too Tough": 50 
         };
-    }else{
+    }else if(per < 60) {
         return { 
             "Too Easy": 35, 
             "Easy": 40, 
             "Medium": 45, 
             "Tough": 50, 
             "Too Tough": 55 
+        };
+    }else if(per < 70) {
+        return { 
+            "Too Easy": 40, 
+            "Easy": 45, 
+            "Medium": 50, 
+            "Tough": 55, 
+            "Too Tough": 60 
+        };
+    }else if(per < 80) {
+        return { 
+            "Too Easy": 45, 
+            "Easy": 50, 
+            "Medium": 55, 
+            "Tough": 60, 
+            "Too Tough": 65 
+        };
+    }else if(per < 90) {
+        return { 
+            "Too Easy": 50, 
+            "Easy": 55, 
+            "Medium": 60, 
+            "Tough": 65, 
+            "Too Tough": 70 
+        };
+    }else{
+        return { 
+            "Too Easy": 55, 
+            "Easy": 60, 
+            "Medium": 65, 
+            "Tough": 70, 
+            "Too Tough": 75 
         };
     }
 

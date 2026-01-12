@@ -40,36 +40,76 @@ export function generateArrows(per, level) {
     } else if (per < 20) {
         LEVELS = {
             "Too Easy": 5,
-            "Easy": 8,
-            "Medium": 10,
-            "Tough": 16,
-            "Too Tough": 20
-        };
-    } else if (per < 40) {
-        LEVELS = {
-            "Too Easy": 7,
-            "Easy": 11,
-            "Medium": 14,
+            "Easy": 10,
+            "Medium": 15,
             "Tough": 20,
-            "Too Tough": 22
+            "Too Tough": 25
         };
-    } else if (per < 60) {
-        LEVELS = {
-            "Too Easy": 9,
-            "Easy": 14,
-            "Medium": 20,
-            "Tough": 24,
-            "Too Tough": 30
-        };
-    } else {
+    } else if (per < 30) {
         LEVELS = {
             "Too Easy": 10,
             "Easy": 15,
+            "Medium": 20,
+            "Tough": 25,
+            "Too Tough": 30
+        };
+    } else if (per < 40) {
+        LEVELS = {
+            "Too Easy": 15,
+            "Easy": 20,
             "Medium": 25,
             "Tough": 30,
             "Too Tough": 35
         };
-    }
+    } else if (per < 50) {
+        LEVELS = {
+            "Too Easy": 20,
+            "Easy": 25,
+            "Medium": 30,
+            "Tough": 35,
+            "Too Tough": 40
+        };
+    } else if (per < 60) {
+        LEVELS = {
+            "Too Easy": 25,
+            "Easy": 30,
+            "Medium": 35,
+            "Tough": 40,
+            "Too Tough": 45
+        };
+    } else if (per < 70) {
+        LEVELS = {
+            "Too Easy": 30,
+            "Easy": 35,
+            "Medium": 40,
+            "Tough": 45,
+            "Too Tough": 50
+        };
+    } else if (per < 80) {
+        LEVELS = {
+            "Too Easy": 35,
+            "Easy": 40,
+            "Medium": 45,
+            "Tough": 50,
+            "Too Tough": 55
+        };
+    } else if (per < 90) {
+        LEVELS = {
+            "Too Easy": 40,
+            "Easy": 45,
+            "Medium": 50,
+            "Tough": 55,
+            "Too Tough": 60
+        };
+    } else{
+        LEVELS = {
+            "Too Easy": 45,
+            "Easy": 50,
+            "Medium": 55,
+            "Tough": 60,
+            "Too Tough": 65
+        };
+    } 
 
     const count = LEVELS[level] || 5;
     const arrows = [];

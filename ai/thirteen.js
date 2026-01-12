@@ -5,7 +5,7 @@ import fs from "fs";
 // ==========================
 // FONT (SAFE LOAD)
 // ==========================
-const FONT_PATH = "./AtkinsonHyperlegibleMono-Bold.ttf";
+const FONT_PATH = "./fonts/AtkinsonHyperlegibleMono-Bold.ttf";
 
 if (fs.existsSync(FONT_PATH)) {
     registerFont(FONT_PATH, {
@@ -38,11 +38,11 @@ function generateNumbers(level, per) {
 
     if (per < 10) {
         config = {
-            "Too Easy": { count: 4, maxNum: 1 },
-            "Easy": { count: 6, maxNum: 2 },
-            "Medium": { count: 8, maxNum: 3 },
-            "Tough": { count: 10, maxNum: 4 },
-            "Too Tough": { count: 12, maxNum: 5 },
+            "Too Easy": { count: 3, maxNum: 1 },
+            "Easy": { count: 4, maxNum: 2 },
+            "Medium": { count: 5, maxNum: 3 },
+            "Tough": { count: 6, maxNum: 4 },
+            "Too Tough": { count: 7, maxNum: 5 },
         };
     } else if (per < 20) {
         config = {
@@ -66,15 +66,55 @@ function generateNumbers(level, per) {
             "Easy": { count: 14, maxNum: 5 },
             "Medium": { count: 16, maxNum: 7 },
             "Tough": { count: 18, maxNum: 8 },
-            "Too Tough": { count: 20, maxNum: 10 },
+            "Too Tough": { count: 19, maxNum: 10 },
         };
-    } else {
+    } else if(per < 50) {
         config = {
             "Too Easy": { count: 15, maxNum: 6 },
             "Easy": { count: 17, maxNum: 7 },
             "Medium": { count: 19, maxNum: 8 },
             "Tough": { count: 21, maxNum: 9 },
             "Too Tough": { count: 23, maxNum: 10 },
+        };
+    }else if(per < 60) {
+        config = {
+            "Too Easy": { count: 18, maxNum: 6 },
+            "Easy": { count: 20, maxNum: 7 },
+            "Medium": { count: 22, maxNum: 8 },
+            "Tough": { count: 24, maxNum: 9 },
+            "Too Tough": { count: 26, maxNum: 10 },
+        };
+    }else if(per < 70) {
+        config = {
+            "Too Easy": { count: 20, maxNum: 6 },
+            "Easy": { count: 22, maxNum: 7 },
+            "Medium": { count: 24, maxNum: 8 },
+            "Tough": { count: 26, maxNum: 9 },
+            "Too Tough": { count: 28, maxNum: 10 },
+        };
+    }else if(per < 80) {
+        config = {
+            "Too Easy": { count: 22, maxNum: 6 },
+            "Easy": { count: 24, maxNum: 7 },
+            "Medium": { count: 26, maxNum: 8 },
+            "Tough": { count: 28, maxNum: 9 },
+            "Too Tough": { count: 30, maxNum: 10 },
+        };
+    }else if(per < 90) {
+        config = {
+            "Too Easy": { count: 24, maxNum: 6 },
+            "Easy": { count: 26, maxNum: 7 },
+            "Medium": { count: 28, maxNum: 8 },
+            "Tough": { count: 30, maxNum: 9 },
+            "Too Tough": { count: 32, maxNum: 10 },
+        };
+    }else{
+        config = {
+            "Too Easy": { count: 26, maxNum: 6 },
+            "Easy": { count: 28, maxNum: 7 },
+            "Medium": { count: 30, maxNum: 8 },
+            "Tough": { count: 32, maxNum: 9 },
+            "Too Tough": { count: 34, maxNum: 10 },
         };
     }
 
