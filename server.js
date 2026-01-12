@@ -213,7 +213,7 @@ app.post(
 
 
 app.use(cors({
-    origin: "*",
+    origin: ["https://stawro.com", "https://www.stawro.com"],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
@@ -390,7 +390,7 @@ export async function get_per(user) {
 }
 
 app.get('/', (req, res) => {
-    res.send('Hello, world Vs : 5.1.0 ; Last Updated : 12-01-2026 ; Type : Live');
+    res.send('Hello, world Vs : 5.1.1 ; Last Updated : 12-01-2026 ; Type : Live');
 });
 
 
