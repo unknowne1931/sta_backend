@@ -7832,6 +7832,8 @@ function One() {
             const imageBuf = drawImage(boxes);
             const upload = await uploadImage(imageBuf);
 
+            const sec = get_lel_dif(level, "star_cir_tri")
+
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
                 .update(correct.toString())
@@ -7846,7 +7848,7 @@ function One() {
                 Ans: hash,
                 tough: level,
                 Qno: qno,
-                seconds: 50,
+                seconds: sec,
                 sub_lang: "star_cir_tri",
                 yes: [],
                 no: []
@@ -7858,118 +7860,6 @@ function One() {
         }
     };
 }
-
-
-
-// function Two() {
-//     return async function (level, user, qno) {
-//         try {
-
-//             const per = await get_per("news_side", level, user);
-
-//             // 1) Generate random arrows
-//             const angles = generateArrows(per, level);
-
-//             // 2) Draw & upload image
-//             const buffer = drawArrowsImage(angles);
-//             const imageURL = await uploadImage1(buffer);
-//             if (!imageURL) return res.status(500).json({ error: "Upload failed" });
-
-//             const totalArrows = angles.length;
-
-//             // --- Count arrows direction-wise ---
-//             const directionCounts = DIRECTIONS.map(dir => ({
-//                 dir,
-//                 count: angles.filter(a => a === dir.angle).length
-//             })).filter(d => d.count > 0);
-
-//             if (directionCounts.length === 0) {
-//                 return res.json({ message: "No arrows found" });
-//             }
-
-//             // Pick single or double direction question
-//             const askDouble = (Math.random() < 0.4) && directionCounts.length >= 2;
-
-//             // -------------------------
-//             // SINGLE QUESTION
-//             // -------------------------
-
-//             if (!askDouble) {
-//                 const picked = directionCounts[Math.floor(Math.random() * directionCounts.length)];
-//                 const correct = picked.count;
-//                 const options = generateMCQOptions(correct, totalArrows);
-
-//                 // return res.json({
-//                 //     sub_lang: "news_side",
-//                 //     tough: level,
-//                 //     img: imageURL,
-//                 //     Questio: `How many arrows are facing ${picked.dir.name}?`,
-//                 //     options: options,
-//                 //     Ans: correct,
-//                 // });
-
-//                 const hash = crypto
-//                     .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-//                     .update(correct.toString())
-//                     .digest("hex");
-
-//                 await QuestionModule.create({
-//                     Time: Time,
-//                     user: user,
-//                     img: imageURL,
-//                     Questio: `How many arrows are facing ${picked.dir.name}?`,
-//                     options: options,
-//                     Ans: hash,
-//                     tough : level,
-//                     Qno: qno,
-//                     seconds: 50,
-//                     sub_lang: "news_side",
-//                     yes: [],
-//                     no: []
-//                 })
-
-//             }
-
-//             // -------------------------
-//             // DOUBLE QUESTION
-//             // -------------------------
-//             const shuffled = [...directionCounts].sort(() => Math.random() - 0.5);
-//             const dir1 = shuffled[0];
-//             const dir2 = shuffled[1];
-
-//             const correctDouble = dir1.count + dir2.count;
-//             const optionsDouble = generateMCQOptions(correctDouble, totalArrows);
-
-
-//             const hash = crypto
-//                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-//                 .update(correctDouble.toString())
-//                 .digest("hex");
-
-
-
-
-//             await QuestionModule.create({
-//                 Time: Time,
-//                 user: user,
-//                 img: imageURL,
-//                 Questio: `How many arrows are facing ${dir1.dir.name} and ${dir2.dir.name}?`,
-//                 options: optionsDouble,
-//                 Ans: hash,
-//                 tough : level,
-//                 Qno : qno,
-//                 seconds: 50,
-//                 sub_lang: "news_side",
-//                 yes: [],
-//                 no: []
-//             })
-
-//         } catch (err) {
-//             console.error(err);
-//             res.status(500).json({ error: err.message });
-//         }
-//     }
-// }
 
 
 
@@ -8010,6 +7900,8 @@ function Two() {
                 const correct = picked.count;
                 const options = generateMCQOptions(correct, totalArrows);
 
+                const sec = get_lel_dif(level, "news_side")
+
                 const hash = crypto
                     .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
                     .update(correct.toString())
@@ -8024,7 +7916,7 @@ function Two() {
                     Ans: hash,
                     tough: level,
                     Qno: qno,
-                    seconds: 50,
+                    seconds: sec,
                     sub_lang: "news_side",
                     yes: [],
                     no: []
@@ -8087,6 +7979,8 @@ function Three() {
             //     .update(data.question.correct)
             //     .digest('hex')
 
+            const sec = get_lel_dif(level, "plus")
+
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
                 .update(data.question.correct.toString())
@@ -8101,7 +7995,7 @@ function Three() {
                 Ans: hash,
                 tough: level,
                 Qno: qno,
-                seconds: 50,
+                seconds: sec,
                 sub_lang: "plus",
                 yes: [],
                 no: []
@@ -8129,6 +8023,8 @@ function Four() {
             const { words, question, correctAnswer, options } = generateData(level, per);
             const base64Image = await renderImageBase64(words);
 
+            const sec = get_lel_dif(level, "two_leters_word")
+
 
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
@@ -8144,7 +8040,7 @@ function Four() {
                 Ans: hash,
                 tough: level,
                 Qno: qno,
-                seconds: 50,
+                seconds: sec,
                 sub_lang: "two_leters_word",
                 yes: [],
                 no: []
@@ -8168,6 +8064,8 @@ function Five() {
 
             const base64Image = await renderImageBase641(data.text);
 
+            const sec = get_lel_dif(level, "singel_word")
+
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
                 .update(data.correctAnswer.toString())
@@ -8183,7 +8081,7 @@ function Five() {
                 Ans: hash,
                 tough: level,
                 Qno: qno,
-                seconds: 50,
+                seconds: sec,
                 sub_lang: "singel_word",
                 yes: [],
                 no: []
@@ -8212,6 +8110,8 @@ function Six() {
 
                 const img = await uploadBase64(out.base64img);
 
+                const sec = get_lel_dif(level, "ran_leters")
+
                 const hash = crypto
                     .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
                     .update(out.correct.toString())
@@ -8227,7 +8127,7 @@ function Six() {
                     Ans: hash,
                     tough: level,
                     Qno: qno,
-                    seconds: 50,
+                    seconds: sec,
                     sub_lang: "ran_leters",
                     yes: [],
                     no: []
@@ -8253,6 +8153,8 @@ function Seven() {
 
             const data = await createAdvancedNumberMCQ(level, per);
 
+            const sec = get_lel_dif(level, "less_grtr")
+
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
                 .update(data.correct.toString())
@@ -8268,7 +8170,7 @@ function Seven() {
                 Ans: hash,
                 tough: level,
                 Qno: qno,
-                seconds: 50,
+                seconds: sec,
                 sub_lang: "less_grtr",
                 yes: [],
                 no: []
@@ -8292,6 +8194,8 @@ function Eight() {
             const canvas = drawCircles(puzzle.circles);
             const base64Image = canvas.toBuffer('image/png').toString('base64');
 
+            const sec = get_lel_dif(level, "circle_pieces")
+
 
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
@@ -8308,7 +8212,7 @@ function Eight() {
                 Ans: hash,
                 tough: level,
                 Qno: qno,
-                seconds: 50,
+                seconds: sec,
                 sub_lang: "circle_pieces",
                 yes: [],
                 no: []
@@ -8330,6 +8234,8 @@ function Nine() {
             const puzzle = generateEmojiPuzzle(level, per);
             // console.log(puzzle);
 
+            const sec = get_lel_dif(level, "emoji_01")
+
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
                 .update(puzzle.correct.toString())
@@ -8345,7 +8251,7 @@ function Nine() {
                 Ans: hash,
                 tough: level,
                 Qno: qno,
-                seconds: 50,
+                seconds: sec,
                 sub_lang: "emoji_01",
                 yes: [],
                 no: []
@@ -8365,6 +8271,8 @@ function Ten() {
             // const per = 100
             const mazeQuestion = generateMazeQuestion(level, per);
 
+            const sec = get_lel_dif(level, "maze")
+
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
                 .update(mazeQuestion.answer.toString())
@@ -8380,7 +8288,7 @@ function Ten() {
                 Ans: hash,
                 tough: level,
                 Qno: qno,
-                seconds: 50,
+                seconds: sec,
                 sub_lang: "maze",
                 yes: [],
                 no: []
@@ -8401,6 +8309,8 @@ function Eleven() {
                 level, per
             });
 
+            const sec = get_lel_dif(level, "colours")
+
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
                 .update(result.answer.toString())
@@ -8416,7 +8326,7 @@ function Eleven() {
                 Ans: hash,
                 tough: level,
                 Qno: qno,
-                seconds: 50,
+                seconds: sec,
                 sub_lang: "colours",
                 yes: [],
                 no: []
@@ -8437,6 +8347,8 @@ function Tweleve() {
 
             const test = createStringCountImage(level, per);
 
+            const sec = get_lel_dif(level, "code_int_char")
+
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
                 .update(test.data.correct.toString())
@@ -8452,7 +8364,7 @@ function Tweleve() {
                 Ans: hash,
                 tough: level,
                 Qno: qno,
-                seconds: 50,
+                seconds: sec,
                 sub_lang: "code_int_char",
                 yes: [],
                 no: []
@@ -8471,6 +8383,8 @@ function Thirteen() {
         const per = await get_per("num_pairs", level, user);
 
         const puzzle = await generateNumberPairMCQ("Too Easy", 10)
+
+        const sec = get_lel_dif(level, "num_pairs")
         // console.log(puzzle.question);
         // console.log("Answer:", puzzle.correctAnswer);
         // console.log(puzzle.base64Image);
@@ -8490,7 +8404,7 @@ function Thirteen() {
             Ans: hash,
             tough: level,
             Qno: qno,
-            seconds: 60,
+            seconds: sec,
             sub_lang: "num_pairs",
             yes: [],
             no: []
@@ -8511,6 +8425,11 @@ function Fourteen() {
         // console.log(puzzle.base64Image);
 
 
+        const sec = get_lel_dif(level, "OMR_1")
+
+        
+
+
         const hash = crypto
             .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
             .update(puzzle.answerValue.toString())
@@ -8526,7 +8445,7 @@ function Fourteen() {
             Ans: hash,
             tough: level,
             Qno: qno,
-            seconds: 60,
+            seconds: sec,
             sub_lang: "OMR_1",
             yes: [],
             no: []
@@ -8553,6 +8472,8 @@ function Fifteen() {
         // console.log("Answer:", puzzle.correctAnswer);
         // console.log(puzzle.base64Image);
 
+        const sec = get_lel_dif(level, "OMR")
+
 
         const hash = crypto
             .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
@@ -8569,7 +8490,7 @@ function Fifteen() {
             Ans: hash,
             tough: level,
             Qno: qno,
-            seconds: 60,
+            seconds: sec,
             sub_lang: "OMR",
             yes: [],
             no: []
@@ -8595,6 +8516,8 @@ function Sixteen(){
         // console.log("Answer:", puzzle.correctAnswer);
         // console.log(puzzle.base64Image);
 
+        const sec = get_lel_dif(level, "Train")
+
         const hash = crypto
             .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
             .update((await puzzle).answer.toString())
@@ -8610,7 +8533,7 @@ function Sixteen(){
             Ans: hash,
             tough: level,
             Qno: qno,
-            seconds: 60,
+            seconds:sec,
             sub_lang: "Train",
             yes: [],
             no: []
@@ -8748,6 +8671,16 @@ app.get("/get/levels/user", authMiddleware, async (req, res) => {
 })
 
 
+const sec_tough_admin = new mongoose.Schema({
+    Time: String,
+    level: String,
+    cat: String,
+    sec: String,
+    sec_try: []
+
+}, { timestamps: true });
+
+const sec_Count_Module = mongoose.model('admin_sec_calculate', sec_tough_admin);
 
 
 app.get(
@@ -8799,6 +8732,19 @@ app.get(
 );
 
 
+
+async function get_lel_dif(level, cat) {
+    const data = await sec_Count_Module.findOne({ level, cat });
+
+    if (!data || !Array.isArray(data.sec_try) || data.sec_try.length === 0) {
+        return "50"; // default difficulty
+    }
+
+    const sum = data.sec_try.reduce((acc, val) => acc + val, 0);
+    const avg = sum / data.sec_try.length;
+
+    return avg.toString();
+}
 
 
 
