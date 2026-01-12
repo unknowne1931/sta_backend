@@ -390,7 +390,7 @@ export async function get_per(user) {
 }
 
 app.get('/', (req, res) => {
-    res.send('Hello, world Vs : 5.0.0 ; Last Updated : 04-01-2026 ; Type : Live');
+    res.send('Hello, world Vs : 5.1.0 ; Last Updated : 12-01-2026 ; Type : Live');
 });
 
 
