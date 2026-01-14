@@ -1,3 +1,4 @@
+//Before per < 5
 // import { createCanvas } from "canvas";
 
 // // ----- WORD DATA -----
@@ -18,17 +19,85 @@
 //   let DIFF;
 
 //   if (per < 10) {
-//     DIFF = { "Too Easy": 4, "Easy": 6, "Medium": 8, "Tough": 10, "Too Tough": 12 }
-//   } else if (per < 20) {
-//     DIFF = { "Too Easy": 6, "Easy": 8, "Medium": 10, "Tough": 12, "Too Tough": 14 }
-//   } else if (per < 30) {
-//     DIFF = { "Too Easy": 8, "Easy": 10, "Medium": 12, "Tough": 14, "Too Tough": 16 }
-//   } else if (per < 40) {
-//     DIFF = { "Too Easy": 10, "Easy": 12, "Medium": 14, "Tough": 16, "Too Tough": 20 }
-//   } else if (per < 50) {
-//     DIFF = { "Too Easy": 12, "Easy": 14, "Medium": 16, "Tough": 25, "Too Tough": 30 }
-//   } else {
-//     DIFF = { "Too Easy": 15, "Easy": 18, "Medium": 20, "Tough": 30, "Too Tough": 35 }
+//     DIFF = { 
+//       "Too Easy": 4, 
+//       "Easy": 5, 
+//       "Medium": 6, 
+//       "Tough": 7, 
+//       "Too Tough": 8 
+//     }
+//   }else if (per < 20) {
+//     DIFF = { 
+//       "Too Easy": 5, 
+//       "Easy": 7, 
+//       "Medium": 9, 
+//       "Tough": 11, 
+//       "Too Tough": 13 
+//     }
+//   }else if (per < 30) {
+//     DIFF = { 
+//       "Too Easy": 7, 
+//       "Easy": 9, 
+//       "Medium": 11, 
+//       "Tough": 13, 
+//       "Too Tough": 15 
+//     }
+//   }else if (per < 40) {
+//     DIFF = { 
+//       "Too Easy": 9, 
+//       "Easy": 11, 
+//       "Medium": 13, 
+//       "Tough": 15, 
+//       "Too Tough": 17 
+//     }
+//   }else if (per < 50) {
+//     DIFF = { 
+//       "Too Easy": 11, 
+//       "Easy": 13, 
+//       "Medium": 15, 
+//       "Tough": 17, 
+//       "Too Tough": 19 
+//     }
+//   }else if (per < 60) {
+//     DIFF = { 
+//       "Too Easy": 13, 
+//       "Easy": 15, 
+//       "Medium": 17, 
+//       "Tough": 19, 
+//       "Too Tough": 21 
+//     }
+//   }else if (per < 70) {
+//     DIFF = { 
+//       "Too Easy": 15, 
+//       "Easy": 17, 
+//       "Medium": 19, 
+//       "Tough": 21, 
+//       "Too Tough": 23 
+//     }
+//   }else if (per < 80) {
+//     DIFF = { 
+//       "Too Easy": 19, 
+//       "Easy": 21, 
+//       "Medium": 23, 
+//       "Tough": 25, 
+//       "Too Tough": 27 
+//     }
+//   }else if (per < 90) {
+//     DIFF = { 
+//       "Too Easy": 21, 
+//       "Easy": 23, 
+//       "Medium": 25, 
+//       "Tough": 27, 
+//       "Too Tough": 29 
+//     }
+//   }else{
+//     DIFF = { 
+//       "Too Easy": 23, 
+//       "Easy": 25, 
+//       "Medium": 27, 
+//       "Tough": 29, 
+//       "Too Tough": 31 
+//     }
 //   }
 
 //   return DIFF;
@@ -69,7 +138,10 @@
 //   const count = diff_data[difficulty];
 //   const words = [...WORDS].sort(() => Math.random() - 0.5).slice(0, count);
 
-//   const mode = Math.random() < 0.5 ? "letters" : "repeat";
+//   // now 3 modes
+//   const modes = ["letters", "repeat", "single"];
+//   const mode = modes[Math.floor(Math.random() * modes.length)];
+
 //   let question = "";
 //   let correctAnswer = 0;
 
@@ -78,7 +150,7 @@
 //     const vowels = ['a','e','i','o','u'];
 
 //     const weighted = [
-//       ...vowels, ...vowels, ...vowels, // bias vowel selection
+//       ...vowels, ...vowels, ...vowels,
 //       ...fl
 //     ];
 
@@ -91,6 +163,22 @@
 //     correctAnswer = words.filter(w => w.includes(a) && w.includes(b)).length;
 //     question = `How many words contain both '${a}' and '${b}' in the same word?`;
 //   }
+
+//   else if (mode === "single") {
+//     const fl = frequentLetters(WORDS);
+//     const vowels = ['a','e','i','o','u'];
+
+//     const weighted = [
+//       ...vowels, ...vowels,
+//       ...fl
+//     ];
+
+//     const letter = weighted[Math.floor(Math.random() * weighted.length)];
+
+//     correctAnswer = words.filter(w => w.includes(letter)).length;
+//     question = `How many words contain the letter '${letter}'?`;
+//   }
+
 //   else {
 //     correctAnswer = words.filter(hasRepeatedLetter).length;
 //     question = "How many words contain repeated letters? Examples: apple";
@@ -98,7 +186,7 @@
 
 //   const options = new Set([correctAnswer]);
 //   while (options.size < 4) {
-//     const offset = Math.floor(Math.random() * 7) - 3; 
+//     const offset = Math.floor(Math.random() * 7) - 3;
 //     const value = correctAnswer + offset;
 //     if (value >= 0 && value !== correctAnswer) options.add(value);
 //   }
@@ -106,6 +194,7 @@
 //   const shuffled = [...options].sort(() => Math.random() - 0.5);
 //   return { words, question, correctAnswer, options: shuffled };
 // }
+
 
 // const WIDTH = 400;
 // const HEIGHT = 250;
@@ -186,6 +275,20 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { createCanvas } from "canvas";
 
 // ----- WORD DATA -----
@@ -205,87 +308,160 @@ const WORDS = [
 function diff_lt(per) {
   let DIFF;
 
-  if (per < 10) {
+  if (per < 5) {
     DIFF = { 
-      "Too Easy": 4, 
-      "Easy": 5, 
-      "Medium": 6, 
-      "Tough": 7, 
-      "Too Tough": 8 
+      "Too Easy": 3, 
+      "Easy": 4, 
+      "Medium": 5, 
+      "Tough": 6, 
+      "Too Tough": 7 
+    }
+  }else if (per < 10) {
+    DIFF = { 
+      "Too Easy": 5, 
+      "Easy": 6, 
+      "Medium": 7, 
+      "Tough": 8, 
+      "Too Tough": 9 
+    }
+  }else if (per < 15) {
+    DIFF = { 
+      "Too Easy": 6, 
+      "Easy": 7, 
+      "Medium": 8, 
+      "Tough": 9, 
+      "Too Tough": 10 
     }
   }else if (per < 20) {
     DIFF = { 
-      "Too Easy": 5, 
-      "Easy": 7, 
+      "Too Easy": 7, 
+      "Easy": 8, 
       "Medium": 9, 
+      "Tough": 10, 
+      "Too Tough": 11 
+    }
+  }else if (per < 25) {
+    DIFF = { 
+      "Too Easy": 8, 
+      "Easy": 9, 
+      "Medium": 10, 
       "Tough": 11, 
-      "Too Tough": 13 
+      "Too Tough": 12 
     }
   }else if (per < 30) {
     DIFF = { 
-      "Too Easy": 7, 
-      "Easy": 9, 
+      "Too Easy": 9, 
+      "Easy": 10, 
       "Medium": 11, 
+      "Tough": 12, 
+      "Too Tough": 13 
+    }
+  }else if (per < 35) {
+    DIFF = { 
+      "Too Easy": 10, 
+      "Easy": 11, 
+      "Medium": 12, 
       "Tough": 13, 
-      "Too Tough": 15 
+      "Too Tough": 14 
     }
   }else if (per < 40) {
     DIFF = { 
-      "Too Easy": 9, 
-      "Easy": 11, 
+      "Too Easy": 11, 
+      "Easy": 12, 
       "Medium": 13, 
+      "Tough": 14, 
+      "Too Tough": 15 
+    }
+  }else if (per < 45) {
+    DIFF = { 
+      "Too Easy": 12, 
+      "Easy": 13, 
+      "Medium": 14, 
       "Tough": 15, 
-      "Too Tough": 17 
+      "Too Tough": 16 
     }
   }else if (per < 50) {
     DIFF = { 
-      "Too Easy": 11, 
-      "Easy": 13, 
+      "Too Easy": 13, 
+      "Easy": 14, 
       "Medium": 15, 
+      "Tough": 16, 
+      "Too Tough": 17 
+    }
+  }else if (per < 55) {
+    DIFF = { 
+      "Too Easy": 14, 
+      "Easy": 15, 
+      "Medium": 16, 
       "Tough": 17, 
-      "Too Tough": 19 
+      "Too Tough": 18 
     }
   }else if (per < 60) {
     DIFF = { 
-      "Too Easy": 13, 
-      "Easy": 15, 
+      "Too Easy": 15, 
+      "Easy": 16, 
       "Medium": 17, 
+      "Tough": 18, 
+      "Too Tough": 19 
+    }
+  }else if (per < 65) {
+    DIFF = { 
+      "Too Easy": 16, 
+      "Easy": 17, 
+      "Medium": 18, 
       "Tough": 19, 
-      "Too Tough": 21 
+      "Too Tough": 20 
     }
   }else if (per < 70) {
     DIFF = { 
-      "Too Easy": 15, 
-      "Easy": 17, 
+      "Too Easy": 17, 
+      "Easy": 18, 
       "Medium": 19, 
-      "Tough": 21, 
-      "Too Tough": 23 
+      "Tough": 20, 
+      "Too Tough": 25 
     }
-  }else if (per < 80) {
+  }else if (per < 75) {
+    DIFF = { 
+      "Too Easy": 18, 
+      "Easy": 19, 
+      "Medium": 20, 
+      "Tough": 21, 
+      "Too Tough": 22 
+    }
+  }  else if (per < 80) {
     DIFF = { 
       "Too Easy": 19, 
+      "Easy": 20, 
+      "Medium": 21, 
+      "Tough": 22, 
+      "Too Tough": 23 
+    }
+  }  else if (per < 85) {
+    DIFF = { 
+      "Too Easy": 20, 
       "Easy": 21, 
-      "Medium": 23, 
-      "Tough": 25, 
-      "Too Tough": 27 
+      "Medium": 22, 
+      "Tough": 23, 
+      "Too Tough": 24 
     }
   }else if (per < 90) {
     DIFF = { 
-      "Too Easy": 21, 
+      "Too Easy": 22, 
       "Easy": 23, 
-      "Medium": 25, 
-      "Tough": 27, 
-      "Too Tough": 29 
+      "Medium": 24, 
+      "Tough": 25, 
+      "Too Tough": 26 
     }
   }else{
     DIFF = { 
-      "Too Easy": 23, 
-      "Easy": 25, 
+      "Too Easy": 25, 
+      "Easy": 26, 
       "Medium": 27, 
-      "Tough": 29, 
-      "Too Tough": 31 
+      "Tough": 28, 
+      "Too Tough": 29 
     }
-  }
+  }  
+
 
   return DIFF;
 }
