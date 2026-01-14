@@ -213,7 +213,7 @@ app.post(
 
 
 app.use(cors({
-    origin: ["https://stawro.com", "https://www.stawro.com"],
+    origin: ["https://stawro.com", "https://www.stawro.com", "http://localhost:3000"],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
@@ -3726,10 +3726,13 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
             if (Get_Qno_info && Get_Qno_info.list.length >= 0) {
                 // Get the first question number from the list
                 const QNO = Get_Qno_info.list[0];
+                console.log(QNO)
 
 
                 // Find the question in QuestionModule by its number and language
                 const Qno = await QuestionModule.findOne({ Qno: QNO.toString(), user: user }).lean();
+                console.log(Qno)
+                console.log(user)
 
                 const cal_sec = await Seconds_Module.findOne(
                     {
@@ -7832,7 +7835,7 @@ function One() {
             const imageBuf = drawImage(boxes);
             const upload = await uploadImage(imageBuf);
 
-            const sec = get_lel_dif(level, "star_cir_tri")
+            const sec = await get_lel_dif(level, "star_cir_tri")
 
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
@@ -7900,7 +7903,7 @@ function Two() {
                 const correct = picked.count;
                 const options = generateMCQOptions(correct, totalArrows);
 
-                const sec = get_lel_dif(level, "news_side")
+                const sec = await get_lel_dif(level, "news_side")
 
                 const hash = crypto
                     .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
@@ -7979,7 +7982,7 @@ function Three() {
             //     .update(data.question.correct)
             //     .digest('hex')
 
-            const sec = get_lel_dif(level, "plus")
+            const sec = await get_lel_dif(level, "plus")
 
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
@@ -8023,7 +8026,7 @@ function Four() {
             const { words, question, correctAnswer, options } = generateData(level, per);
             const base64Image = await renderImageBase64(words);
 
-            const sec = get_lel_dif(level, "two_leters_word")
+            const sec = await get_lel_dif(level, "two_leters_word")
 
 
             const hash = crypto
@@ -8064,7 +8067,7 @@ function Five() {
 
             const base64Image = await renderImageBase641(data.text);
 
-            const sec = get_lel_dif(level, "singel_word")
+            const sec = await get_lel_dif(level, "singel_word")
 
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
@@ -8110,7 +8113,7 @@ function Six() {
 
                 const img = await uploadBase64(out.base64img);
 
-                const sec = get_lel_dif(level, "ran_leters")
+                const sec = await get_lel_dif(level, "ran_leters")
 
                 const hash = crypto
                     .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
@@ -8153,7 +8156,7 @@ function Seven() {
 
             const data = await createAdvancedNumberMCQ(level, per);
 
-            const sec = get_lel_dif(level, "less_grtr")
+            const sec = await get_lel_dif(level, "less_grtr")
 
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
@@ -8194,7 +8197,7 @@ function Eight() {
             const canvas = drawCircles(puzzle.circles);
             const base64Image = canvas.toBuffer('image/png').toString('base64');
 
-            const sec = get_lel_dif(level, "circle_pieces")
+            const sec = await get_lel_dif(level, "circle_pieces")
 
 
             const hash = crypto
@@ -8234,7 +8237,7 @@ function Nine() {
             const puzzle = generateEmojiPuzzle(level, per);
             // console.log(puzzle);
 
-            const sec = get_lel_dif(level, "emoji_01")
+            const sec = await get_lel_dif(level, "emoji_01")
 
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
@@ -8269,9 +8272,9 @@ function Ten() {
         try {
             const per = await get_per("maze", level, user);
             // const per = 100
-            const mazeQuestion = generateMazeQuestion(level, per);
+            const mazeQuestion = generateMazeQuestion(level, 60);
 
-            const sec = get_lel_dif(level, "maze")
+            const sec = await get_lel_dif(level, "maze")
 
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
@@ -8309,7 +8312,7 @@ function Eleven() {
                 level, per
             });
 
-            const sec = get_lel_dif(level, "colours")
+            const sec = await get_lel_dif(level, "colours")
 
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
@@ -8347,7 +8350,7 @@ function Tweleve() {
 
             const test = createStringCountImage(level, per);
 
-            const sec = get_lel_dif(level, "code_int_char")
+            const sec = await get_lel_dif(level, "code_int_char")
 
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
@@ -8384,7 +8387,7 @@ function Thirteen() {
 
         const puzzle = await generateNumberPairMCQ("Too Easy", 10)
 
-        const sec = get_lel_dif(level, "num_pairs")
+        const sec = await get_lel_dif(level, "num_pairs")
         // console.log(puzzle.question);
         // console.log("Answer:", puzzle.correctAnswer);
         // console.log(puzzle.base64Image);
@@ -8425,7 +8428,7 @@ function Fourteen() {
         // console.log(puzzle.base64Image);
 
 
-        const sec = get_lel_dif(level, "OMR_1")
+        const sec = await get_lel_dif(level, "OMR_1")
 
         
 
@@ -8472,7 +8475,7 @@ function Fifteen() {
         // console.log("Answer:", puzzle.correctAnswer);
         // console.log(puzzle.base64Image);
 
-        const sec = get_lel_dif(level, "OMR")
+        const sec = await get_lel_dif(level, "OMR")
 
 
         const hash = crypto
@@ -8516,7 +8519,7 @@ function Sixteen(){
         // console.log("Answer:", puzzle.correctAnswer);
         // console.log(puzzle.base64Image);
 
-        const sec = get_lel_dif(level, "Train")
+        const sec = await get_lel_dif(level, "Train")
 
         const hash = crypto
             .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
