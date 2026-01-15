@@ -3276,10 +3276,12 @@ app.post('/start/playing/by/debit/amount/app', async (req, res) => {
 
 
 
+
 app.post("/get/id/to/update/seonds", authMiddleware, async (req, res) => {
     const { id, sec, qst, options, img, ans, usa, vr, msg, ex_seconds, cat, tough } = req.body;
 
     try {
+
         await ReportSecondModule.create({
             Time, // or your custom time
             user: req.user,
@@ -3297,7 +3299,6 @@ app.post("/get/id/to/update/seonds", authMiddleware, async (req, res) => {
             tough,
         });
 
-        console.log("OK Created")
 
         return res.status(200).json({ Status: "OK" });
 
@@ -3341,6 +3342,25 @@ app.get("/get/all/tickets/data/admin", adminMiddleware, async (req, res) => {
             return res.status(200).json({ Status: "BAD" })
         }
     } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+})
+
+app.get("/get/singel/ticket/to/test/:id", adminMiddleware, async(req, res) =>{
+    try{
+        const id = req.params.id
+
+        const data = await ReportSecondModule.findById(id)
+
+        if (data) {
+            return res.status(200).json({ data })
+        } else {
+            return res.status(200).json({ Status: "BAD" })
+        }
+
+
+    }catch (error) {
         console.error(error);
         return res.status(500).json({ message: "Internal Server Error" });
     }
@@ -7673,16 +7693,22 @@ app.post("/refund/data/and/add/to/users", adminMidleware, async (req, res) => {
         if (text === "refund") {
 
             if (ex_seconds !== "no") {
-                await Seconds_Module.updateOne(
-                    {
-                        category: data.cat,
-                        Tough: data.tough,
-                        "seconds.user": data.user
-                    },
-                    {
-                        $set: { "seconds.$.seconds": ex_seconds } // update that user's seconds
-                    }
-                );
+                // await Seconds_Module.updateOne(
+                //     {
+                //         category: data.cat,
+                //         Tough: data.tough,
+                //         "seconds.user": data.user
+                //     },
+                //     {
+                //         $set: { "seconds.$.seconds": ex_seconds } // update that user's seconds
+                //     }
+                // );
+
+                await Seconds_Module.findOneAndDelete({
+                    category : data.cat,
+                    Tough : data.tough,
+                    "seconds.user" : data.user
+                })
             }
 
             data.text = "refund";
