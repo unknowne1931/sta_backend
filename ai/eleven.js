@@ -263,106 +263,106 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
     if (per < 5) {
         COUNT_MAP = { 
             "Too Easy": 5, 
-            "Easy": 10, 
-            "Medium": 15, 
-            "Tough": 20, 
-            "Too Tough": 25 
+            "Easy": 6, 
+            "Medium": 7, 
+            "Tough": 8, 
+            "Too Tough": 9 
         };
     }else if (per < 10) {
         COUNT_MAP = { 
-            "Too Easy": 10, 
-            "Easy": 15, 
-            "Medium": 20, 
-            "Tough": 25, 
-            "Too Tough": 30 
+            "Too Easy": 6, 
+            "Easy": 7, 
+            "Medium": 8, 
+            "Tough": 9, 
+            "Too Tough": 10 
         };
     }else if (per < 15) {
         COUNT_MAP = { 
-            "Too Easy": 15, 
-            "Easy": 20, 
-            "Medium": 25, 
-            "Tough": 30, 
-            "Too Tough": 35 
+            "Too Easy": 7, 
+            "Easy": 8, 
+            "Medium": 9, 
+            "Tough": 10, 
+            "Too Tough": 11 
         };
     }else if (per < 20) {
         COUNT_MAP = { 
-            "Too Easy": 20, 
-            "Easy": 25, 
-            "Medium": 30, 
-            "Tough": 35, 
-            "Too Tough": 40 
+            "Too Easy": 8, 
+            "Easy": 12, 
+            "Medium": 13, 
+            "Tough": 14, 
+            "Too Tough": 15 
         };
     }else if (per < 25) {
         COUNT_MAP = { 
-            "Too Easy": 25, 
-            "Easy": 30, 
-            "Medium": 35, 
-            "Tough": 40, 
-            "Too Tough": 45 
+            "Too Easy": 9, 
+            "Easy": 10, 
+            "Medium": 11, 
+            "Tough": 12, 
+            "Too Tough": 13 
         };
     }else if (per < 30) {
         COUNT_MAP = { 
-            "Too Easy": 30, 
-            "Easy": 35, 
-            "Medium": 40, 
-            "Tough": 45, 
-            "Too Tough": 50 
+            "Too Easy": 10, 
+            "Easy": 11, 
+            "Medium": 12, 
+            "Tough": 13, 
+            "Too Tough": 14 
         };
     }else if (per < 35) {
         COUNT_MAP = { 
-            "Too Easy": 35, 
-            "Easy": 40, 
-            "Medium": 45, 
-            "Tough": 50, 
-            "Too Tough": 55 
+            "Too Easy": 11, 
+            "Easy": 12, 
+            "Medium": 13, 
+            "Tough": 14, 
+            "Too Tough": 15 
         };
     }else if (per < 40) {
         COUNT_MAP = { 
-            "Too Easy": 40, 
-            "Easy": 45, 
-            "Medium": 50, 
-            "Tough": 55, 
-            "Too Tough": 60 
+            "Too Easy": 12, 
+            "Easy": 13, 
+            "Medium": 14, 
+            "Tough": 15, 
+            "Too Tough": 16 
         };
     }else if (per < 45) {
         COUNT_MAP = { 
-            "Too Easy": 45, 
-            "Easy": 50, 
-            "Medium": 55, 
-            "Tough": 60, 
-            "Too Tough": 65 
+            "Too Easy": 13, 
+            "Easy": 14, 
+            "Medium": 15, 
+            "Tough": 16, 
+            "Too Tough": 17 
         };
     }else if (per < 50) {
         COUNT_MAP = { 
-            "Too Easy": 50, 
-            "Easy": 55, 
-            "Medium": 60, 
-            "Tough": 65, 
-            "Too Tough": 70 
+            "Too Easy": 14, 
+            "Easy": 15, 
+            "Medium": 16, 
+            "Tough": 17, 
+            "Too Tough": 18 
         };
     }else if (per < 55) {
         COUNT_MAP = { 
-            "Too Easy": 55, 
-            "Easy": 60, 
-            "Medium": 65, 
-            "Tough": 70, 
-            "Too Tough": 75 
+            "Too Easy": 15, 
+            "Easy": 16, 
+            "Medium": 17, 
+            "Tough": 18, 
+            "Too Tough": 19 
         };
     }else if (per < 60) {
         COUNT_MAP = { 
-            "Too Easy": 60, 
-            "Easy": 65, 
-            "Medium": 70, 
-            "Tough": 75, 
-            "Too Tough": 80 
+            "Too Easy": 16, 
+            "Easy": 17, 
+            "Medium": 18, 
+            "Tough": 19, 
+            "Too Tough": 20 
         };
     }else{
         COUNT_MAP = { 
-            "Too Easy": 70, 
-            "Easy": 75, 
-            "Medium": 80, 
-            "Tough": 85, 
-            "Too Tough": 90 
+            "Too Easy": 17, 
+            "Easy": 18, 
+            "Medium": 19, 
+            "Tough": 20, 
+            "Too Tough": 21 
         };
     }
 

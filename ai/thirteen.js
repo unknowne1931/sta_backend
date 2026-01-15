@@ -292,152 +292,152 @@ function generateNumbers(level, per) {
             "Too Easy": { count: 3, maxNum: 1 },
             "Easy": { count: 4, maxNum: 2 },
             "Medium": { count: 5, maxNum: 3 },
-            "Tough": { count: 6, maxNum: 4 },
-            "Too Tough": { count: 7, maxNum: 5 },
+            "Tough": { count: 6, maxNum: 2 },
+            "Too Tough": { count: 7, maxNum: 3 },
         };
     } else if (per < 10) {
         config = {
-            "Too Easy": { count: 6, maxNum: 3 },
-            "Easy": { count: 8, maxNum: 3 },
-            "Medium": { count: 10, maxNum: 4 },
-            "Tough": { count: 12, maxNum: 5 },
-            "Too Tough": { count: 14, maxNum: 6 },
+            "Too Easy": { count: 4, maxNum: 3 },
+            "Easy": { count: 5, maxNum: 3 },
+            "Medium": { count: 6, maxNum: 4 },
+            "Tough": { count: 7, maxNum: 5 },
+            "Too Tough": { count: 8, maxNum: 6 },
         };
     } else if (per < 15) {
         config = {
-            "Too Easy": { count: 9, maxNum: 6 },
-            "Easy": { count: 11, maxNum: 5 },
-            "Medium": { count: 13, maxNum: 6 },
-            "Tough": { count: 15, maxNum: 6 },
-            "Too Tough": { count: 16, maxNum: 6 },
+            "Too Easy": { count: 5, maxNum: 6 },
+            "Easy": { count: 6, maxNum: 5 },
+            "Medium": { count: 7, maxNum: 6 },
+            "Tough": { count: 8, maxNum: 6 },
+            "Too Tough": { count: 9, maxNum: 6 },
         };
     } else if (per < 20) {
         config = {
-            "Too Easy": { count: 12, maxNum: 6 },
-            "Easy": { count: 14, maxNum: 5 },
-            "Medium": { count: 16, maxNum: 7 },
-            "Tough": { count: 18, maxNum: 8 },
-            "Too Tough": { count: 19, maxNum: 10 },
+            "Too Easy": { count: 6, maxNum: 6 },
+            "Easy": { count: 7, maxNum: 5 },
+            "Medium": { count: 8, maxNum: 7 },
+            "Tough": { count: 9, maxNum: 8 },
+            "Too Tough": { count: 10, maxNum: 10 },
         };
     } else if(per < 25) {
         config = {
-            "Too Easy": { count: 15, maxNum: 6 },
-            "Easy": { count: 17, maxNum: 7 },
-            "Medium": { count: 19, maxNum: 8 },
-            "Tough": { count: 21, maxNum: 9 },
-            "Too Tough": { count: 23, maxNum: 10 },
+            "Too Easy": { count: 7, maxNum: 6 },
+            "Easy": { count: 8, maxNum: 7 },
+            "Medium": { count: 9, maxNum: 8 },
+            "Tough": { count: 10, maxNum: 9 },
+            "Too Tough": { count: 11, maxNum: 10 },
         };
     }else if(per < 30) {
         config = {
-            "Too Easy": { count: 18, maxNum: 6 },
-            "Easy": { count: 20, maxNum: 7 },
-            "Medium": { count: 22, maxNum: 8 },
-            "Tough": { count: 24, maxNum: 9 },
-            "Too Tough": { count: 26, maxNum: 10 },
+            "Too Easy": { count: 8, maxNum: 6 },
+            "Easy": { count: 9, maxNum: 7 },
+            "Medium": { count: 10, maxNum: 8 },
+            "Tough": { count: 11, maxNum: 9 },
+            "Too Tough": { count: 12, maxNum: 10 },
         };
     }else if(per < 35) {
         config = {
-            "Too Easy": { count: 20, maxNum: 6 },
-            "Easy": { count: 22, maxNum: 7 },
-            "Medium": { count: 24, maxNum: 8 },
-            "Tough": { count: 26, maxNum: 9 },
-            "Too Tough": { count: 28, maxNum: 10 },
+            "Too Easy": { count: 9, maxNum: 6 },
+            "Easy": { count: 10, maxNum: 7 },
+            "Medium": { count: 11, maxNum: 8 },
+            "Tough": { count: 12, maxNum: 9 },
+            "Too Tough": { count: 13, maxNum: 10 },
         };
     }else if(per < 40) {
         config = {
-            "Too Easy": { count: 22, maxNum: 6 },
-            "Easy": { count: 24, maxNum: 7 },
-            "Medium": { count: 26, maxNum: 8 },
-            "Tough": { count: 28, maxNum: 9 },
-            "Too Tough": { count: 30, maxNum: 10 },
+            "Too Easy": { count: 10, maxNum: 6 },
+            "Easy": { count: 11, maxNum: 7 },
+            "Medium": { count: 12, maxNum: 8 },
+            "Tough": { count: 13, maxNum: 9 },
+            "Too Tough": { count: 14, maxNum: 10 },
         };
     }else if(per < 45) {
         config = {
-            "Too Easy": { count: 24, maxNum: 6 },
-            "Easy": { count: 26, maxNum: 7 },
-            "Medium": { count: 28, maxNum: 8 },
-            "Tough": { count: 30, maxNum: 9 },
-            "Too Tough": { count: 32, maxNum: 10 },
+            "Too Easy": { count: 11, maxNum: 6 },
+            "Easy": { count: 12, maxNum: 7 },
+            "Medium": { count: 13, maxNum: 8 },
+            "Tough": { count: 14, maxNum: 9 },
+            "Too Tough": { count: 15, maxNum: 10 },
         };
     }else if(per < 50) {
         config = {
-            "Too Easy": { count: 26, maxNum: 6 },
-            "Easy": { count: 28, maxNum: 7 },
-            "Medium": { count: 30, maxNum: 8 },
-            "Tough": { count: 32, maxNum: 9 },
-            "Too Tough": { count: 34, maxNum: 10 },
+            "Too Easy": { count: 12, maxNum: 6 },
+            "Easy": { count: 13, maxNum: 7 },
+            "Medium": { count: 14, maxNum: 8 },
+            "Tough": { count: 15, maxNum: 9 },
+            "Too Tough": { count: 16, maxNum: 10 },
         };
     }else if(per < 55) {
         config = {
-            "Too Easy": { count: 28, maxNum: 6 },
-            "Easy": { count: 30, maxNum: 7 },
-            "Medium": { count: 32, maxNum: 8 },
-            "Tough": { count: 34, maxNum: 9 },
-            "Too Tough": { count: 36, maxNum: 10 },
+            "Too Easy": { count: 13, maxNum: 6 },
+            "Easy": { count: 14, maxNum: 7 },
+            "Medium": { count: 15, maxNum: 8 },
+            "Tough": { count: 16, maxNum: 9 },
+            "Too Tough": { count: 17, maxNum: 10 },
         };
     }else if(per < 60) {
         config = {
-            "Too Easy": { count: 30, maxNum: 6 },
-            "Easy": { count: 32, maxNum: 7 },
-            "Medium": { count: 34, maxNum: 8 },
-            "Tough": { count: 36, maxNum: 9 },
-            "Too Tough": { count: 38, maxNum: 10 },
+            "Too Easy": { count: 14, maxNum: 6 },
+            "Easy": { count: 15, maxNum: 7 },
+            "Medium": { count: 16, maxNum: 8 },
+            "Tough": { count: 17, maxNum: 9 },
+            "Too Tough": { count: 18, maxNum: 10 },
         };
     }else if(per < 65) {
         config = {
-            "Too Easy": { count: 32, maxNum: 6 },
-            "Easy": { count: 34, maxNum: 7 },
-            "Medium": { count: 36, maxNum: 8 },
-            "Tough": { count: 38, maxNum: 9 },
-            "Too Tough": { count: 40, maxNum: 10 },
+            "Too Easy": { count: 15, maxNum: 6 },
+            "Easy": { count: 16, maxNum: 7 },
+            "Medium": { count: 17, maxNum: 8 },
+            "Tough": { count: 18, maxNum: 9 },
+            "Too Tough": { count: 19, maxNum: 10 },
         };
     }else if(per < 70) {
         config = {
-            "Too Easy": { count: 34, maxNum: 6 },
-            "Easy": { count: 36, maxNum: 7 },
-            "Medium": { count: 38, maxNum: 8 },
-            "Tough": { count: 40, maxNum: 9 },
-            "Too Tough": { count: 42, maxNum: 10 },
+            "Too Easy": { count: 16, maxNum: 6 },
+            "Easy": { count: 17, maxNum: 7 },
+            "Medium": { count: 18, maxNum: 8 },
+            "Tough": { count: 19, maxNum: 9 },
+            "Too Tough": { count: 20, maxNum: 10 },
         };
     }else if(per < 75) {
         config = {
-            "Too Easy": { count: 36, maxNum: 6 },
-            "Easy": { count: 38, maxNum: 7 },
-            "Medium": { count: 40, maxNum: 8 },
-            "Tough": { count: 42, maxNum: 9 },
-            "Too Tough": { count: 44, maxNum: 10 },
+            "Too Easy": { count: 17, maxNum: 6 },
+            "Easy": { count: 18, maxNum: 7 },
+            "Medium": { count: 19, maxNum: 8 },
+            "Tough": { count: 20, maxNum: 9 },
+            "Too Tough": { count: 21, maxNum: 10 },
         };
     }else if(per < 80) {
         config = {
-            "Too Easy": { count: 38, maxNum: 6 },
-            "Easy": { count: 40, maxNum: 7 },
-            "Medium": { count: 42, maxNum: 8 },
-            "Tough": { count: 44, maxNum: 9 },
-            "Too Tough": { count: 46, maxNum: 10 },
+            "Too Easy": { count: 18, maxNum: 6 },
+            "Easy": { count: 19, maxNum: 7 },
+            "Medium": { count: 20, maxNum: 8 },
+            "Tough": { count: 21, maxNum: 9 },
+            "Too Tough": { count: 22, maxNum: 10 },
         };
     }else if(per < 85) {
         config = {
-            "Too Easy": { count: 40, maxNum: 6 },
-            "Easy": { count: 42, maxNum: 7 },
-            "Medium": { count: 44, maxNum: 8 },
-            "Tough": { count: 46, maxNum: 9 },
-            "Too Tough": { count: 48, maxNum: 10 },
+            "Too Easy": { count: 19, maxNum: 6 },
+            "Easy": { count: 20, maxNum: 7 },
+            "Medium": { count: 21, maxNum: 8 },
+            "Tough": { count: 22, maxNum: 9 },
+            "Too Tough": { count: 23, maxNum: 10 },
         };
     }else if(per < 90) {
         config = {
-            "Too Easy": { count: 42, maxNum: 6 },
-            "Easy": { count: 44, maxNum: 7 },
-            "Medium": { count: 46, maxNum: 8 },
-            "Tough": { count: 48, maxNum: 9 },
-            "Too Tough": { count: 50, maxNum: 10 },
+            "Too Easy": { count: 20, maxNum: 6 },
+            "Easy": { count: 21, maxNum: 7 },
+            "Medium": { count: 22, maxNum: 8 },
+            "Tough": { count: 23, maxNum: 9 },
+            "Too Tough": { count: 24, maxNum: 10 },
         };
     }else{
         config = {
-            "Too Easy": { count: 45, maxNum: 6 },
-            "Easy": { count: 50, maxNum: 7 },
-            "Medium": { count: 55, maxNum: 8 },
-            "Tough": { count: 60, maxNum: 9 },
-            "Too Tough": { count: 65, maxNum: 10 },
+            "Too Easy": { count: 21, maxNum: 6 },
+            "Easy": { count: 22, maxNum: 7 },
+            "Medium": { count: 23, maxNum: 8 },
+            "Tough": { count: 24, maxNum: 9 },
+            "Too Tough": { count: 25, maxNum: 10 },
         };
     }
 

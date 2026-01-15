@@ -446,19 +446,19 @@ function diff_lt(per) {
     }
   }else if (per < 90) {
     DIFF = { 
+      "Too Easy": 21, 
+      "Easy": 22, 
+      "Medium": 23, 
+      "Tough": 24, 
+      "Too Tough": 25 
+    }
+  }else{
+    DIFF = { 
       "Too Easy": 22, 
       "Easy": 23, 
       "Medium": 24, 
       "Tough": 25, 
       "Too Tough": 26 
-    }
-  }else{
-    DIFF = { 
-      "Too Easy": 25, 
-      "Easy": 26, 
-      "Medium": 27, 
-      "Tough": 28, 
-      "Too Tough": 29 
     }
   }  
 

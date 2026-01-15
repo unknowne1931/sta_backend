@@ -229,99 +229,99 @@ export function getPlusLevels(per) {
         };
     }else if (per < 10) {
         return {
-            "Too Easy":  { h: 2,  v: 4,  gap: 44 },
-            "Easy":      { h: 2,  v: 5,  gap: 42 },
-            "Medium":    { h: 2,  v: 6,  gap: 40 },
-            "Tough":     { h: 2,  v: 7,  gap: 38 },
-            "Too Tough": { h: 2, v: 8, gap: 36}
+            "Too Easy":  { h: 1,  v: 4,  gap: 44 },
+            "Easy":      { h: 1,  v: 5,  gap: 42 },
+            "Medium":    { h: 1,  v: 6,  gap: 40 },
+            "Tough":     { h: 1,  v: 7,  gap: 38 },
+            "Too Tough": { h: 1, v: 8, gap: 36}
         };
     }else if (per < 15) {
         return {
-            "Too Easy":  { h: 3,  v: 5,  gap: 42 },
-            "Easy":      { h: 3,  v: 6,  gap: 40 },
-            "Medium":    { h: 3,  v: 7,  gap: 38 },
-            "Tough":     { h: 3,  v: 8,  gap: 36 },
-            "Too Tough": { h: 3, v: 9, gap: 34 }
+            "Too Easy":  { h: 2,  v: 5,  gap: 42 },
+            "Easy":      { h: 2,  v: 6,  gap: 40 },
+            "Medium":    { h: 2,  v: 7,  gap: 38 },
+            "Tough":     { h: 2,  v: 8,  gap: 36 },
+            "Too Tough": { h: 2, v: 9, gap: 34 }
         };
     }else if (per < 20) {
         return {
-            "Too Easy":  { h: 4,  v: 6,  gap: 40 },
-            "Easy":      { h: 4,  v: 7,  gap: 38 },
-            "Medium":    { h: 4,  v: 8,  gap: 36 },
-            "Tough":     { h: 4,  v: 9,  gap: 34 },
-            "Too Tough": { h: 4, v: 10, gap: 32 }
+            "Too Easy":  { h: 2,  v: 6,  gap: 40 },
+            "Easy":      { h: 2,  v: 7,  gap: 38 },
+            "Medium":    { h: 2,  v: 8,  gap: 36 },
+            "Tough":     { h: 2,  v: 9,  gap: 34 },
+            "Too Tough": { h: 2, v: 10, gap: 32 }
         };
     }else if (per < 25) {
         return {
-            "Too Easy":  { h: 5,  v: 7,  gap: 40 },
-            "Easy":      { h: 5,  v: 8,  gap: 38 },
-            "Medium":    { h: 5,  v: 9,  gap: 34 },
-            "Tough":     { h: 5,  v: 10,  gap: 32 },
-            "Too Tough": { h: 5, v: 11, gap: 30 }
+            "Too Easy":  { h: 3,  v: 7,  gap: 40 },
+            "Easy":      { h: 3,  v: 8,  gap: 38 },
+            "Medium":    { h: 3,  v: 9,  gap: 34 },
+            "Tough":     { h: 3,  v: 10,  gap: 32 },
+            "Too Tough": { h: 3, v: 11, gap: 30 }
         };
     }else if (per < 30) {
         return {
-            "Too Easy":  { h: 6,  v: 8,  gap: 36 },
-            "Easy":      { h: 6,  v: 9,  gap: 34 },
-            "Medium":    { h: 6,  v: 10,  gap: 32 },
-            "Tough":     { h: 6,  v: 11,  gap: 30 },
-            "Too Tough": { h: 6, v: 12, gap: 28 }
+            "Too Easy":  { h: 3,  v: 8,  gap: 36 },
+            "Easy":      { h: 3,  v: 9,  gap: 34 },
+            "Medium":    { h: 3,  v: 10,  gap: 32 },
+            "Tough":     { h: 3,  v: 11,  gap: 30 },
+            "Too Tough": { h: 3, v: 12, gap: 28 }
         };
     }else if (per < 35) {
         return {
-            "Too Easy":  { h: 7,  v: 9,  gap: 34 },
-            "Easy":      { h: 7,  v: 10,  gap: 32 },
-            "Medium":    { h: 7,  v: 11,  gap: 30 },
-            "Tough":     { h: 7,  v: 12,  gap: 28 },
-            "Too Tough": { h: 7, v: 13, gap: 26}
+            "Too Easy":  { h: 3,  v: 9,  gap: 34 },
+            "Easy":      { h: 3,  v: 10,  gap: 32 },
+            "Medium":    { h: 3,  v: 11,  gap: 30 },
+            "Tough":     { h: 3,  v: 12,  gap: 28 },
+            "Too Tough": { h: 3, v: 13, gap: 26}
         };
     }else if (per < 40) {
         return {
-            "Too Easy":  { h: 8,  v: 10,  gap: 32 },
-            "Easy":      { h: 8,  v: 11,  gap: 30 },
-            "Medium":    { h: 8,  v: 12,  gap: 28 },
-            "Tough":     { h: 8,  v: 13,  gap: 26 },
-            "Too Tough": { h: 8, v: 14, gap: 24 }
+            "Too Easy":  { h: 3,  v: 10,  gap: 32 },
+            "Easy":      { h: 3,  v: 11,  gap: 30 },
+            "Medium":    { h: 3,  v: 12,  gap: 28 },
+            "Tough":     { h: 3,  v: 13,  gap: 26 },
+            "Too Tough": { h: 3, v: 14, gap: 24 }
         };
     }else if (per < 45) {
         return {
-            "Too Easy":  { h: 9,  v: 11,  gap: 30 },
-            "Easy":      { h: 9,  v: 12,  gap: 28 },
-            "Medium":    { h: 9,  v: 13,  gap: 26 },
-            "Tough":     { h: 9,  v: 14,  gap: 24 },
-            "Too Tough": { h: 9, v: 15, gap: 22 }
+            "Too Easy":  { h: 3,  v: 11,  gap: 30 },
+            "Easy":      { h: 3,  v: 12,  gap: 28 },
+            "Medium":    { h: 3,  v: 13,  gap: 26 },
+            "Tough":     { h: 3,  v: 14,  gap: 24 },
+            "Too Tough": { h: 3, v: 15, gap: 22 }
         };
     }else if (per < 50) {
         return {
-            "Too Easy":  { h: 10,  v: 12,  gap: 28 },
-            "Easy":      { h: 10,  v: 13,  gap: 26 },
-            "Medium":    { h: 10,  v: 14,  gap: 24 },
-            "Tough":     { h: 10,  v: 15,  gap: 22 },
-            "Too Tough": { h: 10, v: 16, gap: 20 }
+            "Too Easy":  { h: 3,  v: 12,  gap: 28 },
+            "Easy":      { h: 3,  v: 13,  gap: 26 },
+            "Medium":    { h: 3,  v: 14,  gap: 24 },
+            "Tough":     { h: 3,  v: 15,  gap: 22 },
+            "Too Tough": { h: 3, v: 16, gap: 20 }
         };
     }else if (per < 55) {
         return {
-            "Too Easy":  { h: 11,  v: 13,  gap: 20 },
-            "Easy":      { h: 11,  v: 14,  gap: 28 },
-            "Medium":    { h: 11,  v: 15,  gap: 26 },
-            "Tough":     { h: 11,  v: 16,  gap: 24 },
-            "Too Tough": { h: 11, v: 17, gap: 22 }
+            "Too Easy":  { h: 3,  v: 13,  gap: 20 },
+            "Easy":      { h: 3,  v: 14,  gap: 28 },
+            "Medium":    { h: 3,  v: 15,  gap: 26 },
+            "Tough":     { h: 3,  v: 16,  gap: 24 },
+            "Too Tough": { h: 3, v: 17, gap: 22 }
         };
     }else if (per < 60) {
         return {
-            "Too Easy":  { h: 12,  v: 14,  gap: 28 },
-            "Easy":      { h: 12,  v: 15,  gap: 26 },
-            "Medium":    { h: 12,  v: 16,  gap: 24 },
-            "Tough":     { h: 12,  v: 17,  gap: 22 },
-            "Too Tough": { h: 12, v: 18, gap: 20 }
+            "Too Easy":  { h: 3,  v: 14,  gap: 28 },
+            "Easy":      { h: 3,  v: 15,  gap: 26 },
+            "Medium":    { h: 3,  v: 16,  gap: 24 },
+            "Tough":     { h: 3,  v: 17,  gap: 22 },
+            "Too Tough": { h: 3, v: 18, gap: 20 }
         };
     }else{
         return {
-            "Too Easy":  { h: 13,  v: 15,  gap: 26 },
-            "Easy":      { h: 13,  v: 16,  gap: 24 },
-            "Medium":    { h: 13,  v: 17,  gap: 22 },
-            "Tough":     { h: 13,  v: 18,  gap: 20 },
-            "Too Tough": { h: 13, v: 19, gap: 18 }
+            "Too Easy":  { h: 4,  v: 15,  gap: 26 },
+            "Easy":      { h: 4,  v: 16,  gap: 24 },
+            "Medium":    { h: 4,  v: 17,  gap: 22 },
+            "Tough":     { h: 4,  v: 18,  gap: 20 },
+            "Too Tough": { h: 4, v: 19, gap: 18 }
         };
     }
 }

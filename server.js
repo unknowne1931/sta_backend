@@ -8766,7 +8766,7 @@ async function get_lel_dif(level, cat) {
     const data = await sec_Count_Module.findOne({ level, cat });
 
     if (!data || !Array.isArray(data.sec_try) || data.sec_try.length === 0) {
-        return "50"; // default difficulty
+        return "20"; // default difficulty
     }
 
     const sum = data.sec_try.reduce((acc, val) => acc + val, 0);
