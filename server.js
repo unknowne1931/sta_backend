@@ -390,7 +390,7 @@ export async function get_per(user) {
 }
 
 app.get('/', (req, res) => {
-    res.send('Hello, world Vs : 6.0.0 ; Last Updated : 15-01-2026 ; Type : Live');
+    res.send('Hello, world Vs : 6.1.0 ; Last Updated : 15-01-2026 ; Type : Live');
 });
 
 
@@ -3772,9 +3772,9 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
 
 
                 if (cal_sec && cal_sec.seconds && cal_sec.seconds.length > 0) {
-                    sec_cal = parseInt(cal_sec.seconds[0].seconds) + 5; // get the actual seconds value for that user
+                    sec_cal = parseInt(cal_sec.seconds[0].seconds) + 2; // get the actual seconds value for that user
                 } else {
-                    sec_cal = Qno.seconds; // fallback to default question seconds
+                    sec_cal = `${parseInt(Qno.seconds) + 5}`; // fallback to default question seconds
                 }
 
 
