@@ -213,7 +213,7 @@ app.post(
 
 
 app.use(cors({
-    origin: ["https://stawro.com", "https://www.stawro.com", "*"],
+    origin: ["https://stawro.com", "https://www.stawro.com", "http://localhost:3000"],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
@@ -2867,7 +2867,6 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
 
             if (level_per < 10) {
                 return ["Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy"];
-
             } else if (level_per < 20) {
                 return ["Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Easy", "Easy", "Easy", "Easy", "Easy"];
             } else if (level_per < 30) {
@@ -2892,7 +2891,7 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
 
         await QuestionModule.deleteMany({ user });
 
-        const dif_l = getDifficultyDistribution(get_user_level.rank || 0)
+        const dif_l = getDifficultyDistribution(get_user_level?.rank || 0)
 
         const qst_gen = [
             One(), Two(), Three(), Four(), Five(), Six(),
@@ -7230,8 +7229,7 @@ function One() {
         try {
             const per = await get_per("star_cir_tri", level, user);
             
-            const per_2 =  await get_level_step()
-            const DIFFICULTIES = getDifficultiesByPer(per, per_2);
+            const DIFFICULTIES = getDifficultiesByPer(per);
 
             const difficulty = DIFFICULTIES[level];
             const boxes = generateBoxesData(difficulty);
@@ -7259,7 +7257,6 @@ function One() {
             }
 
             const options = generateOptions(correct);
-
             const imageBuf = drawImage(boxes);
             const upload = await uploadImage(imageBuf);
 
@@ -7298,10 +7295,9 @@ function Two() {
     return async function (level, user, qno) {
         try {
             const per = await get_per("news_side", level, user);
-            const per_2 = await get_level_step()
 
             // 1) Generate arrows
-            const angles = generateArrows(per, level, per_2);
+            const angles = generateArrows(per, level);
             
             // 2) Draw & upload image
             const buffer = drawArrowsImage(angles);
@@ -7701,7 +7697,7 @@ function Ten() {
         try {
             const per = await get_per("maze", level, user);
             // const per = 100
-            const mazeQuestion = generateMazeQuestion(level, 60);
+            const mazeQuestion = generateMazeQuestion(level, per);
 
             const sec = await get_lel_dif(level, "maze")
 
@@ -7814,7 +7810,7 @@ function Thirteen() {
 
         const per = await get_per("num_pairs", level, user);
 
-        const puzzle = await generateNumberPairMCQ("Too Easy", 10)
+        const puzzle = await generateNumberPairMCQ("Too Easy", per)
 
         const sec = await get_lel_dif(level, "num_pairs")
         // console.log(puzzle.question);
