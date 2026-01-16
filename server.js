@@ -346,7 +346,7 @@ const generateOTP = () => {
 //https end
 
 app.get('/', (req, res) => {
-    res.send('Hello, world Vs : 7.0.0 ; Last Updated : 16-01-2026 ; Type : Live');
+    res.send('Hello, world Vs : 7.1.1 ; Last Updated : 17-01-2026 ; Type : Live');
 });
 
 
@@ -3532,13 +3532,13 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
             if (Get_Qno_info && Get_Qno_info.list.length >= 0) {
                 // Get the first question number from the list
                 const QNO = Get_Qno_info.list[0];
-                console.log(QNO)
+                console.log("Qboo",QNO)
 
 
                 // Find the question in QuestionModule by its number and language
                 const Qno = await QuestionModule.findOne({ Qno: QNO.toString(), user: user }).lean();
-                console.log(Qno)
-                console.log(user)
+                // console.log(Qno)
+                // console.log(user)
 
                 const cal_sec = await Seconds_Module.findOne(
                     {
@@ -3552,16 +3552,29 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                 );
 
 
-                // console.log(cal_sec.seconds)
+
+                const userSeconds = cal_sec?.seconds?.[0]?.seconds || [];
+
+                const avg =
+                    userSeconds.length > 0
+                        ? userSeconds.reduce((s, v) => s + v, 0) / userSeconds.length
+                        : 0;
+
+
+
 
                 let sec_cal = '';
 
-
-                if (cal_sec && cal_sec.seconds && cal_sec.seconds.length > 0) {
-                    sec_cal = parseInt(cal_sec.seconds[0].seconds) + 2; // get the actual seconds value for that user
+                if (userSeconds.length > 0 && avg > 0) {
+                    sec_cal = String(Math.floor(avg) + 2);
                 } else {
-                    sec_cal = `${parseInt(Qno.seconds) + 5}`; // fallback to default question seconds
+                    sec_cal = String(parseInt(Qno.seconds, 10) + 5);
                 }
+
+                if(parseInt(sec_cal) > 50){
+                    return res.status(200).json({Status : "BAD"})
+                }
+
 
 
 
@@ -3573,7 +3586,8 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                         Qno: Qno.Qno,
                         Question: Qno.Questio,
                         options: Qno.options,
-                        seconds: sec_cal,
+                        // seconds: sec_cal,
+                        seconds : "20000",
                         Ans: Qno.Ans,
                         cat: Qno.sub_lang,
                         tough: Qno.tough
@@ -3587,6 +3601,7 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                 return res.status(202).json({ Status: "BAD", message: "No Question Found" });
             }
         } else {
+            console.log("noo")
             return res.status(202).json({ Status: "BAD", message: "Not Valid to Yes" });
         }
     } catch (error) {
@@ -3612,7 +3627,7 @@ const Seconds_cal_Schema = new mongoose.Schema({
     seconds: [
         {
             user: String,
-            seconds: String,
+            seconds: [],
         }
     ],
     ex_seconds: []
@@ -3629,6 +3644,38 @@ const module_analysis_Schema = new mongoose.Schema({
 }, { timestamps: true });
 
 const module_analysis_module = mongoose.model('most_answerd_module', module_analysis_Schema);
+
+
+const Seconds_update_page_Schema = new mongoose.Schema({
+    sub_lang: String,
+    tough: String,
+    user : String,
+    seconds : String,
+    down_up : String,
+    Time : String,
+    bef_sec : String,
+    af_sec : String
+
+}, { timestamps: true });
+
+const update_seconds_page_Module = mongoose.model('Seconds_page_updates', Seconds_update_page_Schema);
+
+
+app.get("/get/verifyed/seonds/updates/data/and/avug/cal", authMiddleware, async (req, res) => {
+    const user = req.user
+    try {
+        const data = await update_seconds_page_Module.find({user})
+        if(data){
+            return res.status(200).json({data})
+        }else{
+            return res.status(200).json({message : "No Data Found"})
+        }
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+})
+
 
 
 //Before Live Server 31-11-2025
@@ -3701,13 +3748,134 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
                         { category: Answer_Verify.sub_lang, Tough: Answer_Verify.tough }, // match condition
                         {
                             $push: {
-                                seconds: { user: user, seconds: seconds }, // push into nested objects array
+                                seconds: { user: user, seconds: [seconds] }, // push into nested objects array
                                 ex_seconds: seconds                        // push into normal array
                             }
                         }
                     );
 
+                } else {
+                    // const doc = await Seconds_Module.findOneAndUpdate(
+                    //     {
+                    //         category: Answer_Verify.sub_lang,
+                    //         Tough: Answer_Verify.tough,
+                    //         "seconds.user": user
+                    //     },
+                    //     {
+                    //         $push: {
+                    //             "seconds.$.seconds": seconds,
+                    //             ex_seconds: seconds
+                    //         }
+                    //     },
+                    //     {
+                    //         new: true // ← this is the key
+                    //     }
+                    // );
+
+                    // const userSec = doc.seconds.find(s => s.user === user)?.seconds || [];
+
+                    // const avg = userSec.length
+                    //     ? userSec.reduce((s, v) => s + v, 0) / userSec.length
+                    //     : 0;
+
+
+
+
+
+                    const beforeDoc = await Seconds_Module.findOne(
+                        {
+                            category: Answer_Verify.sub_lang,
+                            Tough: Answer_Verify.tough,
+                            "seconds.user": user
+                        },
+                        {
+                            "seconds.$": 1 // only this user's seconds
+                        }
+                    );
+
+                    const beforeSeconds =
+                        beforeDoc?.seconds?.[0]?.seconds ?? [];
+                    
+
+
+                    
+                    await Seconds_Module.updateOne(
+                        {
+                            category: Answer_Verify.sub_lang,
+                            Tough: Answer_Verify.tough,
+                            "seconds.user": user
+                        },
+                        {
+                            $push: {
+                                "seconds.$.seconds": seconds,
+                                ex_seconds: seconds
+                            }
+                        }
+                    );
+
+                    const afterDoc = await Seconds_Module.findOne(
+                        {
+                            category: Answer_Verify.sub_lang,
+                            Tough: Answer_Verify.tough,
+                            "seconds.user": user
+                        },
+                        {
+                            "seconds.$": 1
+                        }
+                    );
+
+                    const afterSeconds =
+                        afterDoc?.seconds?.[0]?.seconds ?? [];
+
+                    
+                    const beforeAvg = beforeSeconds.length
+                        ? beforeSeconds.reduce((s, v) => s + v, 0) / beforeSeconds.length
+                        : 0;
+
+                    const afterAvg = afterSeconds.length
+                        ? afterSeconds.reduce((s, v) => s + v, 0) / afterSeconds.length
+                        : 0;
+
+                    const delta = afterAvg - beforeAvg;
+                    console.log("show Avg : ",  delta)
+
+                    if (delta > 0 && delta) {
+                        await update_seconds_page_Module.create({
+                            sub_lang: Answer_Verify.sub_lang,
+                            tough: Answer_Verify.tough,
+                            user: user,
+                            seconds: delta,
+                            down_up: "UP",
+                            Time,
+                            bef_sec : beforeAvg +2,
+                            af_sec : afterAvg +2
+                        })
+                    }
+
+                    if (delta < 0 && delta) {
+                        await update_seconds_page_Module.create({
+                            sub_lang: Answer_Verify.sub_lang,
+                            tough: Answer_Verify.tough,
+                            user: user,
+                            seconds: delta,
+                            down_up: "DOWN",
+                            Time,
+                            bef_sec : beforeAvg +2,
+                            af_sec : afterAvg +2
+                        })
+                    }
+                    
+                    
+
+
+
+
+
+
+
+                    //get Seconds_module user avg and get compare avg and new seconds +2  and get add again avg if first avg is leserthan 2nd the second lost make lose
                 }
+
 
 
 
@@ -7377,7 +7545,7 @@ function Two() {
                 Ans: hash,
                 tough: level,
                 Qno: qno,
-                seconds: 50,
+                seconds: sec,
                 sub_lang: "news_side",
                 yes: [],
                 no: []
@@ -7810,7 +7978,7 @@ function Thirteen() {
 
         const per = await get_per("num_pairs", level, user);
 
-        const puzzle = await generateNumberPairMCQ("Too Easy", per)
+        const puzzle = await generateNumberPairMCQ(level, per)
 
         const sec = await get_lel_dif(level, "num_pairs")
         // console.log(puzzle.question);
@@ -8162,6 +8330,7 @@ app.get(
 
 
 async function get_lel_dif(level, cat) {
+
     const data = await sec_Count_Module.findOne({ level, cat });
 
     if (!data || !Array.isArray(data.sec_try) || data.sec_try.length === 0) {
