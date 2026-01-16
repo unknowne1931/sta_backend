@@ -213,7 +213,7 @@ app.post(
 
 
 app.use(cors({
-    origin: ["https://stawro.com", "https://www.stawro.com"],
+    origin: ["https://stawro.com", "https://www.stawro.com", "*"],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
@@ -294,12 +294,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // });
 
 
-
-
-
-
-
-
 const Time = new Date().toLocaleString("en-US", {
     timeZone: "Asia/Kolkata",
     hour: '2-digit',
@@ -319,17 +313,17 @@ mongoose.connect(mongoURI,)
 
 
 
-const client = new MongoClient(mongoURI);
+// const client = new MongoClient(mongoURI);
 
-let users_db;
+// let users_db;
 
-async function run() {
-    await client.connect();
-    const db = client.db("test");
-    users_db = db.collection("most_answerd_modules");
-}
+// async function run() {
+//     await client.connect();
+//     const db = client.db("test");
+//     users_db = db.collection("most_answerd_modules");
+// }
 
-run().catch(console.error)
+// run().catch(console.error)
 
 
 const generateOTP = () => {
@@ -350,6 +344,16 @@ const generateOTP = () => {
 // httpsServer.listen(443);
 
 //https end
+
+app.get('/', (req, res) => {
+    res.send('Hello, world Vs : 6.0.0 ; Last Updated : 15-01-2026 ; Type : Live');
+});
+
+
+app.get('/ip', (req, res) => {
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    res.send(`Your IP address is: ${ip}`);
+});
 
 
 export async function get_per(user) {
@@ -389,15 +393,57 @@ export async function get_per(user) {
     }
 }
 
-app.get('/', (req, res) => {
-    res.send('Hello, world Vs : 6.1.0 ; Last Updated : 15-01-2026 ; Type : Live');
-});
+export async function get_level_step(){
+    const data = Admin_levl_diff_Module.findOne({user : "Kick"}).lean()
+    if(!data){
+        await Admin_levl_diff_Module.create({Time, user : "Kick", diff : "1"})
+        return "1"
+    }else{
+        return data.diff
+    }
+}
 
 
-app.get('/ip', (req, res) => {
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    res.send(`Your IP address is: ${ip}`);
+const level_setup_schema = new mongoose.Schema({
+
+    Time: String,
+    user : String,
+    diff : String
 });
+
+const Admin_levl_diff_Module = mongoose.model('Level_admin_level', level_setup_schema);
+
+app.get("/get/dificulties/data/to/make/dificulties", adminMiddleware, async (req, res) =>{
+    try{
+        const data = await Admin_levl_diff_Module.findOne({user : "Kick"})
+        if(!data){
+            const data_1 = await Admin_levl_diff_Module.create({Time, user : "Kick", diff : "1"})
+            return res.status(200).json({data_1})
+        }else{
+            return res.status(200).json({data})
+        }
+    }catch (error) {
+        console.error("Google Auth Error:", error);
+        return res.status(500).json({ Status: "ERR_SERVER", message: "Internal server error." });
+    }
+})
+
+app.post("/change/dificulti/level/by/from/admin", adminMiddleware, async(req, res) =>{
+    const {text} = req.body
+    try{
+        const data = await Admin_levl_diff_Module.findOne({user : "Kick"})
+        if(data){
+            data.diff = text
+            await data.save()
+            return res.status(200).json({Status : "OK"})
+        }else{
+            return res.status(200).json({Message : "No Data Exist to Update"})
+        }
+    }catch (error) {
+        console.error("Google Auth Error:", error);
+        return res.status(500).json({ Status: "ERR_SERVER", message: "Internal server error." });
+    }
+})
 
 const UsersSchema = new mongoose.Schema({
 
@@ -1064,8 +1110,10 @@ app.post('/get/balance/new/data', authMiddleware, async (req, res) => {
         const data = await Balancemodule.findOne({ user: user })
         if (!data) {
 
-            await Balancemodule.create({ user, Time, balance: "10", last_tr_id: user });
-            await Historymodule.create({ Time, user, rupee: "10", type: "Credited", tp: "Rupee" });
+            const fees = await Rupeemodule.findOne({ username: "admin" }).lean();
+
+            await Balancemodule.create({ user, Time, balance: fees.rupee, last_tr_id: user });
+            await Historymodule.create({ Time, user, rupee: fees.rupee, type: "Credited", tp: "Rupee" });
             const data1 = StarBalmodule.findOne({ user }).lean()
             if (data1) {
                 const add_ref_bal = await Balancemodule.findOne({ user: refer_ui })
@@ -3368,197 +3416,6 @@ app.get("/get/singel/ticket/to/test/:id", adminMiddleware, async(req, res) =>{
 
 
 
-// app.post('/start/playing/by/debit/amount', async (req, res) => {
-//     const { user, lang } = req.body;
-
-//     try {
-//         // Find the balance of the user
-//         const balance = await Balancemodule.findOne({ user });
-//         // Find the fees from the admin user
-//         const fees = await Rupeemodule.findOne({ username: "admin" });
-//         await StartValidmodule.findOneAndDelete({ user});
-
-//         if (balance) {
-//             // Check if the user's balance is sufficient to cover the fees
-//             if (parseInt(balance.balance) >= parseInt(fees.rupee)) {
-
-
-//                 // Calculate the remaining balance
-//                 const rem = parseInt(balance.balance) - parseInt(fees.rupee);
-
-//                 // Update the user's balance
-//                 await balance.updateOne({ balance: rem });
-
-//                 // Get the current time
-//                 const Time = new Date();
-
-//                 // Create a new start record
-//                 await StartValidmodule.create({ Time, user, valid: "yes" });
-
-//                 // Create a new history record
-//                 await Historymodule.create({ Time, user, rupee: fees.rupee, type: "Debited", tp: "Rupee" });
-
-//                 const create_data = await QuestionListmodule.findOne({user})
-//                 if(create_data){
-
-//                     const QnoList = create_data.oldlist;
-
-
-
-//                     const Total_Questions = await QuestionModule.find({lang : lang})
-
-//                     const sum = Total_Questions.length - 9;
-//                     const specificNumbers = [];
-
-
-
-//                     for (i = sum ; i > 0; i-=10){
-//                         specificNumbers.push(i);            
-//                     }
-
-//                     const Ary = [1, 2, 3, 4]  
-
-//                     const Final = specificNumbers.filter(value => !QnoList.includes(value) )
-
-//                     if(Final.length < 0){
-
-//                         return res.status(200).json({Status : "BAD"})
-
-//                     }else{
-
-//                         const getRandomNumber = () => {
-//                             const randomIndex = Math.floor(Math.random() * Final.length);
-//                             return Final[randomIndex];
-//                         };
-//                         const num = getRandomNumber()
-//                         await QuestionListmodule.updateOne({ _id: create_data._id }, { $push: { oldlist: num } });
-//                         //update a update epty [] to
-//                         await QuestionListmodule.updateOne({ _id: create_data._id }, { $set: { list: [] } });
-
-//                         const two = num+10
-//                         for (i = num; i < two; i++){
-//                             await QuestionListmodule.updateOne({ _id: create_data._id }, { $push: { list: i } });
-//                         }
-
-//                         return res.status(200).json({ Status: "OK" });
-//                     }
-
-
-//                 }else{
-//                     const Question_list = await QuestionListmodule.create({ user, Time, lang, list: [], oldlist: [] });
-
-//                     const Total_Questions = await QuestionModule.find({ lang: lang });
-
-//                     const sum = Total_Questions.length - 9;
-//                     const specificNumbers = [];
-//                     for (let i = sum; i > 0; i -= 10) {
-//                         specificNumbers.push(i);
-//                     }
-
-//                     const getRandomNumber = () => {
-//                         const randomIndex = Math.floor(Math.random() * specificNumbers.length);
-//                         return specificNumbers[randomIndex];
-//                     };
-
-//                     const num = getRandomNumber();
-//                     await QuestionListmodule.updateOne({ _id: Question_list._id }, { $push: { oldlist: num } });
-
-//                     const two = num + 10;
-//                     for (let i = num; i < two; i++) {
-//                         await QuestionListmodule.updateOne({ _id: Question_list._id }, { $push: { list: i } });
-//                     }
-
-//                     return res.status(200).json({ Status: "OK" });
-
-
-//                 }
-
-
-//                 // Send a success response
-//                 // return res.status(200).json({ Status: "OK"});
-//             } else {
-//                 // Send a response indicating low balance
-//                 return res.status(200).json({ Status: "Low-Bal" });
-//             }
-//         } else {
-//             // Send a response indicating that the user is not found
-//             return res.status(200).json({ Status: "BAD" });
-//         }
-//     } catch (error) {
-//         console.log(error);
-//         // Send an error response
-//         return res.status(500).json({ message: "Internal Server Error" });
-//     }
-// });
-
-
-// app.post("/get/id/to/update/seconds", authMiddleware, async (req, res) => {
-//     const { id, second, user } = req.body;
-
-//     try {
-//         // Get question data
-//         const data = await QuestionModule.findById(id);
-//         if (!data) {
-//             return res.status(200).json({ Status: "BAD" });
-//         }
-
-//         // Find matching seconds document
-//         const sec_data = await Seconds_Module.findOne({
-//             category: data.sub_lang,
-//             Tough: data.tough
-//         });
-
-//         // Allowed time = question's base seconds + 3 buffer
-//         const exp_sec = parseInt(data.seconds) + 3;
-//         if (parseInt(second) <= exp_sec) {
-//             return res.status(200).json({ Status: "OK" });
-//         }
-
-//         // If no record exists, create it
-//         if (!sec_data) {
-//             await Seconds_Module.create({
-//                 Time: new Date().toISOString(), // or whatever your 'Time' is
-//                 category: data.sub_lang,
-//                 Tough: data.tough,
-//                 ex_seconds: [second],
-//                 seconds: [
-//                     {
-//                         user: user,
-//                         seconds: second
-//                     }
-//                 ]
-//             });
-//             consol
-//             return res.status(200).json({ Status: "OK" });
-//         }
-
-//         // If record exists, check if this user already has an entry
-//         const existingUser = sec_data.seconds.find(s => s.user === user);
-
-//         if (!existingUser) {
-//             sec_data.seconds.push({ user, seconds: second });
-//         } else {
-//             existingUser.seconds = second; // Or update logic if needed
-//         }
-
-//         // Add to ex_seconds
-//         sec_data.ex_seconds.push(second);
-
-//         // Save changes
-//         await sec_data.save();
-
-//         return res.status(200).json({ Status: "OK" });
-
-//     } catch (error) {
-//         console.error(error);
-//         return res.status(500).json({ message: "Internal Server Error" });
-//     }
-// });
-
-
-
-
-
 
 
 app.delete("/delete/by/user/id/for/valid/data", authMiddleware, async (req, res) => {
@@ -3657,76 +3514,6 @@ app.post("/get/posted/count/questions", async (req, res) => {
     }
 })
 
-
-
-// app.get("/get/question/no/by/user/name/:user", authMiddleware, async (req, res) => {
-//     const user = req.params.user;
-//     try {
-
-//         if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
-
-
-//         // Fetch the user's validity status from StartValidmodule
-//         const Data = await StartValidmodule.findOne({ user }).lean();
-//         // Fetch the user's question list from QuestionListmodule
-//         const Get_Qno_info = await QuestionListmodule.findOne({ user }).lean();
-
-//         // Check if the user is valid and has a question list
-//         if (Data && Data.valid === "yes") {
-//             if (Get_Qno_info && Get_Qno_info.list.length > 0) {
-//                 // Get the first question number from the list
-//                 const QNO = Get_Qno_info.list[0];
-
-//                 // Find the question in QuestionModule by its number and language
-//                 const Qno = await QuestionModule.findOne({ qno: QNO, lang: Get_Qno_info.lang }).lean();
-
-//                 const cal_sec = await Seconds_Module.findOne({
-//                     category: Qno.sub_lang,
-//                     Tough : Qno.tough,
-//                     "seconds.user" : user 
-//                 });
-
-
-//                 let sec_cal = ''
-
-//                 if(cal_sec){
-//                     sec_cal = cal_sec.seconds
-//                 }else {
-//                     sec_cal = Qno.seconds
-//                 }
-
-
-//                 if (Qno) {
-//                     // Construct the response data
-//                     const data = {
-//                         _id: Qno._id,
-//                         img: Qno.img,
-//                         Question: Qno.Questio,
-//                         Qno: Get_Qno_info.list.length - 1, // Calculates the position of the question
-//                         a: Qno.a,
-//                         b: Qno.b,
-//                         c: Qno.c,
-//                         d: Qno.d,
-//                         seconds: sec_cal,
-//                         Ans : Qno.Ans
-//                     };
-//                     console.log(data)
-
-//                     return res.status(200).json({ data });
-//                 } else {
-//                     return res.status(404).json({ Status: "BAD" });
-//                 }
-//             } else {
-//                 return res.status(202).json({ Status: "BAD" });
-//             }
-//         } else {
-//             return res.status(202).json({ Status: "BAD" });
-//         }
-//     } catch (error) {
-//         console.log(error);
-//         return res.status(500).json({ message: "Internal Server Error" });
-//     }
-// });
 
 
 app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
@@ -4605,58 +4392,6 @@ app.get("/trial/get/data/:data", async (req, res) => {
 });
 
 
-// app.get("/trial/get/data/:data", async (req, res)=>{
-//     const data = req.params.data
-//     try {
-
-//         // Find the first document where count is greater than or equal to the specified value
-//         const get_count_data6 = await StarsCountmodule.findOne({stars : "6"});
-//         const get_count_data5 = await StarsCountmodule.findOne({stars : "5"});
-//         const get_count_data4 = await StarsCountmodule.findOne({stars : "4"});
-//         const get_count_data3 = await StarsCountmodule.findOne({stars : "3"});
-//         const get_count_data2 = await StarsCountmodule.findOne({stars : "2"});
-//         const get_count_data1 = await StarsCountmodule.findOne({stars : "1"});
-
-//         if(parseInt(get_count_data6.count) >= parseInt(data)){
-//             return res.status(200).json({Data : get_count_data6.stars})
-//         }else if(parseInt(get_count_data5.count) >= parseInt(data)){
-//             return res.status(200).json({Data : get_count_data5.stars})
-//         }else if(parseInt(get_count_data4.count) >= parseInt(data)){
-//             return res.status(200).json({Data : get_count_data4.stars})
-//         }
-//         else if(parseInt(get_count_data3.count) >= parseInt(data)){
-//             return res.status(200).json({Data : get_count_data3.stars})
-//         }else if(parseInt(get_count_data2.count) >= parseInt(data)){
-//             return res.status(200).json({Data : get_count_data2.stars})
-//         }else if(parseInt(get_count_data1.count) >= parseInt(data)){
-//             return res.status(200).json({Data : get_count_data1.stars})
-//         }else{
-//             console.log("none")
-//         }
-
-//         // Return the result as a JSON response
-//     } catch (error) {
-//         console.log(error);
-//         return res.status(500).json({ message: "Internal Server Error" });
-//     }
-// })
-
-// app.get("/get/all/users/usernames/by/id/to/update/balance", async (req, res) => {
-//     try {
-//         const users = await Usermodule.find({});
-//         const usersList = users.map((data) => {
-//             return {
-//                 id: data._id,
-//                 username: data.username,
-//             };
-//         });
-//         return res.status(200).json({ users: usersList });
-//     } catch (error) {
-//         console.log(error);
-//         return res.status(500).json({ message: "Internal Server Error" });
-//     }
-// });
-
 
 const Trans_UTR_Schema = new mongoose.Schema({
     Time: String,
@@ -4778,22 +4513,6 @@ app.delete('/get/language/datas/all/get/and/delete', authMiddleware, async (req,
         return res.status(500).json({ message: "Internal Server Error" });
     }
 })
-
-// app.get('/get/languages/data/with/questions/:user', async (req, res) =>{
-//     const user = req.params.user
-//     try{
-//         const users = await LanguageSelectModule.findOne({user : user})
-//         const data = users.lang 
-//         const selQue = await QuestionListmodule.find({})
-//         return res.status(200).json({data})
-
-
-
-//     }catch (error) {
-//         console.error("Error:", error);
-//         return res.status(500).json({ message: "Internal Server Error"});
-//     }
-// })
 
 
 
@@ -5010,173 +4729,6 @@ app.post("/create-order", async (req, res) => {
 
 
 
-// app.post(
-//   "/razorpay/webhook",
-//   express.raw({ type: "application/json" }), // 👈 ensures req.body is Buffer
-//   async (req, res) => {
-//     const secret = "k7ZQ10G2vSdP3vilTZ83a4GS";
-//     const signature = req.headers["x-razorpay-signature"];
-
-//     try {
-//       const rawBodyBuffer = req.body;
-
-//       if (!Buffer.isBuffer(rawBodyBuffer)) {
-//         throw new Error("Invalid raw body: not a Buffer");
-//       }
-
-//       // ✅ HMAC signature generation
-//       const expectedSignature = crypto
-//         .createHmac("sha256", secret)
-//         .update(rawBodyBuffer) // must be a Buffer or string
-//         .digest("hex");
-
-//       if (expectedSignature !== signature) {
-//         console.log("❌ Invalid signature");
-//         return res.status(400).json({ success: false, message: "Invalid signature" });
-//       }
-
-//       // ✅ Parse JSON after signature verified
-//       const data = JSON.parse(rawBodyBuffer.toString("utf8"));
-//       const payment = data?.payload?.payment?.entity;
-
-//       if (!payment || payment.status !== "captured") {
-//         console.log("❗ Payment not captured or missing");
-//         return res.status(200).json({ success: false });
-//       }
-
-//       const user = payment.notes?.user;
-//       if (!user) {
-//         console.log("⚠️ User missing in notes");
-//         return res.status(400).json({ success: false, message: "User not found in notes" });
-//       }
-
-//       // ✅ Proceed with DB updates...
-//       const fees = await Rupeemodule.findOne({ username: "admin" });
-//       const userData = await Balancemodule.findOne({ user });
-
-//       if (!userData) {
-//         return res.status(404).json({ success: false, message: "User not found" });
-//       }
-
-//       const creditAmount = parseInt(fees?.rupee || "0");
-//       userData.balance += creditAmount;
-//       await userData.save();
-
-//       await Historymodule.create({
-//         Time: new Date().toISOString(),
-//         user,
-//         rupee: creditAmount,
-//         type: "Credited",
-//         tp: "Rupee",
-//       });
-
-//       console.log(`✅ Credited ₹${creditAmount} to user: ${user}`);
-//       return res.status(200).json({ success: true });
-//     } catch (err) {
-//       console.error("❌ Webhook processing error:", err);
-//       return res.status(500).json({ success: false });
-//     }
-//   }
-// );
-
-
-// Route to create an order
-
-
-
-
-
-
-// app.post("/create-order", async (req, res) => {
-//     try {
-//         const { amount, currency } = req.body;
-
-//         const fees = await Rupeemodule.findOne({ username: "admin" });
-
-//         const options = {
-//             amount: fees.rupee * 100, // Amount in smallest currency unit (e.g., paise for INR)
-//             currency: currency || "INR",
-//         };
-
-
-
-//         const order = await razorpay.orders.create(options);
-
-//         console.log(order)
-//         res.status(200).json({ success: true, order });
-//     } catch (error) {
-//         console.log(error);
-//         return res.status(500).json({ message: "Internal Server Error" });
-//     }
-// });
-
-// Route to verify payment
-// app.post("/verify-payment", async (req, res) => {
-//     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, user } = req.body;
-
-//     try {
-//         const crypto = require("crypto");
-//         const hmac = crypto.createHmac("sha256", "k7ZQ10G2vSdP3vilTZ83a4GS");
-
-//         const fees = await Rupeemodule.findOne({ username: "admin" });
-
-//         hmac.update(razorpay_order_id + "|" + razorpay_payment_id);
-//         const generatedSignature = hmac.digest("hex");
-
-//         if (generatedSignature === razorpay_signature) {
-//             const data = await Balancemodule.findOne({ user: user })
-//             if (data) {
-//                 sum = parseInt(fees.rupee) + parseInt(data.balance)
-//                 data.balance = sum
-//                 await data.save()
-//                 await Historymodule.create({ Time, user, rupee: fees.rupee, type: "Credited", tp: "Rupee" });
-//                 res.status(200).json({ success: true, message: "Payment verified successfully" });
-//             } else {
-//                 return res.status(202).json({ Status: "NO" });
-//             }
-//         } else {
-//             res.status(400).json({ success: false, message: "Payment verification failed" });
-//         }
-//     } catch (error) {
-//         console.log(error);
-//         return res.status(500).json({ message: "Internal Server Error" });
-//     }
-
-
-// });
-
-
-
-// app.post("/verify/and/add/user/data/to/ac", authMiddleware, async (req, res) => {
-//     try {
-//         const { user } = req.body;
-
-//         if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
-
-//         const fees = await Rupeemodule.findOne({ username: "admin" }).lean();
-
-//         const data = await Balancemodule.findOne({ user: user })
-//         if (data) {
-//             sum = parseInt(fees.rupee) + parseInt(data.balance)
-//             data.balance = sum
-//             await data.save()
-//             await Historymodule.create({ Time, user, rupee: fees.rupee, type: "Credited", tp: "Rupee" });
-//             res.status(200).json({ Status: "OK", message: "Payment verified successfully", rs: fees.rupee });
-//         } else {
-//             return res.status(202).json({ Status: "NO" });
-//         }
-//     } catch (error) {
-//         console.log(error);
-//         return res.status(500).json({ message: "Internal Server Error" });
-//     }
-// })
-
-
-
-// Route to verify payment
-
-
-
 
 
 app.post("/verify-payment", async (req, res) => {
@@ -5215,144 +4767,6 @@ app.post("/verify-payment", async (req, res) => {
 
 });
 
-
-
-// // RAW body middleware for webhook
-// app.post("/razorpay/webhook", express.raw({ type: "application/json" }), async (req, res) => {
-//   const secret = "dp793tI70CWW7hRlzNklvbKt"; // Razorpay Secret Key
-//   const signature = req.headers["x-razorpay-signature"];
-
-//   const generated_signature = crypto
-//     .createHmac("sha256", secret)
-//     .update(req.body)
-//     .digest("hex");
-
-//   if (signature === generated_signature) {
-//     try {
-//       const payload = JSON.parse(req.body);
-//       const payment = payload.payload?.payment?.entity;
-
-//       if (payment && payment.status === "captured") {
-//         const razorpay_order_id = payment.order_id;
-//         const razorpay_payment_id = payment.id;
-//         const amount = payment.amount; // in paise
-
-//         // 👇 Pull user from payment.notes.user (if you set it during order creation)
-//         const user = payment.notes?.user;
-//         if (!user) return res.status(400).json({ error: "User info missing in notes" });
-
-//         const fees = await Rupeemodule.findOne({ username: "admin" });
-//         const data = await Balancemodule.findOne({ user });
-
-//         if (data) {
-//           const sum = parseInt(fees.rupee) + parseInt(data.balance);
-//           data.balance = sum;
-//           await data.save();
-
-//           await Historymodule.create({
-//             Time: new Date().toISOString(),
-//             user,
-//             rupee: fees.rupee,
-//             type: "Credited",
-//             tp: "Rupee"
-//           });
-
-//           console.log(`✅ Webhook payment success for user: ${user}`);
-//           return res.status(200).json({ success : true });
-//         } else {
-//           console.log("⚠️ User balance data not found");
-//           return res.status(404).json({ error: "User balance not found" });
-//         }
-//       } else {
-//         return res.status(200).json({ message: "Payment not captured or invalid" });
-//       }
-//     } catch (error) {
-//       console.error("Webhook Error:", error);
-//       return res.status(500).json({ error: "Webhook processing failed" });
-//     }
-//   } else {
-//     console.log("❌ Invalid webhook signature");
-//     return res.status(400).json({ error: "Invalid signature" });
-//   }
-// });
-
-
-// Important: register this BEFORE any other body-parser (like express.json())
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// app.post("/razorpay/webhook", async (req, res) => {
-//   const secret = "dp793tI70CWW7hRlzNklvbKt"; // Razorpay Secret Key
-//   const signature = req.headers["x-razorpay-signature"];
-
-//   try {
-//     const generated_signature = crypto
-//       .createHmac("sha256", secret)
-//       .update(req.rawBody) // ✅ Use raw body for signature
-//       .digest("hex");
-
-//     if (signature !== generated_signature) {
-//       console.log("❌ Invalid webhook signature");
-//       return res.status(400).json({ success: false, error: "Invalid signature" });
-//     }
-
-//     const payment = req.body?.payload?.payment?.entity;
-
-//     if (!payment || payment.status !== "captured") {
-//       return res.status(200).json({ success: false, message: "Payment not captured or invalid" });
-//     }
-
-//     const razorpay_order_id = payment.order_id;
-//     const razorpay_payment_id = payment.id;
-//     const amount = payment.amount;
-
-//     const user = payment.notes?.user;
-//     if (!user) {
-//       console.log("⚠️ User info missing in Razorpay notes");
-//       return res.status(400).json({ success: false, error: "User info missing in notes" });
-//     }
-
-//     const fees = await Rupeemodule.findOne({ username: "admin" });
-//     const data = await Balancemodule.findOne({ user });
-
-//     if (!data) {
-//       console.log("⚠️ User balance data not found");
-//       return res.status(404).json({ success: false, error: "User balance not found" });
-//     }
-
-//     const sum = parseInt(fees.rupee) + parseInt(data.balance);
-//     data.balance = sum;
-//     await data.save();
-
-//     await Historymodule.create({
-//       Time: new Date().toISOString(),
-//       user,
-//       rupee: fees.rupee,
-//       type: "Credited",
-//       tp: "Rupee"
-//     });
-
-//     console.log(`✅ Webhook payment success for user: ${user}`);
-//     return res.status(200).json({ success: true, message: "Balance credited" });
-
-//   } catch (error) {
-//     console.error("Webhook processing error:", error);
-//     return res.status(500).json({ success: false, error: "Internal server error" });
-//   }
-// });
 
 
 
@@ -6420,12 +5834,7 @@ app.delete("/delete/account/data/by/id/from/app/:id", async (req, res) => {
 
 
 
-const PORT = 80;
 
-
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
 
 const start_Stop_Schema = new mongoose.Schema({
     Time: String,
@@ -6489,18 +5898,6 @@ app.post("/start/game/by/click", async (req, res) => {
         return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to update game status" });
     }
 });
-
-
-
-// app.get('/try/new/:id', async (req, res) => {
-//     const {id} = req.params;
-//     const data = await Usermodule.findById(id);
-//     return res.status(200).json(data);
-
-// });
-
-
-
 
 
 
@@ -7680,9 +7077,9 @@ app.post("/razorpay", async (req, res) => {
 
 
 
-
+//here
 app.post("/refund/data/and/add/to/users", adminMidleware, async (req, res) => {
-    const { id, text, ex_seconds } = req.body;
+    const { id, text, ex_seconds, level, cat } = req.body;
 
     try {
         const data = await ReportSecondModule.findById(id);
@@ -7693,22 +7090,25 @@ app.post("/refund/data/and/add/to/users", adminMidleware, async (req, res) => {
         if (text === "refund") {
 
             if (ex_seconds !== "no") {
-                // await Seconds_Module.updateOne(
-                //     {
-                //         category: data.cat,
-                //         Tough: data.tough,
-                //         "seconds.user": data.user
-                //     },
-                //     {
-                //         $set: { "seconds.$.seconds": ex_seconds } // update that user's seconds
-                //     }
-                // );
 
-                await Seconds_Module.findOneAndDelete({
-                    category : data.cat,
-                    Tough : data.tough,
-                    "seconds.user" : data.user
-                })
+                const new_re = await get_lel_dif(level, cat)
+                
+                await Seconds_Module.updateOne(
+                    {
+                        category: data.cat,
+                        Tough: data.tough,
+                        "seconds.user": data.user
+                    },
+                    {
+                        $set: { "seconds.$.seconds": new_re } // update that user's seconds
+                    }
+                );
+
+                // await Seconds_Module.findOneAndDelete({
+                //     category : data.cat,
+                //     Tough : data.tough,
+                //     "seconds.user" : data.user
+                // })
             }
 
             data.text = "refund";
@@ -7829,7 +7229,9 @@ function One() {
     return async function (level, user, qno) {
         try {
             const per = await get_per("star_cir_tri", level, user);
-            const DIFFICULTIES = getDifficultiesByPer(per);
+            
+            const per_2 =  await get_level_step()
+            const DIFFICULTIES = getDifficultiesByPer(per, per_2);
 
             const difficulty = DIFFICULTIES[level];
             const boxes = generateBoxesData(difficulty);
@@ -7896,10 +7298,11 @@ function Two() {
     return async function (level, user, qno) {
         try {
             const per = await get_per("news_side", level, user);
+            const per_2 = await get_level_step()
 
             // 1) Generate arrows
-            const angles = generateArrows(per, level);
-
+            const angles = generateArrows(per, level, per_2);
+            
             // 2) Draw & upload image
             const buffer = drawArrowsImage(angles);
             const imageURL = await uploadImage1(buffer);
@@ -8792,4 +8195,9 @@ process.on('unhandledRejection', (reason, promise) => {
 
 
 
+const PORT = 80;
 
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
