@@ -2912,6 +2912,7 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
             const lvl = dif_l[i]
             data(lvl, user, num)
         });
+        console.log(shuffled)
 
 
         if (!create_data) {
@@ -3003,17 +3004,16 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
 
 
         const newListData = await QuestionListmodule.findOne({ user }).lean();
-        const newQstData = await QuestionModule.countDocuments({ user: user });
+        const newQstData = await QuestionModule.find({ user: user });
         console.log("Len From Old :", newListData.list.length)
         console.log("Len :", newListData.list)
-        if (newListData.list.length < 10 || newQstData.list < 10 || newQstData.list > 10) {
+        if (newListData.list.length < 10 || newQstData.length < 10 || newQstData.length > 10) {
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
             await QuestionModule.deleteMany({ user })
             bal_dt.balance = lat.toString()
             await bal_dt.save()
-            resetResult = "BAD";
             console.log("BAD")
             return res.status(200).json({ Status: "BAD_CR" })
         }
@@ -3692,16 +3692,6 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ success: false, message: "Invalid ObjectId format" });
         }
-
-
-        // function compareHash(plainText, hash) {
-        //     const plainHash = crypto
-        //         .createHash('sha256')
-        //         .update(plainText)
-        //         .digest('hex');
-
-        //     return plainHash === hash;
-        // }
 
 
         function compareHash(plainText, hash) {
