@@ -213,7 +213,7 @@ app.post(
 
 
 app.use(cors({
-    origin: ["https://stawro.com", "https://www.stawro.com"],
+    origin: ["https://stawro.com", "https://www.stawro.com", "http://localhost:3000"],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
@@ -8332,6 +8332,36 @@ async function get_lel_dif(level, cat) {
     return avg.toString();
 }
 
+
+const balance_re_paid_Schema = new mongoose.Schema({
+    Time: String,
+    level: String,
+    cat: String,
+    sec: String,
+    sec_try: []
+
+}, { timestamps: true });
+
+const Balance_re_paid = mongoose.model('Admin_add_balance', balance_re_paid_Schema);
+
+
+
+
+app.post("/add/from/admin/balance/to/balance", adminMiddleware, async (req, res)=>{
+    const {user, new_balance} = req.body;
+    try{
+        const userData = await Balancemodule.findOne({ user });
+        if(userData){
+            const new_bal = parseInt(userData.balance) + parseInt(new_balance)
+        }else{
+            return res.status(200).json({message : "No data Found"})
+        }
+
+    }catch (error) {
+        console.error("Error fetching balance:", error);
+        return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch balance" });
+    }
+})
 
 
 
