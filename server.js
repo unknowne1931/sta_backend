@@ -3586,8 +3586,7 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                         Qno: Qno.Qno,
                         Question: Qno.Questio,
                         options: Qno.options,
-                        // seconds: sec_cal,
-                        seconds : "20000",
+                        seconds: sec_cal,
                         Ans: Qno.Ans,
                         cat: Qno.sub_lang,
                         tough: Qno.tough
