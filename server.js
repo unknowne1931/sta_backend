@@ -3727,7 +3727,6 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
             }
 
 
-
             if (get_t_data) {
 
                 const gt_ud = get_t_data.seconds.find(s => s.user === user);
@@ -3766,9 +3765,6 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
                     // const avg = userSec.length
                     //     ? userSec.reduce((s, v) => s + v, 0) / userSec.length
                     //     : 0;
-
-
-
 
 
                     const beforeDoc = await Seconds_Module.findOne(
@@ -8183,7 +8179,6 @@ app.get("/admin/balance/wallet", adminMiddleware, async (req, res) => {
     try {
         const all_bal = await Amount_walet_count_Module.findOne({ user: "kick" });
         if (all_bal) {
-            console.log(all_bal)
         } else {
             return res.status(200).json({ Status: "OK", data: "No Data Found" });
         }
@@ -8297,12 +8292,25 @@ app.get(
 
             const user_balance = await Balancemodule.findOne({ user: user._id }).lean()
             const bank_acc = await UPImodule.findOne({ user: user._id }).lean()
+            const lel = await get_per(user._id)
+
+            const total = await Totalusermodule.find({user : user._id }).lean()
+            const old_list = await QuestionListmodule.findOne({user : user._id}).lean() || 0
+
+            // const old_list_len = (old_list.oldlist).length
+
+            const won = await Wonmodule.find({user : user._id }).lean()
+
 
             return res.status(200).json({
                 Status: "OK",
                 data: user,
                 balance: user_balance || "No",
-                bank: bank_acc || "No"
+                bank: bank_acc || "No",
+                level : lel,
+                total_played : total.length,
+                won : won.length,
+                Old_List : old_list?.oldlist?.length || 0 
             });
 
         } catch (error) {
@@ -8335,11 +8343,9 @@ async function get_lel_dif(level, cat) {
 
 const balance_re_paid_Schema = new mongoose.Schema({
     Time: String,
-    level: String,
-    cat: String,
-    sec: String,
-    sec_try: []
-
+    aded: String,
+    user : String,
+    total : String,
 }, { timestamps: true });
 
 const Balance_re_paid = mongoose.model('Admin_add_balance', balance_re_paid_Schema);
@@ -8353,6 +8359,10 @@ app.post("/add/from/admin/balance/to/balance", adminMiddleware, async (req, res)
         const userData = await Balancemodule.findOne({ user });
         if(userData){
             const new_bal = parseInt(userData.balance) + parseInt(new_balance)
+            userData.balance = new_bal
+            await userData.save()
+            await Balance_re_paid.create({Time, aded : new_balance, user, total : new_bal})
+            return res.status(200).json({Status : "OK"})
         }else{
             return res.status(200).json({message : "No data Found"})
         }
