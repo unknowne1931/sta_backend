@@ -257,7 +257,7 @@ function getDifficultyMap(per) {
             "Easy":      { rows: 5, COLS: 4,  visibleRatio: 1 },
             "Medium":    { rows: 5, COLS: 5,  visibleRatio: 1 },
             "Tough":     { rows: 5, COLS: 6, visibleRatio: 1 },
-            "Too Tough": { rows: 5, COLS: 7, visibleRatio: 15 }
+            "Too Tough": { rows: 5, COLS: 7, visibleRatio: 1 }
         };
     }
 

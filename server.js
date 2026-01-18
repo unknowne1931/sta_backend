@@ -2831,7 +2831,7 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
 
         const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
 
-        if (status?.Status === "off") {
+        if (status?.Status === "on") {
             return res.status(200).json({ Status: "Time", message: status.text });
         }
 
@@ -2865,21 +2865,21 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
 
             const level_per = parseInt(level_pe)
 
-            if (level_per < 10) {
+            if (level_per < 5) {
                 return ["Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy"];
-            } else if (level_per < 20) {
+            } else if (level_per < 6) {
                 return ["Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Easy", "Easy", "Easy", "Easy", "Easy"];
-            } else if (level_per < 30) {
+            } else if (level_per < 7) {
                 return ["Easy", "Easy", "Easy", "Easy", "Easy", "Easy", "Easy", "Easy", "Easy", "Easy"];
-            } else if (level_per < 40) {
+            } else if (level_per < 8) {
                 return ["Easy", "Easy", "Easy", "Easy", "Easy", "Medium", "Medium", "Medium", "Medium", "Medium"];
-            } else if (level_per < 50) {
+            } else if (level_per < 9) {
                 return ["Medium", "Medium", "Medium", "Medium", "Medium", "Medium", "Medium", "Medium", "Medium", "Medium"];
-            } else if (level_per < 60) {
+            } else if (level_per < 10) {
                 return ["Medium", "Medium", "Medium", "Medium", "Medium", "Tough", "Tough", "Tough", "Tough", "Tough"];
-            } else if (level_per < 70) {
+            } else if (level_per < 30) {
                 return ["Tough", "Tough", "Tough", "Tough", "Tough", "Tough", "Tough", "Tough", "Tough", "Tough"];
-            } else if (level_per < 80) {
+            } else if (level_per < 50) {
                 return ["Tough", "Tough", "Tough", "Tough", "Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough"];
             } else {
                 return ["Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough", "Too Tough"];
@@ -3522,6 +3522,19 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
         if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
 
 
+        let latestDoc;
+
+        const latestDoc_main = await Totalusermodule
+            .findOne({ user })
+            .sort({ createdAt: -1 });
+
+        if (latestDoc_main) {
+            latestDoc = latestDoc_main._id;
+        } else {
+            latestDoc = `Val${Data.createdAt}`;
+        }
+
+
         // Fetch the user's validity status from StartValidmodule
         const Data = await StartValidmodule.findOne({ user }).lean();
         // Fetch the user's question list from QuestionListmodule
@@ -3594,14 +3607,14 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
 
                     return res.status(200).json({ data });
                 } else {
-                    return res.status(404).json({ Status: "BAD", message: "No Question Found" });
+                    return res.status(404).json({ Status: "BAD", message: "No Question Found.", id : latestDoc });
                 }
             } else {
-                return res.status(202).json({ Status: "BAD", message: "No Question Found" });
+                return res.status(202).json({ Status: "BAD", message: "No Question Found..", id : latestDoc });
             }
         } else {
             console.log("noo")
-            return res.status(202).json({ Status: "BAD", message: "Not Valid to Yes" });
+            return res.status(202).json({ Status: "BAD", message: "Not Valid to Yes", id : latestDoc });
         }
     } catch (error) {
         console.log(error);
@@ -3687,6 +3700,8 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
 
 
         if (!answer && !user && !id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
+
+
 
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -3924,7 +3939,7 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
                     if (get_per < 9) {
                         won_dat = 1;
                     } else {
-                        won_dat = Math.floor(get_per / 10); // safer than string slicing
+                        won_dat = Math.floor(5 / 10); // safer than string slicing
                     }
 
                     // FIRST TIME USER
@@ -7470,6 +7485,8 @@ function Two() {
 
             const askDouble = Math.random() < 0.4 && directionCounts.length >= 2;
 
+            const sec = await get_lel_dif(level, "news_side")
+
             // =========================
             // SINGLE QUESTION
             // =========================
@@ -7481,7 +7498,7 @@ function Two() {
                 const correct = picked.count;
                 const options = generateMCQOptions(correct, totalArrows);
 
-                const sec = await get_lel_dif(level, "news_side")
+                
 
                 const hash = crypto
                     .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
