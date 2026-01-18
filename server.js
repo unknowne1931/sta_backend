@@ -2831,7 +2831,7 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
 
         const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
 
-        if (status?.Status === "on") {
+        if (status?.Status === "off") {
             return res.status(200).json({ Status: "Time", message: status.text });
         }
 
@@ -3052,6 +3052,8 @@ app.post('/start/playing/by/debit/amount/try', authMiddleware, async (req, res) 
 
     try {
         const status = await Start_StopModule.findOne({ user: "kick" });
+
+        console.log("On-----------------------------------------")
 
         if (status?.Status === "off") {
             return res.status(200).json({ Status: "Time", message: status.text });
