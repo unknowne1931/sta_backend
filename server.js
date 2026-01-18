@@ -213,7 +213,7 @@ app.post(
 
 
 app.use(cors({
-    origin: ["https://stawro.com", "https://www.stawro.com"],
+    origin: ["https://stawro.com", "https://www.stawro.com", "http://localhost:3000"],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
