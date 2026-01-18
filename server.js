@@ -3760,28 +3760,6 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
                     );
 
                 } else {
-                    // const doc = await Seconds_Module.findOneAndUpdate(
-                    //     {
-                    //         category: Answer_Verify.sub_lang,
-                    //         Tough: Answer_Verify.tough,
-                    //         "seconds.user": user
-                    //     },
-                    //     {
-                    //         $push: {
-                    //             "seconds.$.seconds": seconds,
-                    //             ex_seconds: seconds
-                    //         }
-                    //     },
-                    //     {
-                    //         new: true // ← this is the key
-                    //     }
-                    // );
-
-                    // const userSec = doc.seconds.find(s => s.user === user)?.seconds || [];
-
-                    // const avg = userSec.length
-                    //     ? userSec.reduce((s, v) => s + v, 0) / userSec.length
-                    //     : 0;
 
 
                     const beforeDoc = await Seconds_Module.findOne(
@@ -3958,7 +3936,7 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
                         const currentRank = parseInt(find_level_data.rank, 10);
 
                         if (currentRank < 100) {
-                            const newLevel = Math.min(currentRank + won_dat, 100);
+                            const newLevel = Math.min(currentRank + 5, 100);
                             find_level_data.rank = newLevel.toString();
                             await find_level_data.save();
                         }
@@ -8391,6 +8369,74 @@ app.post("/add/from/admin/balance/to/balance", adminMiddleware, async (req, res)
         return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch balance" });
     }
 })
+
+const refund_some_error_Schema = new mongoose.Schema({
+    Time: String,
+    aded: String,
+    user : String,
+    id_d : String,
+}, { timestamps: true });
+
+const Start_page_add_Module = mongoose.model('Admin_refu_d_start', refund_some_error_Schema);
+
+
+app.post(
+  "/verify/data/to-confirm/reported/doc/async",
+  adminMiddleware,
+  async (req, res) => {
+    const { user, id } = req.body;
+
+    try {
+      const alreadyClaimed = await Start_page_add_Module.findOne({ id_d: id });
+      if (alreadyClaimed) {
+        return res.status(409).json({ Status: "CLMD" });
+      }
+
+      const userDoc = await Totalusermodule.findById(id);
+      if (!userDoc || userDoc.user !== user) {
+        return res.status(403).json({ Status: "NTHIM" });
+      }
+
+      const bal = await Balancemodule.findOne({ user });
+      const fees = await Rupeemodule.findOne({ username: "admin" });
+
+      if (!bal || !fees) {
+        return res.status(404).json({ Status: "DATA_MISSING" });
+      }
+
+      const totalBalance =
+        Number(bal.balance || 0) + Number(fees.rupee || 0);
+
+      bal.balance = totalBalance.toString();
+      await bal.save();
+
+      const Time = new Date().toISOString();
+
+      await Historymodule.create({
+        Time,
+        user,
+        rupee: fees.rupee,
+        type: "Credited",
+        tp: "Rupee",
+      });
+
+      await Start_page_add_Module.create({
+        Time,
+        added: fees.rupee,
+        user,
+        id_d: id,
+      });
+
+      return res.status(200).json({ Status: "OK" });
+
+    } catch (error) {
+      console.error("Verify route error:", error);
+      return res
+        .status(500)
+        .json({ Status: "SERVER_ERR", message: "Failed to process request" });
+    }
+  }
+);
 
 
 
