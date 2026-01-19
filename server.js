@@ -3583,7 +3583,7 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                 if (userSeconds.length > 0 && avg > 0) {
                     sec_cal = String(Math.floor(avg) + 2);
                 } else {
-                    sec_cal = String(parseInt(Qno.seconds, 10) + 5);
+                    sec_cal = String(parseInt(Qno.seconds, 10) + 2);
                 }
 
                 if(parseInt(sec_cal) > 50){
@@ -3608,6 +3608,7 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                     };
 
                     return res.status(200).json({ data });
+
                 } else {
                     return res.status(404).json({ Status: "BAD", message: "No Question Found.", id : latestDoc });
                 }
@@ -3615,7 +3616,6 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                 return res.status(202).json({ Status: "BAD", message: "No Question Found..", id : latestDoc });
             }
         } else {
-            console.log("noo")
             return res.status(202).json({ Status: "BAD", message: "Not Valid to Yes", id : latestDoc });
         }
     } catch (error) {
