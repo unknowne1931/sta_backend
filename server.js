@@ -3516,7 +3516,8 @@ app.post("/get/posted/count/questions", async (req, res) => {
 })
 
 
-
+//before seconds fix
+//this gonna decrease the seconds on playing
 app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
     const user = req.user;
     try {
@@ -3620,7 +3621,7 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
         }
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Internal Server Error", error: error.message });
+        return res.status(500).json({ message: "Internal Server Error", error: error.message, id : "Some Erorr" });
     }
 });
 
