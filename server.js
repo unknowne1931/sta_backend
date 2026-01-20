@@ -612,164 +612,6 @@ app.post('/post/google/login', async (req, res) => {
 
 
 
-app.post('/get/all/users/data/otp/to/verify', async (req, res) => {
-    const { OTP, username } = req.body;
-
-    try {
-
-        if (!OTP && !username) return res.status(202).json({ Status: "BAD", message: "Invalid OTP or username." });
-
-        // Find the user with the provided username
-        const find_user = await User_s_OTP_module.findOne({ username });
-
-        // Check if user and OTP match
-        if (find_user && find_user.otp === OTP) {
-            // Update the user's valid status in the main user module
-            const mainUser = await Usermodule.findOne({ username });
-            if (mainUser) {
-
-                mainUser.valid = "yes";
-                await mainUser.save();
-
-            }
-            // Delete the OTP record
-
-            await find_user.deleteOne();
-
-            return res.status(200).json({ Status: "OK", message: "OTP verified successfully." });
-        } else {
-            return res.status(200).json({ Status: "BAD", message: "Invalid OTP or username." });
-        }
-    } catch (error) {
-        console.error("Error during OTP verification:", error);
-        return res.status(500).json({ message: "Internal Server Error." });
-    }
-});
-
-
-app.post('/get/all/users/data/otp/to/verify/02', async (req, res) => {
-    const { OTP, data } = req.body;
-
-    try {
-        // Find the user with the provided username
-
-        if (!OTP && !data) return res.status(202).json({ Status: "BAD", message: "Invalid OTP or username." });
-
-        const user = await Usermodule.findOne({
-            $or: [{ username: data.trim() }, { email: data.trim() }]
-        });
-
-        const find_user = await User_s_OTP_module.findOne({ username: user.username });
-
-        // Check if user and OTP match
-        if (find_user && find_user.otp === OTP) {
-            // Update the user's valid status in the main user module
-            const mainUser = await Usermodule.findOne({ email: user.email });
-            if (mainUser) {
-                mainUser.valid = "yes";
-                await mainUser.save();
-            }
-
-            // Delete the OTP record
-
-            await find_user.deleteOne();
-
-            const token = jwt.sign({ id: user._id }, "kanna_stawro_founders_withhh_1931_liketha", { expiresIn: "365 days" });
-            return res.status(200).json({ Status: "OK", token, user: user._id, username: user.username });
-
-        }
-        else {
-            return res.status(200).json({ Status: "BAD", message: "Invalid OTP or username." });
-        }
-    } catch (error) {
-        console.error("Error during OTP verification:", error);
-        return res.status(500).json({ message: "Internal Server Error." });
-    }
-});
-
-app.post('/get/new/otp/to/verify/app', async (req, res) => {
-    try {
-        const { data } = req.body;
-
-
-        if (!data) {
-            return res.status(400).json({ Status: "ERR", message: "Data is required." });
-        }
-
-        const user = await Usermodule.findOne({
-            $or: [{ username: data.trim() }, { email: data.trim() }]
-        }).lean();
-
-        if (!user) {
-            return res.status(404).json({ Status: "ERR", message: "User not found." });
-        }
-
-
-        if (user.valid === "no") {
-            const existingOTP = await User_s_OTP_module.findOne({ username: user.username });
-
-            if (existingOTP) {
-                await existingOTP.deleteOne();
-            }
-
-
-            const OTP = generateOTP();
-
-
-            const otpData = await User_s_OTP_module.create({
-                Time,
-                username: user.username,
-                otp: OTP
-            });
-
-
-            let mailOptions = {
-                from: "stawropuzzle@gmail.com",
-                to: user.email,
-                subject: "Resend OTP for Account Verification",
-                html: `
-                <html lang="en">
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>stawro Account Verification</title>
-                    </head>
-                    <body>
-                        <div>
-                            <h2>Hello ${user.username},</h2>
-                            <p>Your OTP for email verification is:</p>
-                            <h3>${otpData.otp}</h3>
-                            <p>Please use this OTP to complete your account verification.</p>
-                            <p>Thank you for choosing stawro!</p>
-                        </div>
-                    </body>
-                </html>
-                `,
-            };
-
-
-            // Send email
-            transporter.sendMail(mailOptions, (error, info) => {
-                if (error) {
-                    console.error("Error sending email:", error);
-                    return res.status(500).json({ Status: "EMAIL_ERR", message: "Failed to send email." });
-                }
-
-                return res.status(200).json({ Status: "OK", message: "OTP resent successfully." });
-            });
-
-
-        } else {
-            return res.status(400).json({ Status: "ERR", message: "User is already verified." });
-        }
-    } catch (error) {
-        console.error("Error during OTP verification:", error);
-        return res.status(500).json({ Status: "ERR", message: "Internal Server Error." });
-    }
-});
-
-
-
 
 
 app.post('/get/new/otp/to/verify', async (req, res) => {
@@ -2558,13 +2400,11 @@ app.post('/start/playing/by/debit/amount', authMiddleware, async (req, res) => {
 
         const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
 
-        if (status?.Status === "off") {
+        if (status?.Status === "on") {
             return res.status(200).json({ Status: "Time", message: status.text });
         }
 
-
-
-        const lang_data = await LanguageSelectModule.findOne({ user }).lean();
+        const lang_data = await LanguageSelectModule.findOne({ user }).lean();s
         const balance = await Balancemodule.findOne({ user }); // ac balance
         const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
 
@@ -2831,7 +2671,7 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
 
         const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
 
-        if (status?.Status === "off") {
+        if (status?.Status === "on") {
             return res.status(200).json({ Status: "Time", message: status.text });
         }
 
@@ -3694,7 +3534,7 @@ app.get("/get/verifyed/seonds/updates/data/and/avug/cal", authMiddleware, async 
 
 
 //Before Live Server 31-11-2025
-app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
+app.post('/verify/answer/question/number/old', authMiddleware, async (req, res) => {
     const { answer, id, seconds, Ans } = req.body;
 
     try {
@@ -4008,7 +3848,7 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
                                     const currentRank = parseInt(find_level_data.rank, 10);
 
                                     if (currentRank < 100) {
-                                        const newLevel = Math.min(currentRank + won_dat, 100);
+                                        const newLevel = Math.min(2 + won_dat, 100);
                                         find_level_data.rank = newLevel.toString();
                                         await find_level_data.save();
                                     }
@@ -4099,6 +3939,279 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
 
                 const find_level_data = await Level_up_Module.findOne({ user });
 
+                return res.status(200).json({ Status: "OK" })
+
+            }
+
+        } else {
+            await Answer_Verify.updateOne({ $push: { no: user } })
+            //make this if answer is false make verified is fale or no to throught the user out from playing
+
+            const data = await StartValidmodule.findOne({ user });
+
+            if (data) {
+                data.valid = "no";
+                await data.save();
+            } else {
+                await StartValidmodule.create({ Time, user, valid: "no" });
+            }
+
+            const check_anyl_modl = await module_analysis_module.findOne({ sub_lang: Answer_Verify.sub_lang, tough: Answer_Verify.tough })
+
+            if (check_anyl_modl) {
+                await check_anyl_modl.updateOne({ $push: { no: user } })
+            } else {
+                await module_analysis_module.create({ sub_lang: Answer_Verify.sub_lang, tough: Answer_Verify.tough, yes: [], no: [user] })
+            }
+            const find_level_data = await Level_up_Module.findOne({ user });
+
+            if (!find_level_data) return;
+
+            const currentRank = parseInt(find_level_data.rank, 10);
+
+            // decrease by 1, but not below 0
+            const newRank = Math.max(currentRank - 1, 0);
+
+            find_level_data.rank = newRank.toString();
+            await find_level_data.save();
+
+            return res.status(200).json({ Status: "BAD" })
+
+        }
+    }
+    catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+})
+
+
+
+
+//present code
+app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
+    const { answer, id, seconds, Ans } = req.body;
+
+    try {
+
+        const user = req.user
+
+
+        if (!answer && !user && !id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
+
+
+
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ success: false, message: "Invalid ObjectId format" });
+        }
+
+
+        function compareHash(plainText, hash) {
+            const plainHash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(plainText.toString())
+                .digest("hex");
+
+            return plainHash === hash;
+        }
+
+
+
+
+        const check_ans = compareHash(answer, Ans)
+
+        const Answer_Verify = await QuestionModule.findById({ _id: id })
+        const User_List = await QuestionListmodule.findOne({ user })
+
+        console.log(check_ans)
+
+        if (check_ans) {
+
+
+            const get_t_data = await Seconds_Module.findOne({ category: Answer_Verify.sub_lang, Tough: Answer_Verify.tough })
+
+            const check_anyl_modl = await module_analysis_module.findOne({ sub_lang: Answer_Verify.sub_lang, tough: Answer_Verify.tough })
+
+            if (check_anyl_modl) {
+                await check_anyl_modl.updateOne({ $push: { yes: user } })
+            } else {
+                await module_analysis_module.create({ sub_lang: Answer_Verify.sub_lang, tough: Answer_Verify.tough, yes: [user], no: [] })
+            }
+
+
+
+            if (User_List.list.length === 1 || User_List.list.length === 0) {
+                await User_List.updateOne({ $pull: { list: User_List.list[0] } })
+                // await QuestionListmodule.updateOne(
+                //     { user },
+                //     { $pop: { list: -1 } }   // remove first element
+                // );
+
+                const won = await Wonmodule.find({})
+                const CuponDat = await Cuponmodule.findOne({ no: won.length + 1 })
+                if (CuponDat) {
+                    await Wonmodule.create({ Time, user, no: won.length + 1, ID: CuponDat._id })
+
+                    await Mycoinsmodule.create({
+                        Time: Time,
+                        title: CuponDat.title,
+                        img: CuponDat.img,
+                        user: user,
+                        type: CuponDat.type,
+                        stars: "No",
+                        body: CuponDat.body,
+                        valid: CuponDat.valid
+                    })
+                    //ki1931ck add code here
+                    const rank = toString(won.length + 1)
+                    await Answer_Verify.updateOne({ $push: { yes: user } })
+
+                    // fetch level data
+                    const find_level_data = await Level_up_Module.findOne({ user });
+
+
+                    // FIRST TIME USER
+                    if (!find_level_data) {
+                        await Level_up_Module.create({
+                            Time,
+                            user,
+                            rank: Math.min(2, 100).toString(),
+                        });
+                    }
+
+                    // EXISTING USER
+                    else {
+                        const currentRank = parseInt(find_level_data.rank, 10);
+
+                        if (currentRank < 100) {
+                            const newLevel = Math.min(currentRank + 2, 100);
+                            find_level_data.rank = newLevel.toString();
+                            await find_level_data.save();
+                        }
+                    }
+
+
+                    return res.status(200).json({ Status: "OKK", id: CuponDat._id, rank: rank });
+
+
+
+                } else {
+
+
+                    await Wonmodule.create({ Time, user, no: won.length + 1, ID: "stars" })
+                    const get_prize_list1 = await StarBalmodule.findOne({ user })
+
+                    const starsValues = [];
+                    const pushData = await StarsCountmodule.find({})
+                    pushData.map((users) => {
+                        starsValues.push(users.stars)
+                    })
+
+
+                    // const sum = parseInt(get_prize_list1.balance) + parseInt(get_count_data.stars)
+
+                    if (get_prize_list1) {
+                        for (const stars of starsValues) {
+                            const get_count_data = await StarsCountmodule.findOne({ stars }).lean();
+
+                            if (parseInt(get_count_data.count) >= parseInt(won.length + 1)) {
+                                await get_prize_list1.updateOne({ balance: parseInt(get_prize_list1.balance) + parseInt(get_count_data.stars) })
+                                await Historymodule.create({ Time, user, rupee: get_count_data.stars, type: "Credited", tp: "Stars" });
+                                const rank = toString(won.length + 1)
+                                await Answer_Verify.updateOne({ $push: { yes: user } })
+
+
+                                // fetch level data
+                                const find_level_data = await Level_up_Module.findOne({ user });
+
+                                if (!find_level_data) {
+                                    await Level_up_Module.create({
+                                        Time,
+                                        user,
+                                        rank: Math.min(2, 100).toString(),
+                                    });
+                                }
+
+                                // EXISTING USER
+                                else {
+                                    const currentRank = parseInt(find_level_data.rank, 10);
+
+                                    if (currentRank < 100) {
+                                        const newLevel = Math.min(currentRank + 2, 100);
+                                        find_level_data.rank = newLevel.toString();
+                                        await find_level_data.save();
+                                    }
+                                }
+
+
+
+                                return res.status(200).json({ Status: "STARS", stars: get_count_data.stars, rank: rank });
+
+                            }
+                        }
+
+                    } else {
+                        for (const stars of starsValues) {
+                            const get_count_data = await StarsCountmodule.findOne({ stars }).lean();
+
+                            if (parseInt(get_count_data.count) >= parseInt(won.length + 1)) {
+                                await StarBalmodule.create({ Time, user: user, balance: get_count_data.stars });
+                                await Historymodule.create({ Time, user, rupee: get_count_data.stars, type: "Credited", tp: "Stars" });
+                                const rank = toString(won.length + 1)
+                                await Answer_Verify.updateOne({ $push: { yes: user } })
+
+
+                                const [won_data, total_play] = await Promise.all([
+                                    Wonmodule.countDocuments({ user }),
+                                    Totalusermodule.countDocuments({ user }),
+                                ]);
+
+                                // percentage
+                                const get_per = (won_data / (total_play || 1)) * 100;
+
+                                // fetch level data
+                                const find_level_data = await Level_up_Module.findOne({ user });
+
+                                // FIRST TIME USER
+                                if (!find_level_data) {
+                                    await Level_up_Module.create({
+                                        Time,
+                                        user,
+                                        rank: Math.min(2, 100).toString(),
+                                    });
+                                }
+
+                                // EXISTING USER
+                                else {
+                                    const currentRank = parseInt(find_level_data.rank, 10);
+
+                                    if (currentRank < 100) {
+                                        const newLevel = Math.min(currentRank + 2, 100);
+                                        find_level_data.rank = newLevel.toString();
+                                        await find_level_data.save();
+                                    }
+                                }
+
+
+                                return res.status(200).json({ Status: "STARS", stars: get_count_data.stars, rank: rank });
+
+                            }
+                        }
+
+                        // await StarBalmodule.create({Time, user : user, balance : get_count_data.stars});
+                        // await Historymodule.create({Time, user, rupee : get_count_data.stars, type : "Credited", tp : "Stars"});
+                        // return res.status(200).json({Status : "STARS", stars : get_count_data.stars});
+
+                    }
+
+                }
+
+
+
+            } else {
+                await User_List.updateOne({ $pull: { list: User_List.list[0] } })
+                await Answer_Verify.updateOne({ $push: { yes: user } })
                 return res.status(200).json({ Status: "OK" })
 
             }
@@ -5589,370 +5702,10 @@ const ResetOTPSchema = new mongoose.Schema(
 const ResetOTPModel = mongoose.model("Reset_Pass_OTP", ResetOTPSchema);
 
 
-// Send OTP to user
-const sendOTP = async (req, res) => {
-    try {
-        const { id } = req.body;
-        if (!id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
 
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ success: false, message: "Invalid ObjectId format" });
-        }
 
-        const user = await Usermodule.findById(id).lean();
 
-        if (!user) return res.status(404).json({ message: "User not found" });
 
-        const otp = generateOTP();
-        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // OTP expires in 10 mins
-
-        const check_old_otp = await ResetOTPModel.findOne({ user: user.email })
-
-        if (check_old_otp) {
-            await check_old_otp.deleteOne();
-        }
-
-        // Save OTP in database
-        await ResetOTPModel.create({ user: user.email, otp, expiresAt });
-
-        // TODO: Send OTP via Email/SMS
-        let mailOptions = {
-            from: 'stawropuzzle@gmail.com', // Sender address
-            to: `${user.email}`, // List of recipients
-            subject: `stawro, OTP`, // Subject line
-            text: '', // Plain text body
-            html: `
-        
-        <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <meta http-equiv="refresh" content="30" />
-                <title>Document</title>
-                <style>
-
-                    @import url('https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@400;700&display=swap');
-
-
-                    .email-main-cnt-01{
-                        width: 95%;
-                        justify-content: center;
-                        margin: auto;
-                    }
-
-                    .email-cnt-01{
-                        width: 90%;
-                        height: auto;
-                        display: flex;
-                        margin: 10px;
-                    }
-
-                    .email-cnt-01 div{
-                        width: 50px;
-                        height: 50px;
-                        overflow: hidden;
-                        border-radius: 50%;
-                        border: 1px solid;
-                        
-                    }
-
-                    .email-cnt-01 div img{
-                        width: 100%;
-                        height: 100%;
-                        object-fit: cover;
-                    }
-
-                    .email-cnt-01 strong{
-                        font-family: Inknut Antiqua;
-                        margin-left: 10px;
-                    }
-
-                    .email-cnt-btn-01{
-                        width: 120px;
-                        height: 30px;
-                        margin: 10px;
-                        color: aliceblue;
-                        background-color: rgb(5, 148, 195);
-                        border: 1px solid;
-                        border-radius: 5px;
-                        cursor: pointer;
-                    }
-
-
-                </style>
-            </head>
-            <body>
-                <div class="email-main-cnt-01">
-                    <div class="email-cnt-01">
-                        <strong>stawro</strong>
-                    </div>
-                    <div class="email-cnt-02">
-                        <span>Hello, Dear <strong>${user.username}</strong> </span><br/>
-                        <p>Welcome to stawro.<br/>
-                        OTP to update new Password , Dont share With anyone, ${otp}</p><br/>
-                            
-                        <strong>${otp}</strong><br/>
-             
-                        <strong>Thank you</strong>
-
-                    </div>
-                </div>
-                
-            </body>
-            </html>
-
-        ` // HTML body
-        };
-
-        // Send email
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                console.log(error);
-                return res.status(202).json({ message: "Something went Wrong" })
-            }
-
-            return res.status(200).json({ Status: "OK" })
-        });
-
-        res.json({ message: "OTP sent successfully" });
-    } catch (error) {
-        res.status(500).json({ error: "Failed to send OTP" });
-    }
-};
-
-// Verify OTP
-const verifyOTP = async (req, res) => {
-    try {
-        const { id, otp } = req.body;
-
-        if (!id && !otp) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
-
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ success: false, message: "Invalid ObjectId format" });
-        }
-
-        const user = await Usermodule.findById(id).lean()
-        const otpRecord = await ResetOTPModel.findOne({ user: user.email, otp });
-
-        if (!otpRecord) return res.status(400).json({ message: "Invalid OTP" });
-        if (new Date() > otpRecord.expiresAt)
-            return res.status(400).json({ message: "OTP expired" });
-
-        // OTP verified, delete record
-        await ResetOTPModel.deleteOne({ _id: otpRecord._id });
-
-        res.json({ message: "OTP verified, proceed to reset password" });
-    } catch (error) {
-        res.status(500).json({ error: "OTP verification failed" });
-    }
-};
-
-
-
-
-// Reset Password
-const resetPassword = async (req, res) => {
-    try {
-        const { id, oldPassword, newPassword } = req.body;
-
-        if (!id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
-
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ success: false, message: "Invalid ObjectId format" });
-        }
-
-        const user = await Usermodule.findById(id);
-
-        if (!user) return res.status(404).json({ message: "User not found" });
-
-        // Check if oldPassword is provided (for normal password change)
-        if (oldPassword) {
-            const isMatch = await bcrypt.compare(oldPassword, user.pass);
-            if (!isMatch) return res.status(400).json({ message: "Incorrect old password" });
-        }
-
-        // Hash new password
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-        user.pass = hashedPassword;
-        await user.save();
-
-        res.status(200).json({ message: "Password updated successfully" });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Failed to reset password" });
-    }
-};
-
-
-
-// Reset Password
-const resetPasswordWithOTP = async (req, res) => {
-    try {
-        const { data, otp, newPassword } = req.body;
-
-        if (!data && !otp && !newPassword) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
-
-
-        // Find user by username or email
-        const user = await Usermodule.findOne({
-            $or: [{ username: data.trim() }, { email: data.trim() }]
-        });
-
-        if (!user) return res.status(404).json({ message: "User not found" });
-
-        // Verify OTP
-        const otpRecord = await ResetOTPModel.findOne({ user: user.email, otp });
-        if (!otpRecord) return res.status(400).json({ message: "Invalid OTP" });
-        if (new Date() > otpRecord.expiresAt) {
-            return res.status(400).json({ message: "OTP expired" });
-        }
-
-        // Delete OTP record after successful verification
-        await ResetOTPModel.deleteOne({ _id: otpRecord._id });
-
-        // Hash new password
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-        user.pass = hashedPassword;
-        await user.save();
-
-        res.status(200).json({ message: "OTP verified, password updated successfully" });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Failed to reset password" });
-    }
-};
-
-
-const sendForgot_otp = async (req, res) => {
-    try {
-        const { data } = req.body;
-
-        if (!data) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
-
-        // Find user by email or username
-        const user = await Usermodule.findOne({
-            $or: [{ username: data.trim() }, { email: data.trim() }]
-        });
-
-        if (!user) return res.status(404).json({ message: "User not found" });
-
-        const otp = generateOTP();
-        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // OTP expires in 10 mins
-
-        // Save OTP in database
-        await ResetOTPModel.create({ user: user.email, otp, expiresAt });
-
-        // TODO: Send OTP via Email/SMS
-        let mailOptions = {
-            from: 'stawropuzzle@gmail.com', // Sender address
-            to: `${user.email}`, // List of recipients
-            subject: `stawro, OTP`, // Subject line
-            text: '', // Plain text body
-            html: `
-          
-          <html lang="en">
-              <head>
-                  <meta charset="UTF-8">
-                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                  <meta http-equiv="refresh" content="30" />
-                  <title>Document</title>
-                  <style>
-  
-                      @import url('https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@400;700&display=swap');
-  
-  
-                      .email-main-cnt-01{
-                          width: 95%;
-                          justify-content: center;
-                          margin: auto;
-                      }
-  
-                      .email-cnt-01{
-                          width: 90%;
-                          height: auto;
-                          display: flex;
-                          margin: 10px;
-                      }
-  
-                      .email-cnt-01 div{
-                          width: 50px;
-                          height: 50px;
-                          overflow: hidden;
-                          border-radius: 50%;
-                          border: 1px solid;
-                          
-                      }
-  
-                      .email-cnt-01 div img{
-                          width: 100%;
-                          height: 100%;
-                          object-fit: cover;
-                      }
-  
-                      .email-cnt-01 strong{
-                          font-family: Inknut Antiqua;
-                          margin-left: 10px;
-                      }
-  
-                      .email-cnt-btn-01{
-                          width: 120px;
-                          height: 30px;
-                          margin: 10px;
-                          color: aliceblue;
-                          background-color: rgb(5, 148, 195);
-                          border: 1px solid;
-                          border-radius: 5px;
-                          cursor: pointer;
-                      }
-  
-  
-                  </style>
-              </head>
-              <body>
-                  <div class="email-main-cnt-01">
-                      <div class="email-cnt-01">
-                          <strong>stawro</strong>
-                      </div>
-                      <div class="email-cnt-02">
-                          <span>Hello, Dear <strong>${user.username}</strong> </span><br/>
-                          <p>Welcome to stawro.<br/>
-                          OTP to update new Password , Dont share With anyone, ${otp}</p><br/>
-                              
-                          <strong>${otp}</strong><br/>
-               
-                          <strong>Thank you</strong>
-  
-                      </div>
-                  </div>
-                  
-              </body>
-              </html>
-  
-          ` // HTML body
-        };
-
-        // Send email
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                console.log(error);
-                return res.status(202).json({ message: "Something went Wrong" })
-            }
-
-            return res.status(200).json({ Status: "OK", data: data._id })
-        });
-
-        res.json({ message: "OTP sent successfully" });
-    } catch (error) {
-        res.status(500).json({ error: "Failed to send OTP" });
-    }
-}
-
-app.post("/sendOTP/by/api/using/funtcion", sendOTP);
-app.post("/verifyOTP", verifyOTP);
-app.post("/resetPassword", resetPassword);
-
-app.post("/sent/forgot/pass/app", sendForgot_otp);
-app.post("/resetPasswordWithOTP", resetPasswordWithOTP);
 
 
 
