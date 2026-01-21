@@ -213,7 +213,7 @@ app.post(
 
 
 app.use(cors({
-    origin: ["https://stawro.com", "https://www.stawro.com", "http://localhost:3000"],
+    origin: ["https://stawro.com", "https://www.stawro.com"],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
@@ -2675,8 +2675,6 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
             return res.status(200).json({ Status: "Time", message: status.text });
         }
 
-
-
         const lang_data = await LanguageSelectModule.findOne({ user }).lean();
         const balance = await Balancemodule.findOne({ user }); // ac balance
         const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
@@ -3407,6 +3405,8 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                     }
                 );
 
+                const lel_fnd = await Level_up_Module.findOne({user})
+
 
 
                 const userSeconds = cal_sec?.seconds?.[0]?.seconds || [];
@@ -3416,15 +3416,56 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                         ? userSeconds.reduce((s, v) => s + v, 0) / userSeconds.length
                         : 0;
 
-
-
-
                 let sec_cal = '';
 
                 if (userSeconds.length > 0 && avg > 0) {
                     sec_cal = String(Math.floor(avg) + 2);
                 } else {
-                    sec_cal = String(parseInt(Qno.seconds, 10) + 2);
+                    const sec_cl = String(parseInt(Qno.seconds, 10));
+
+                    if(lel_fnd < 5){
+                        sec_cal = sec_cl + 2
+                    }else if(lel_fnd < 10){
+                        sec_cal = sec_cl + 4
+                    }else if(lel_fnd < 15){
+                        sec_cal = sec_cl + 6
+                    }else if(lel_fnd < 20){
+                        sec_cal = sec_cl + 8
+                    }else if(lel_fnd < 25){
+                        sec_cal = sec_cl + 10
+                    }else if(lel_fnd < 30){
+                        sec_cal = sec_cl + 12
+                    }else if(lel_fnd < 35){
+                        sec_cal = sec_cl + 14
+                    }else if(lel_fnd < 40){
+                        sec_cal = sec_cl + 16
+                    }else if(lel_fnd < 45){
+                        sec_cal = sec_cl + 18
+                    }else if(lel_fnd < 50){
+                        sec_cal = sec_cl + 20
+                    }else if(lel_fnd < 55){
+                        sec_cal = sec_cl + 22
+                    }else if(lel_fnd < 60){
+                        sec_cal = sec_cl + 24
+                    }else if(lel_fnd < 65){
+                        sec_cal = sec_cl + 26
+                    }else if(lel_fnd < 70){
+                        sec_cal = sec_cl + 28
+                    }else if(lel_fnd < 75){
+                        sec_cal = sec_cl + 30
+                    }else if(lel_fnd < 80){
+                        sec_cal = sec_cl + 32
+                    }else if(lel_fnd < 85){
+                        sec_cal = sec_cl + 34
+                    }else if(lel_fnd < 90){
+                        sec_cal = sec_cl + 36
+                    }else if(lel_fnd < 95){
+                        sec_cal = sec_cl + 38
+                    }else if(lel_fnd > 95){
+                        sec_cal = sec_cl + 40
+                    }
+
+
                 }
 
                 if(parseInt(sec_cal) > 50){
