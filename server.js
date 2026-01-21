@@ -213,7 +213,7 @@ app.post(
 
 
 app.use(cors({
-    origin: ["https://stawro.com", "https://www.stawro.com"],
+    origin: ["https://stawro.com", "https://www.stawro.com", "http://localhost:3000"],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
@@ -393,12 +393,12 @@ export async function get_per(user) {
     }
 }
 
-export async function get_level_step(){
-    const data = Admin_levl_diff_Module.findOne({user : "Kick"}).lean()
-    if(!data){
-        await Admin_levl_diff_Module.create({Time, user : "Kick", diff : "1"})
+export async function get_level_step() {
+    const data = Admin_levl_diff_Module.findOne({ user: "Kick" }).lean()
+    if (!data) {
+        await Admin_levl_diff_Module.create({ Time, user: "Kick", diff: "1" })
         return "1"
-    }else{
+    } else {
         return data.diff
     }
 }
@@ -407,39 +407,39 @@ export async function get_level_step(){
 const level_setup_schema = new mongoose.Schema({
 
     Time: String,
-    user : String,
-    diff : String
+    user: String,
+    diff: String
 });
 
 const Admin_levl_diff_Module = mongoose.model('Level_admin_level', level_setup_schema);
 
-app.get("/get/dificulties/data/to/make/dificulties", adminMiddleware, async (req, res) =>{
-    try{
-        const data = await Admin_levl_diff_Module.findOne({user : "Kick"})
-        if(!data){
-            const data_1 = await Admin_levl_diff_Module.create({Time, user : "Kick", diff : "1"})
-            return res.status(200).json({data_1})
-        }else{
-            return res.status(200).json({data})
+app.get("/get/dificulties/data/to/make/dificulties", adminMiddleware, async (req, res) => {
+    try {
+        const data = await Admin_levl_diff_Module.findOne({ user: "Kick" })
+        if (!data) {
+            const data_1 = await Admin_levl_diff_Module.create({ Time, user: "Kick", diff: "1" })
+            return res.status(200).json({ data_1 })
+        } else {
+            return res.status(200).json({ data })
         }
-    }catch (error) {
+    } catch (error) {
         console.error("Google Auth Error:", error);
         return res.status(500).json({ Status: "ERR_SERVER", message: "Internal server error." });
     }
 })
 
-app.post("/change/dificulti/level/by/from/admin", adminMiddleware, async(req, res) =>{
-    const {text} = req.body
-    try{
-        const data = await Admin_levl_diff_Module.findOne({user : "Kick"})
-        if(data){
+app.post("/change/dificulti/level/by/from/admin", adminMiddleware, async (req, res) => {
+    const { text } = req.body
+    try {
+        const data = await Admin_levl_diff_Module.findOne({ user: "Kick" })
+        if (data) {
             data.diff = text
             await data.save()
-            return res.status(200).json({Status : "OK"})
-        }else{
-            return res.status(200).json({Message : "No Data Exist to Update"})
+            return res.status(200).json({ Status: "OK" })
+        } else {
+            return res.status(200).json({ Message: "No Data Exist to Update" })
         }
-    }catch (error) {
+    } catch (error) {
         console.error("Google Auth Error:", error);
         return res.status(500).json({ Status: "ERR_SERVER", message: "Internal server error." });
     }
@@ -2404,7 +2404,7 @@ app.post('/start/playing/by/debit/amount', authMiddleware, async (req, res) => {
             return res.status(200).json({ Status: "Time", message: status.text });
         }
 
-        const lang_data = await LanguageSelectModule.findOne({ user }).lean();s
+        const lang_data = await LanguageSelectModule.findOne({ user }).lean(); s
         const balance = await Balancemodule.findOne({ user }); // ac balance
         const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
 
@@ -2671,7 +2671,7 @@ app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) 
 
         const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
 
-        if (status?.Status === "on") {
+        if (status?.Status === "off") {
             return res.status(200).json({ Status: "Time", message: status.text });
         }
 
@@ -3234,8 +3234,8 @@ app.get("/get/all/tickets/data/admin", adminMiddleware, async (req, res) => {
     }
 })
 
-app.get("/get/singel/ticket/to/test/:id", adminMiddleware, async(req, res) =>{
-    try{
+app.get("/get/singel/ticket/to/test/:id", adminMiddleware, async (req, res) => {
+    try {
         const id = req.params.id
 
         const data = await ReportSecondModule.findById(id)
@@ -3247,7 +3247,7 @@ app.get("/get/singel/ticket/to/test/:id", adminMiddleware, async(req, res) =>{
         }
 
 
-    }catch (error) {
+    } catch (error) {
         console.error(error);
         return res.status(500).json({ message: "Internal Server Error" });
     }
@@ -3356,7 +3356,7 @@ app.post("/get/posted/count/questions", async (req, res) => {
 
 //before seconds fix
 //this gonna decrease the seconds on playing
-app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
+app.get("/get/question/no/by/user/name/bf", authMiddleware, async (req, res) => {
     const user = req.user;
     try {
 
@@ -3386,7 +3386,7 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
             if (Get_Qno_info && Get_Qno_info.list.length >= 0) {
                 // Get the first question number from the list
                 const QNO = Get_Qno_info.list[0];
-                console.log("Qboo",QNO)
+                console.log("Qboo", QNO)
 
 
                 // Find the question in QuestionModule by its number and language
@@ -3405,7 +3405,7 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                     }
                 );
 
-                const lel_fnd = await Level_up_Module.findOne({user})
+                const lel_fnd = await Level_up_Module.findOne({ user })
 
 
 
@@ -3421,55 +3421,20 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                 if (userSeconds.length > 0 && avg > 0) {
                     sec_cal = String(Math.floor(avg) + 2);
                 } else {
-                    const sec_cl = String(parseInt(Qno.seconds, 10));
+                    const baseSeconds = Number(Qno?.seconds);
+                    const level = Number(lel_fnd);
 
-                    if(lel_fnd < 5){
-                        sec_cal = sec_cl + 2
-                    }else if(lel_fnd < 10){
-                        sec_cal = sec_cl + 4
-                    }else if(lel_fnd < 15){
-                        sec_cal = sec_cl + 6
-                    }else if(lel_fnd < 20){
-                        sec_cal = sec_cl + 8
-                    }else if(lel_fnd < 25){
-                        sec_cal = sec_cl + 10
-                    }else if(lel_fnd < 30){
-                        sec_cal = sec_cl + 12
-                    }else if(lel_fnd < 35){
-                        sec_cal = sec_cl + 14
-                    }else if(lel_fnd < 40){
-                        sec_cal = sec_cl + 16
-                    }else if(lel_fnd < 45){
-                        sec_cal = sec_cl + 18
-                    }else if(lel_fnd < 50){
-                        sec_cal = sec_cl + 20
-                    }else if(lel_fnd < 55){
-                        sec_cal = sec_cl + 22
-                    }else if(lel_fnd < 60){
-                        sec_cal = sec_cl + 24
-                    }else if(lel_fnd < 65){
-                        sec_cal = sec_cl + 26
-                    }else if(lel_fnd < 70){
-                        sec_cal = sec_cl + 28
-                    }else if(lel_fnd < 75){
-                        sec_cal = sec_cl + 30
-                    }else if(lel_fnd < 80){
-                        sec_cal = sec_cl + 32
-                    }else if(lel_fnd < 85){
-                        sec_cal = sec_cl + 34
-                    }else if(lel_fnd < 90){
-                        sec_cal = sec_cl + 36
-                    }else if(lel_fnd < 95){
-                        sec_cal = sec_cl + 38
-                    }else if(lel_fnd > 95){
-                        sec_cal = sec_cl + 40
+                    if (!Number.isFinite(baseSeconds) || !Number.isFinite(level)) {
+                        throw new Error('Invalid seconds or level');
                     }
 
-
+                    const bonus = Math.min(Math.floor(level / 5) * 2, 40);
+                    sec_cal = String(baseSeconds + bonus);
                 }
 
-                if(parseInt(sec_cal) > 50){
-                    return res.status(200).json({Status : "BAD"})
+
+                if (parseInt(sec_cal) > 50) {
+                    return res.status(200).json({ Status: "BAD" })
                 }
 
 
@@ -3492,17 +3457,213 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                     return res.status(200).json({ data });
 
                 } else {
-                    return res.status(404).json({ Status: "BAD", message: "No Question Found.", id : latestDoc });
+                    return res.status(404).json({ Status: "BAD", message: "No Question Found.", id: latestDoc });
                 }
             } else {
-                return res.status(202).json({ Status: "BAD", message: "No Question Found..", id : latestDoc });
+                return res.status(202).json({ Status: "BAD", message: "No Question Found..", id: latestDoc });
             }
         } else {
-            return res.status(202).json({ Status: "BAD", message: "Not Valid to Yes", id : latestDoc });
+            return res.status(202).json({ Status: "BAD", message: "Not Valid to Yes", id: latestDoc });
         }
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Internal Server Error", error: error.message, id : "Some Erorr" });
+        return res.status(500).json({ message: "Internal Server Error", error: error.message, id: "Some Erorr" });
+    }
+});
+
+
+const level_controle_Schema = new mongoose.Schema({
+    Time: String,
+    user: String,
+    t_5: String,
+    t_10: String,
+    t_15: String,
+    t_20: String,
+    t_25: String,
+    t_30: String,
+    t_35: String,
+    t_40: String,
+    t_45: String,
+    t_50: String,
+    t_55: String,
+    t_60: String,
+    t_65: String,
+    t_70: String,
+    t_75: String,
+    t_80: String,
+    t_85: String,
+    t_90: String,
+    t_95: String,
+    t_100: String,
+
+}, { timestamps: true });
+
+const level_controle_Module = mongoose.model('level_controle_schema', level_controle_Schema);
+
+
+async function get_level_seconds(level) {
+
+    const fnd_data = await level_controle_Module.findOne({ user: "Kick" })
+    if (!fnd_data) {
+        await level_controle_Module.create({
+            Time,
+            user: "Kick",
+            t_5: 2,
+            t_10: 4,
+            t_15: 6,
+            t_20: 8,
+            t_25: 10,
+            t_30: 12,
+            t_35: 14,
+            t_40: 16,
+            t_45: 18,
+            t_50: 20,
+            t_55: 22,
+            t_60: 24,
+            t_65: 26,
+            t_70: 28,
+            t_75: 30,
+            t_80: 32,
+            t_85: 34,
+            t_90: 36,
+            t_95: 38,
+            t_100: 40
+        })
+        
+        get_level_seconds(level)
+
+    } else {
+        let num = parseInt(level)
+        if (num < 5) {
+            return parseInt(fnd_data.t_5)
+        } else if (num < 10) {
+            return parseInt(fnd_data.t_10)
+        } else if (num < 15) {
+            return parseInt(fnd_data.t_15)
+        } else if (num < 20) {
+            return parseInt(fnd_data.t_20)
+        } else if (num < 25) {
+            return parseInt(fnd_data.t_25)
+        } else if (num < 30) {
+            return parseInt(fnd_data.t_30)
+        } else if (num < 35) {
+            return parseInt(fnd_data.t_35)
+        } else if (num < 40) {
+            return parseInt(fnd_data.t_40)
+        } else if (num < 45) {
+            return parseInt(fnd_data.t_45)
+        } else if (num < 50) {
+            return parseInt(fnd_data.t_50)
+        } else if (num < 55) {
+            return parseInt(fnd_data.t_55)
+        } else if (num < 60) {
+            return parseInt(fnd_data.t_60)
+        } else if (num < 65) {
+            return parseInt(fnd_data.t_65)
+        } else if (num < 70) {
+            return parseInt(fnd_data.t_70)
+        } else if (num < 75) {
+            return parseInt(fnd_data.t_75)
+        } else if (num < 80) {
+            return parseInt(fnd_data.t_80)
+        } else if (num < 85) {
+            return parseInt(fnd_data.t_85)
+        } else if (num < 90) {
+            return parseInt(fnd_data.t_90)
+        } else if (num < 95) {
+            return parseInt(fnd_data.t_95)
+        } else {
+            return parseInt(fnd_data.t_100)
+        }
+    }
+
+
+    
+}
+
+app.get("/get/question/no/by/user/name", async (req, res) => {
+    // const user = req.user;
+    try {
+
+        const user = "686e24d32f21c9417882f777"
+
+        if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
+
+
+        let latestDoc;
+
+        const latestDoc_main = await Totalusermodule
+            .findOne({ user })
+            .sort({ createdAt: -1 });
+
+        if (latestDoc_main) {
+            latestDoc = latestDoc_main._id;
+        } else {
+            latestDoc = `Val${Data.createdAt}`;
+        }
+
+
+        // Fetch the user's validity status from StartValidmodule
+        const Data = await StartValidmodule.findOne({ user }).lean();
+        // Fetch the user's question list from QuestionListmodule
+        const Get_Qno_info = await QuestionListmodule.findOne({ user }).lean();
+
+        // Check if the user is valid and has a question list
+        if (Data && Data.valid === "yes") {
+            if (Get_Qno_info && Get_Qno_info.list.length >= 0) {
+                // Get the first question number from the list
+                const QNO = Get_Qno_info.list[0];
+
+                const Qno = await QuestionModule.findOne({ Qno: QNO.toString(), user: user }).lean();
+                const lel_fnd = await Level_up_Module.findOne({ user })
+
+                const ll_sec = await get_level_seconds(lel_fnd?.rank)
+
+                console.log(ll_sec)
+
+
+
+
+
+
+
+
+
+                // if(parseInt(sec_cal) > 50){
+                //     return res.status(200).json({Status : "BAD"})
+                // }
+
+
+
+
+                if (Qno) {
+                    // Construct the response data
+                    const data = {
+                        _id: Qno._id,
+                        img: Qno.img,
+                        Qno: Qno.Qno,
+                        Question: Qno.Questio,
+                        options: Qno.options,
+                        seconds: Qno.seconds + 100,
+                        Ans: Qno.Ans,
+                        cat: Qno.sub_lang,
+                        tough: Qno.tough
+                    };
+
+                    return res.status(200).json({ data });
+
+                } else {
+                    return res.status(404).json({ Status: "BAD", message: "No Question Found.", id: latestDoc });
+                }
+            } else {
+                return res.status(202).json({ Status: "BAD", message: "No Question Found..", id: latestDoc });
+            }
+        } else {
+            return res.status(202).json({ Status: "BAD", message: "Not Valid to Yes", id: latestDoc });
+        }
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message, id: "Some Erorr" });
     }
 });
 
@@ -3545,12 +3706,12 @@ const module_analysis_module = mongoose.model('most_answerd_module', module_anal
 const Seconds_update_page_Schema = new mongoose.Schema({
     sub_lang: String,
     tough: String,
-    user : String,
-    seconds : String,
-    down_up : String,
-    Time : String,
-    bef_sec : String,
-    af_sec : String
+    user: String,
+    seconds: String,
+    down_up: String,
+    Time: String,
+    bef_sec: String,
+    af_sec: String
 
 }, { timestamps: true });
 
@@ -3560,11 +3721,11 @@ const update_seconds_page_Module = mongoose.model('Seconds_page_updates', Second
 app.get("/get/verifyed/seonds/updates/data/and/avug/cal", authMiddleware, async (req, res) => {
     const user = req.user
     try {
-        const data = await update_seconds_page_Module.find({user})
-        if(data){
-            return res.status(200).json({data})
-        }else{
-            return res.status(200).json({message : "No Data Found"})
+        const data = await update_seconds_page_Module.find({ user })
+        if (data) {
+            return res.status(200).json({ data })
+        } else {
+            return res.status(200).json({ message: "No Data Found" })
         }
     } catch (error) {
         console.log(error);
@@ -3657,10 +3818,10 @@ app.post('/verify/answer/question/number/old', authMiddleware, async (req, res) 
 
                     const beforeSeconds =
                         beforeDoc?.seconds?.[0]?.seconds ?? [];
-                    
 
 
-                    
+
+
                     await Seconds_Module.updateOne(
                         {
                             category: Answer_Verify.sub_lang,
@@ -3689,7 +3850,7 @@ app.post('/verify/answer/question/number/old', authMiddleware, async (req, res) 
                     const afterSeconds =
                         afterDoc?.seconds?.[0]?.seconds ?? [];
 
-                    
+
                     const beforeAvg = beforeSeconds.length
                         ? beforeSeconds.reduce((s, v) => s + v, 0) / beforeSeconds.length
                         : 0;
@@ -3699,7 +3860,7 @@ app.post('/verify/answer/question/number/old', authMiddleware, async (req, res) 
                         : 0;
 
                     const delta = afterAvg - beforeAvg;
-                    console.log("show Avg : ",  delta)
+                    console.log("show Avg : ", delta)
 
                     if (delta > 0 && delta) {
                         await update_seconds_page_Module.create({
@@ -3709,8 +3870,8 @@ app.post('/verify/answer/question/number/old', authMiddleware, async (req, res) 
                             seconds: delta,
                             down_up: "UP",
                             Time,
-                            bef_sec : beforeAvg +2,
-                            af_sec : afterAvg +2
+                            bef_sec: beforeAvg + 2,
+                            af_sec: afterAvg + 2
                         })
                     }
 
@@ -3722,12 +3883,12 @@ app.post('/verify/answer/question/number/old', authMiddleware, async (req, res) 
                             seconds: delta,
                             down_up: "DOWN",
                             Time,
-                            bef_sec : beforeAvg +2,
-                            af_sec : afterAvg +2
+                            bef_sec: beforeAvg + 2,
+                            af_sec: afterAvg + 2
                         })
                     }
-                    
-                    
+
+
 
 
 
@@ -7034,7 +7195,7 @@ app.post("/refund/data/and/add/to/users", adminMidleware, async (req, res) => {
             if (ex_seconds !== "no") {
 
                 const new_re = await get_lel_dif(level, cat)
-                
+
                 await Seconds_Module.updateOne(
                     {
                         category: data.cat,
@@ -7171,7 +7332,7 @@ function One() {
     return async function (level, user, qno) {
         try {
             const per = await get_per("star_cir_tri", level, user);
-            
+
             const DIFFICULTIES = getDifficultiesByPer(per);
 
             const difficulty = DIFFICULTIES[level];
@@ -7241,7 +7402,7 @@ function Two() {
 
             // 1) Generate arrows
             const angles = generateArrows(per, level);
-            
+
             // 2) Draw & upload image
             const buffer = drawArrowsImage(angles);
             const imageURL = await uploadImage1(buffer);
@@ -7273,7 +7434,7 @@ function Two() {
                 const correct = picked.count;
                 const options = generateMCQOptions(correct, totalArrows);
 
-                
+
 
                 const hash = crypto
                     .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
@@ -7800,7 +7961,7 @@ function Fourteen() {
 
         const sec = await get_lel_dif(level, "OMR_1")
 
-        
+
 
 
         const hash = crypto
@@ -7881,8 +8042,8 @@ function Fifteen() {
 }
 
 
-function Sixteen(){
-    return async function(level, user, qno){
+function Sixteen() {
+    return async function (level, user, qno) {
         const per = await get_per("Train", level);
         const puzzle = generateTrainQuestionImage(level, per);
         // console.log(puzzle.question);
@@ -7906,7 +8067,7 @@ function Sixteen(){
             Ans: hash,
             tough: level,
             Qno: qno,
-            seconds:sec,
+            seconds: sec,
             sub_lang: "Train",
             yes: [],
             no: []
@@ -8086,12 +8247,12 @@ app.get(
             const bank_acc = await UPImodule.findOne({ user: user._id }).lean()
             const lel = await get_per(user._id)
 
-            const total = await Totalusermodule.find({user : user._id }).lean()
-            const old_list = await QuestionListmodule.findOne({user : user._id}).lean() || 0
+            const total = await Totalusermodule.find({ user: user._id }).lean()
+            const old_list = await QuestionListmodule.findOne({ user: user._id }).lean() || 0
 
             // const old_list_len = (old_list.oldlist).length
 
-            const won = await Wonmodule.find({user : user._id }).lean()
+            const won = await Wonmodule.find({ user: user._id }).lean()
 
 
             return res.status(200).json({
@@ -8099,10 +8260,10 @@ app.get(
                 data: user,
                 balance: user_balance || "No",
                 bank: bank_acc || "No",
-                level : lel,
-                total_played : total.length,
-                won : won.length,
-                Old_List : old_list?.oldlist?.length || 0 
+                level: lel,
+                total_played: total.length,
+                won: won.length,
+                Old_List: old_list?.oldlist?.length || 0
             });
 
         } catch (error) {
@@ -8136,8 +8297,8 @@ async function get_lel_dif(level, cat) {
 const balance_re_paid_Schema = new mongoose.Schema({
     Time: String,
     aded: String,
-    user : String,
-    total : String,
+    user: String,
+    total: String,
 }, { timestamps: true });
 
 const Balance_re_paid = mongoose.model('Admin_add_balance', balance_re_paid_Schema);
@@ -8145,21 +8306,21 @@ const Balance_re_paid = mongoose.model('Admin_add_balance', balance_re_paid_Sche
 
 
 
-app.post("/add/from/admin/balance/to/balance", adminMiddleware, async (req, res)=>{
-    const {user, new_balance} = req.body;
-    try{
+app.post("/add/from/admin/balance/to/balance", adminMiddleware, async (req, res) => {
+    const { user, new_balance } = req.body;
+    try {
         const userData = await Balancemodule.findOne({ user });
-        if(userData){
+        if (userData) {
             const new_bal = parseInt(userData.balance) + parseInt(new_balance)
             userData.balance = new_bal
             await userData.save()
-            await Balance_re_paid.create({Time, aded : new_balance, user, total : new_bal})
-            return res.status(200).json({Status : "OK"})
-        }else{
-            return res.status(200).json({message : "No data Found"})
+            await Balance_re_paid.create({ Time, aded: new_balance, user, total: new_bal })
+            return res.status(200).json({ Status: "OK" })
+        } else {
+            return res.status(200).json({ message: "No data Found" })
         }
 
-    }catch (error) {
+    } catch (error) {
         console.error("Error fetching balance:", error);
         return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch balance" });
     }
@@ -8168,69 +8329,69 @@ app.post("/add/from/admin/balance/to/balance", adminMiddleware, async (req, res)
 const refund_some_error_Schema = new mongoose.Schema({
     Time: String,
     aded: String,
-    user : String,
-    id_d : String,
+    user: String,
+    id_d: String,
 }, { timestamps: true });
 
 const Start_page_add_Module = mongoose.model('Admin_refu_d_start', refund_some_error_Schema);
 
 
 app.post(
-  "/verify/data/to-confirm/reported/doc/async",
-  adminMiddleware,
-  async (req, res) => {
-    const { user, id } = req.body;
+    "/verify/data/to-confirm/reported/doc/async",
+    adminMiddleware,
+    async (req, res) => {
+        const { user, id } = req.body;
 
-    try {
-      const alreadyClaimed = await Start_page_add_Module.findOne({ id_d: id });
-      if (alreadyClaimed) {
-        return res.status(409).json({ Status: "CLMD" });
-      }
+        try {
+            const alreadyClaimed = await Start_page_add_Module.findOne({ id_d: id });
+            if (alreadyClaimed) {
+                return res.status(409).json({ Status: "CLMD" });
+            }
 
-      const userDoc = await Totalusermodule.findById(id);
-      if (!userDoc || userDoc.user !== user) {
-        return res.status(403).json({ Status: "NTHIM" });
-      }
+            const userDoc = await Totalusermodule.findById(id);
+            if (!userDoc || userDoc.user !== user) {
+                return res.status(403).json({ Status: "NTHIM" });
+            }
 
-      const bal = await Balancemodule.findOne({ user });
-      const fees = await Rupeemodule.findOne({ username: "admin" });
+            const bal = await Balancemodule.findOne({ user });
+            const fees = await Rupeemodule.findOne({ username: "admin" });
 
-      if (!bal || !fees) {
-        return res.status(404).json({ Status: "DATA_MISSING" });
-      }
+            if (!bal || !fees) {
+                return res.status(404).json({ Status: "DATA_MISSING" });
+            }
 
-      const totalBalance =
-        Number(bal.balance || 0) + Number(fees.rupee || 0);
+            const totalBalance =
+                Number(bal.balance || 0) + Number(fees.rupee || 0);
 
-      bal.balance = totalBalance.toString();
-      await bal.save();
+            bal.balance = totalBalance.toString();
+            await bal.save();
 
-      const Time = new Date().toISOString();
+            const Time = new Date().toISOString();
 
-      await Historymodule.create({
-        Time,
-        user,
-        rupee: fees.rupee,
-        type: "Credited",
-        tp: "Rupee",
-      });
+            await Historymodule.create({
+                Time,
+                user,
+                rupee: fees.rupee,
+                type: "Credited",
+                tp: "Rupee",
+            });
 
-      await Start_page_add_Module.create({
-        Time,
-        added: fees.rupee,
-        user,
-        id_d: id,
-      });
+            await Start_page_add_Module.create({
+                Time,
+                added: fees.rupee,
+                user,
+                id_d: id,
+            });
 
-      return res.status(200).json({ Status: "OK" });
+            return res.status(200).json({ Status: "OK" });
 
-    } catch (error) {
-      console.error("Verify route error:", error);
-      return res
-        .status(500)
-        .json({ Status: "SERVER_ERR", message: "Failed to process request" });
+        } catch (error) {
+            console.error("Verify route error:", error);
+            return res
+                .status(500)
+                .json({ Status: "SERVER_ERR", message: "Failed to process request" });
+        }
     }
-  }
 );
 
 
