@@ -213,7 +213,7 @@ app.post(
 
 
 app.use(cors({
-    origin: ["https://stawro.com", "https://www.stawro.com", "http://localhost:3000"],
+    origin: ["https://stawro.com", "https://www.stawro.com", "https://kalanirdhari.in:3000"],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
@@ -3500,6 +3500,56 @@ const level_controle_Schema = new mongoose.Schema({
 
 const level_controle_Module = mongoose.model('level_controle_schema', level_controle_Schema);
 
+app.post(
+  "/get/and/update/data/from/lelel/seconds/data",
+  adminMiddleware,
+  async (req, res) => {
+
+    const {
+      t_5, t_10, t_15, t_20, t_25,
+      t_30, t_35, t_40, t_45, t_50,
+      t_55, t_60, t_65, t_70, t_75,
+      t_80, t_85, t_90, t_95, t_100
+    } = req.body;
+
+    try {
+      const updatedData = await level_controle_Module.findOneAndUpdate(
+        { user: "Kick" },
+        {
+          t_5, t_10, t_15, t_20, t_25,
+          t_30, t_35, t_40, t_45, t_50,
+          t_55, t_60, t_65, t_70, t_75,
+          t_80, t_85, t_90, t_95, t_100, Time
+        },
+        { new: true } // returns updated document
+      );
+
+      return res.status(200).json({
+        message: "Level seconds updated successfully",
+        data: updatedData
+      });
+
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+);
+
+app.get("/get/data/of/level/controle/data", adminMiddleware, async(req, res) =>{
+    try{
+        const data = await level_controle_Module.findOne({user : "Kick"})
+        if(data){
+            return res.status(200).json({data})
+        }else{
+            return res.status(200).json({message : "No Data Found"})
+        }
+    }catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+})
+
 
 async function get_level_seconds(level) {
 
@@ -3581,11 +3631,10 @@ async function get_level_seconds(level) {
     
 }
 
-app.get("/get/question/no/by/user/name", async (req, res) => {
-    // const user = req.user;
+app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
+    const user = req.user;
     try {
 
-        const user = "686e24d32f21c9417882f777"
 
         if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
 
@@ -3632,8 +3681,6 @@ app.get("/get/question/no/by/user/name", async (req, res) => {
                 // if(parseInt(sec_cal) > 50){
                 //     return res.status(200).json({Status : "BAD"})
                 // }
-
-
 
 
                 if (Qno) {
