@@ -256,13 +256,8 @@ import fs from "fs";
 // ==========================
 // FONT (SAFE LOAD)
 // ==========================
-const FONT_PATH = "./fonts/AtkinsonHyperlegibleMono-Bold.ttf";
 
-if (fs.existsSync(FONT_PATH)) {
-    registerFont(FONT_PATH, {
-        family: "Atkinson Hyperlegible Mono"
-    });
-}
+
 
 // ==========================
 // CONFIG

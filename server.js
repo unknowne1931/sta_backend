@@ -213,7 +213,7 @@ app.post(
 
 
 app.use(cors({
-    origin: ["https://stawro.com", "https://www.stawro.com"],
+    origin: ["https://stawro.com", "https://www.stawro.com", "http://localhost:3000"],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
@@ -3626,9 +3626,23 @@ async function get_level_seconds(level) {
             return parseInt(fnd_data.t_100)
         }
     }
+}
 
+async function History(user, rupee) {
+    await Historymodule.create({ Time, user, rupee: rupee, type: "Credited", tp: "Rupee" });
+}
 
-    
+async function refund(user){
+    try{
+        const data_bala = await Balancemodule.findOne({user})
+        const fees = await Rupeemodule.findOne({ username: "admin" });
+        const tot = parseInt(data_bala.balance) + parseInt(fees.rupee);
+        data_bala.balance = tot
+        await data_bala.save()
+        await History(user, fees)
+    }catch(error){
+        console.log(error)
+    }
 }
 
 app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
@@ -3639,21 +3653,8 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
         if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
 
 
-        let latestDoc;
-
-        const latestDoc_main = await Totalusermodule
-            .findOne({ user })
-            .sort({ createdAt: -1 });
-
-        if (latestDoc_main) {
-            latestDoc = latestDoc_main._id;
-        } else {
-            latestDoc = `Val${Data.createdAt}`;
-        }
-
-
         // Fetch the user's validity status from StartValidmodule
-        const Data = await StartValidmodule.findOne({ user }).lean();
+        const Data = await StartValidmodule.findOne({ user });
         // Fetch the user's question list from QuestionListmodule
         const Get_Qno_info = await QuestionListmodule.findOne({ user }).lean();
 
@@ -3663,12 +3664,33 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                 // Get the first question number from the list
                 const QNO = Get_Qno_info.list[0];
 
+                if(!QNO || QNO === undefined || QNO === "" || QNO === null){
+                    Data.valid = "No"
+                    await Data.save()
+                    await refund()
+                    return res.status.json({Status : "EXIT"})
+                }
+
                 const Qno = await QuestionModule.findOne({ Qno: QNO.toString(), user: user }).lean();
+
+                if(!Qno || Qno === undefined || Qno === "" || Qno === null){
+                    Data.valid = "No"
+                    await Data.save()
+                    await refund()
+                    return res.status.json({Status : "EXIT"})
+                }
+
                 const lel_fnd = await Level_up_Module.findOne({ user })
 
                 const ll_sec = await get_level_seconds(lel_fnd?.rank)
 
                 const sec = parseInt(Qno.seconds) + ll_sec
+                if(!sec || sec === undefined || sec === "" || sec === null){
+                    Data.valid = "No"
+                    await Data.save()
+                    await refund()
+                    return res.status.json({Status : "EXIT"})
+                }
 
 
                 // if(parseInt(sec_cal) > 50){
@@ -3693,13 +3715,13 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                     return res.status(200).json({ data });
 
                 } else {
-                    return res.status(404).json({ Status: "BAD", message: "No Question Found.", id: latestDoc });
+                    return res.status(404).json({ Status: "BAD", message: "No Question Found."});
                 }
             } else {
-                return res.status(202).json({ Status: "BAD", message: "No Question Found..", id: latestDoc });
+                return res.status(202).json({ Status: "BAD", message: "No Question Found.."});
             }
         } else {
-            return res.status(202).json({ Status: "BAD", message: "Not Valid to Yes", id: latestDoc });
+            return res.status(202).json({ Status: "BAD", message: "Not Valid to Yes"});
         }
     } 
     catch (error) {
@@ -3707,6 +3729,124 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
         return res.status(500).json({ message: "Internal Server Error", error: error.message, id: "Some Erorr" });
     }
 });
+
+
+
+
+app.get("/get/question/no/by/user/name/chatGPT", authMiddleware, async (req, res) => {
+    const user = req.user;
+
+    try {
+        if (!user) {
+            return res.status(400).json({
+                Status: "BAD",
+                message: "Some Data Missing"
+            });
+        }
+
+        // ==========================
+        // LATEST DOC (SAFE)
+        // ==========================
+        let latestDoc = null;
+
+        const latestDoc_main = await Totalusermodule
+            .findOne({ user })
+            .sort({ createdAt: -1 })
+            .lean();
+
+        // Fetch validity data FIRST (important)
+        const Data = await StartValidmodule.findOne({ user }).lean();
+
+        if (latestDoc_main) {
+            latestDoc = latestDoc_main._id;
+        } else if (Data) {
+            latestDoc = `Val${Data.createdAt}`;
+        }
+
+        // ==========================
+        // VALIDATION CHECK
+        // ==========================
+        if (!Data || Data.valid !== "yes") {
+            return res.status(202).json({
+                Status: "BAD",
+                message: "Not Valid to Yes",
+                id: latestDoc
+            });
+        }
+
+        // ==========================
+        // QUESTION LIST
+        // ==========================
+        const Get_Qno_info = await QuestionListmodule.findOne({ user }).lean();
+
+        if (!Get_Qno_info || !Array.isArray(Get_Qno_info.list) || Get_Qno_info.list.length === 0) {
+            await refund(user)
+            return res.status(202).json({
+                Status: "BAD",
+                message: "No Question Found",
+                id: latestDoc
+            });
+        }
+
+        // ==========================
+        // QUESTION FETCH
+        // ==========================
+        const QNO = Get_Qno_info.list[0];
+
+        const Qno = await QuestionModule.findOne({
+            Qno: QNO.toString(),
+            user
+        }).lean();
+
+        if (!Qno) {
+            return res.status(404).json({
+                Status: "BAD",
+                message: "No Question Found",
+                id: latestDoc
+            });
+        }
+
+        // ==========================
+        // LEVEL + SECONDS (SAFE)
+        // ==========================
+        const lel_fnd = await Level_up_Module.findOne({ user }).lean();
+
+        let ll_sec = 0;
+        if (lel_fnd?.rank !== undefined && lel_fnd?.rank !== null) {
+            const levelSec = await get_level_seconds(lel_fnd.rank);
+            ll_sec = parseInt(levelSec, 10) || 0;
+        }
+
+        const baseSeconds = parseInt(Qno.seconds, 10) || 0;
+        const sec = baseSeconds + ll_sec;
+
+        // ==========================
+        // RESPONSE
+        // ==========================
+        const data = {
+            _id: Qno._id,
+            img: Qno.img,
+            Qno: Qno.Qno,
+            Question: Qno.Questio,
+            options: Qno.options,
+            seconds: sec.toString(),
+            Ans: Qno.Ans,
+            cat: Qno.sub_lang,
+            tough: Qno.tough
+        };
+
+        return res.status(200).json({ data });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            message: "Internal Server Error",
+            error: error.message,
+            id: "Some Error"
+        });
+    }
+});
+
 
 
 const WonSchema = new mongoose.Schema({
