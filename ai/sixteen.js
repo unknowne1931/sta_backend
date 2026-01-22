@@ -892,7 +892,7 @@ function draw(trains, qData) {
     ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-    ctx.font = `${layout.fontSize}px 'Atkinson Hyperlegible Mono', monospace`;
+    ctx.font = "22px monospace";
     ctx.fillStyle = "#111";
     ctx.textBaseline = "top";
 

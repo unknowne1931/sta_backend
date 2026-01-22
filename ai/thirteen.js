@@ -470,7 +470,7 @@ function draw(numbers) {
     ctx.fillStyle = "#f4f4f4";
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-    ctx.font = "22px 'Atkinson Hyperlegible Mono', monospace";
+    ctx.font = "22px monospace";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 
