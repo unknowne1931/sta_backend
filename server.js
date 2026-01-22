@@ -3668,7 +3668,7 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                     Data.valid = "No"
                     await Data.save()
                     await refund()
-                    return res.status.json({Status : "EXIT"})
+                    return res.status(200).json({Status : "EXIT"})
                 }
 
                 const Qno = await QuestionModule.findOne({ Qno: QNO.toString(), user: user }).lean();
@@ -3677,7 +3677,7 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                     Data.valid = "No"
                     await Data.save()
                     await refund()
-                    return res.status.json({Status : "EXIT"})
+                    return res.status(200).json({Status : "EXIT"})
                 }
 
                 const lel_fnd = await Level_up_Module.findOne({ user })
@@ -3689,7 +3689,7 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                     Data.valid = "No"
                     await Data.save()
                     await refund()
-                    return res.status.json({Status : "EXIT"})
+                    return res.status(200).json({Status : "EXIT"})
                 }
 
 
