@@ -213,7 +213,7 @@ app.post(
 
 
 app.use(cors({
-    origin: ["https://stawro.com", "https://www.stawro.com", "https://kalanirdhari.in:3000"],
+    origin: ["https://stawro.com", "https://www.stawro.com", "http://localhost:3000"],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
@@ -3671,13 +3671,6 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                 const sec = parseInt(Qno.seconds) + ll_sec
 
 
-
-
-
-
-
-
-
                 // if(parseInt(sec_cal) > 50){
                 //     return res.status(200).json({Status : "BAD"})
                 // }
@@ -3708,7 +3701,8 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
         } else {
             return res.status(202).json({ Status: "BAD", message: "Not Valid to Yes", id: latestDoc });
         }
-    } catch (error) {
+    } 
+    catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Internal Server Error", error: error.message, id: "Some Erorr" });
     }
