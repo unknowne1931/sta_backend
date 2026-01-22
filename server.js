@@ -3619,7 +3619,7 @@ app.get("/get/question/no/by/user/name", async (req, res) => {
 
                 const ll_sec = await get_level_seconds(lel_fnd?.rank)
 
-                console.log(ll_sec)
+                const sec = parseInt(Qno.seconds) + ll_sec
 
 
 
@@ -3644,7 +3644,7 @@ app.get("/get/question/no/by/user/name", async (req, res) => {
                         Qno: Qno.Qno,
                         Question: Qno.Questio,
                         options: Qno.options,
-                        seconds: Qno.seconds + 100,
+                        seconds: sec.toString(),
                         Ans: Qno.Ans,
                         cat: Qno.sub_lang,
                         tough: Qno.tough
