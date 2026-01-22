@@ -346,7 +346,7 @@ const generateOTP = () => {
 //https end
 
 app.get('/', (req, res) => {
-    res.send('Hello, world Vs : 9.0.0 ; Last Updated : 22-01-2026 ; Type : Live');
+    res.send('Hello, world Vs : 9.1.1 ; Last Updated : 22-01-2026 ; Type : Live');
 });
 
 
