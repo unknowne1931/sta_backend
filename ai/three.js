@@ -221,11 +221,11 @@ import { createCanvas } from "canvas";
 export function getPlusLevels(per) {
     if (per < 5) {
         return {
-            "Too Easy":  { h: 1,  v: 3,  gap: 46 },
-            "Easy":      { h: 1,  v: 4,  gap: 44 },
-            "Medium":    { h: 1,  v: 5,  gap: 42 },
-            "Tough":     { h: 1,  v: 6,  gap: 40 },
-            "Too Tough": { h: 1, v: 7, gap: 38 }
+            "Too Easy":  { h: 6,  v: 11,  gap: 20 },
+            "Easy":      { h: 7,  v: 12,  gap: 20 },
+            "Medium":    { h: 8,  v: 13,  gap: 42 },
+            "Tough":     { h: 9,  v: 14,  gap: 40 },
+            "Too Tough": { h: 10, v: 14, gap: 38 }
         };
     }else if (per < 10) {
         return {

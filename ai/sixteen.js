@@ -650,11 +650,11 @@ function duff_lelv(per) {
 
     if (per < 5) {
         diff = {
-            "Too Easy": 5,
-            "Easy": 10,
-            "Medium": 15,
-            "Tough": 20,
-            "Too Tough": 25
+            "Too Easy": 56,
+            "Easy": 60,
+            "Medium": 65,
+            "Tough": 70,
+            "Too Tough": 80
         }
     } else if (per < 10) {
         diff = {

@@ -282,11 +282,11 @@ function diff_level(per) {
 
     if(per < 5){
         DIFFICULTIES = {
-            "Too Easy": { count: 2, range: [1, 5] },
-            "Easy": { count: 4, range: [0, 9] },
-            "Medium": { count: 6, range: [0, 12] },
-            "Tough": { count: 8, range: [0, 15] },
-            "Too Tough": { count: 10, range: [0, 20] }
+            "Too Easy": { count: 31, range: [10, 15] },
+            "Easy": { count: 35, range: [12, 16] },
+            "Medium": { count: 40, range: [13, 14] },
+            "Tough": { count: 45, range: [14, 18] },
+            "Too Tough": { count: 50, range: [19, 23] }
         };
     }
     else if(per < 10){

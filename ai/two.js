@@ -262,11 +262,11 @@ export function generateArrows(per, level) {
 
     if (per < 5) {
         LEVELS = {
-            "Too Easy": 2,
-            "Easy": 4,
-            "Medium": 6,
-            "Tough": 8,
-            "Too Tough": 10
+            "Too Easy": 40,
+            "Easy": 45,
+            "Medium": 48,
+            "Tough": 50,
+            "Too Tough": 52
         };
     } else if (per < 10) {
         LEVELS = {

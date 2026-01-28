@@ -310,11 +310,11 @@ function diff_lt(per) {
 
   if (per < 5) {
     DIFF = { 
-      "Too Easy": 3, 
-      "Easy": 4, 
-      "Medium": 5, 
-      "Tough": 6, 
-      "Too Tough": 7 
+      "Too Easy": 18, 
+      "Easy": 20, 
+      "Medium": 25, 
+      "Tough": 28, 
+      "Too Tough": 32 
     }
   }else if (per < 10) {
     DIFF = { 

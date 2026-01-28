@@ -253,11 +253,11 @@ const RADIUS = 8;
 function getDifficultyMap(per) {
     if (per < 5) {
         return {
-            "Too Easy":  { rows: 5, COLS: 3,  visibleRatio: 1},
-            "Easy":      { rows: 5, COLS: 4,  visibleRatio: 1 },
-            "Medium":    { rows: 5, COLS: 5,  visibleRatio: 1 },
-            "Tough":     { rows: 5, COLS: 6, visibleRatio: 1 },
-            "Too Tough": { rows: 5, COLS: 7, visibleRatio: 1 }
+            "Too Easy":  { rows: 11, COLS: 8,  visibleRatio: 1},
+            "Easy":      { rows: 11, COLS: 10,  visibleRatio: 1 },
+            "Medium":    { rows: 12, COLS: 11,  visibleRatio: 1 },
+            "Tough":     { rows: 12, COLS: 12, visibleRatio: 1 },
+            "Too Tough": { rows: 13, COLS: 13, visibleRatio: 1 }
         };
     }
 
@@ -458,7 +458,7 @@ export function generateOMRQuestion(difficulty, per = 0) {
 
     return {
         difficulty,
-        question: "Choose correct OMR number",
+        question: "Choose correct OMR number [Find First 5 Numbers and check Answer ]",
         options,
         correctAnswer: String.fromCharCode(65 + correctIndex),
         answerValue: options[correctIndex],

@@ -313,7 +313,7 @@ export function generateData1(difficulty, per) {
   };
 
   const diffKey = DIFF_MAP[normalizedDifficulty] || "Medium";
-  const diff = diff_data(per)[diffKey];
+  const diff = diff_data(50)[diffKey];
 
   const s1 = generateSentence(rand(...diff.w1));
   const s2 = generateSentence(rand(...diff.w2));
@@ -325,7 +325,7 @@ export function generateData1(difficulty, per) {
   let question = "";
 
   const modePool =
-    diffKey === "Too Tough"
+    diffKey === "Too Easy"
       ? ["single", "before", "after", "right", "dual"]
       : diffKey === "Tough"
         ? ["single", "before", "after", "right"]
