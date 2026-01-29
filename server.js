@@ -213,7 +213,7 @@ app.post(
 
 
 app.use(cors({
-    origin: ["https://stawro.com", "https://www.stawro.com", "https://kalanirdhari.in:3000"],
+    origin: ["https://stawro.com", "https://www.stawro.com"],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
@@ -344,7 +344,7 @@ const generateOTP = () => {
 //https end
 
 app.get('/', (req, res) => {
-    res.send('Hello, world Vs : 10.0.0 ; Last Updated : 22-01-2026 ; Type : Live');
+    res.send('Hello, world Vs : 11.0.0 ; Last Updated : 29-01-2026 ; Type : Live');
 });
 
 
@@ -2950,11 +2950,11 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
         const dif_l = ["Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy"];
 
         const qst_gen = [
-            // One(), Two(), Three(), Four(), Five(), Six(),
-            // Seven(), Eight(), Nine(), Ten(), Eleven(), Tweleve(), Thirteen(),
-            // Fourteen(), Fifteen(), Sixteen()
+            One(), Two(), Three(), Four(), Five(), Six(),
+            Seven(), Eight(), Nine(), Ten(), Eleven(), Tweleve(), Thirteen(),
+            Fourteen(), Fifteen(), Sixteen()
 
-            Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),
+            // Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),
         ];
 
         const shuffled = [...qst_gen]
@@ -3060,12 +3060,12 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
 
 
 
-        const newQstData = await QuestionModule.find({ user: user });
-        if (newQstData.length === 10) {
+        const count = await QuestionModule.countDocuments({ user });
+        if (count === 10) {
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
-            // await QuestionModule.deleteMany({ user })
+            await QuestionModule.deleteMany({ user })
             bal_dt.balance = lat.toString()
             await bal_dt.save()
             console.log("BAD")
@@ -3231,12 +3231,12 @@ app.post('/start/playing/by/debit/amount/new/5x', authMiddleware, async (req, re
 
 
 
-        const newQstData = await QuestionModule.find({ user: user });
-        if (newQstData.length === 10) {
+        const count = await QuestionModule.countDocuments({ user });
+        if (count === 10) {
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
-            // await QuestionModule.deleteMany({ user })
+            await QuestionModule.deleteMany({ user })
             bal_dt.balance = lat.toString()
             await bal_dt.save()
             console.log("BAD")
@@ -3403,12 +3403,12 @@ app.post('/start/playing/by/debit/amount/new/7x', authMiddleware, async (req, re
 
 
 
-        const newQstData = await QuestionModule.find({ user: user });
-        if (newQstData.length === 10) {
+        const count = await QuestionModule.countDocuments({ user });
+        if (count === 10) {
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
-            // await QuestionModule.deleteMany({ user })
+            await QuestionModule.deleteMany({ user })
             bal_dt.balance = lat.toString()
             await bal_dt.save()
             console.log("BAD")
@@ -3576,12 +3576,12 @@ app.post('/start/playing/by/debit/amount/new/10x', authMiddleware, async (req, r
 
 
 
-        const newQstData = await QuestionModule.find({ user: user });
-        if (newQstData.length === 10) {
+        const count = await QuestionModule.countDocuments({ user });
+        if (count === 10) {
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
-            // await QuestionModule.deleteMany({ user })
+            await QuestionModule.deleteMany({ user })
             bal_dt.balance = lat.toString()
             await bal_dt.save()
             console.log("BAD")
@@ -3749,12 +3749,12 @@ app.post('/start/playing/by/debit/amount/new/15x', authMiddleware, async (req, r
 
 
 
-        const newQstData = await QuestionModule.find({ user: user });
-        if (newQstData.length === 10) {
+        const count = await QuestionModule.countDocuments({ user });
+        if (count === 10) {
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
-            // await QuestionModule.deleteMany({ user })
+            await QuestionModule.deleteMany({ user })
             bal_dt.balance = lat.toString()
             await bal_dt.save()
             console.log("BAD")
