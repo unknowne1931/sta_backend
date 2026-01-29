@@ -344,7 +344,7 @@ const generateOTP = () => {
 //https end
 
 app.get('/', (req, res) => {
-    res.send('Hello, world Vs : 11.0.0 ; Last Updated : 29-01-2026 ; Type : Live');
+    res.send('Hello, world Vs : 12.0.0 ; Last Updated : 29-01-2026 ; Type : Live');
 });
 
 
@@ -3062,6 +3062,9 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
 
         const count = await QuestionModule.countDocuments({ user });
         if (count === 10) {
+            console.log("✅ Finished successfully");
+            return res.status(200).json({ Status: "OK" });
+        }else{
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
@@ -3072,8 +3075,7 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
             return res.status(200).json({ Status: "BAD_CR" })
         }
 
-        console.log("✅ Finished successfully");
-        return res.status(200).json({ Status: "OK" });
+        
 
     } catch (error) {
         console.error("❌ Main Catch Error:", error);
