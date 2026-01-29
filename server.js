@@ -213,7 +213,7 @@ app.post(
 
 
 app.use(cors({
-    origin: ["https://stawro.com", "https://www.stawro.com", "http://localhost:3000"],
+    origin: ["https://stawro.com", "https://www.stawro.com", "https://kalanirdhari.in:3000"],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
@@ -223,8 +223,6 @@ app.use(cors({
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: true }));
-
-
 
 
 
@@ -346,7 +344,7 @@ const generateOTP = () => {
 //https end
 
 app.get('/', (req, res) => {
-    res.send('Hello, world Vs : 9.1.1 ; Last Updated : 22-01-2026 ; Type : Live');
+    res.send('Hello, world Vs : 10.0.0 ; Last Updated : 22-01-2026 ; Type : Live');
 });
 
 
@@ -2677,6 +2675,32 @@ const Amount_count_Schema = new mongoose.Schema({
 
 const Amount_Count_Module = mongoose.model('Amount_admin', Amount_count_Schema);
 
+const check_y_n_t_Schema = new mongoose.Schema({
+    Time: String,
+    user: String,
+    Qno : String,
+    x : String,
+
+}, { timestamps: true });
+
+const Check_y_n_t_Module = mongoose.model('Check_y_n_t', check_y_n_t_Schema);
+
+
+app.get("/verify/by/timed/out/data/v/fy", authMiddleware, async(req, res)=>{
+    const user = req.user
+    try{
+        const data = await Check_y_n_t_Module.findOne({user})
+        if(data){
+            data.Qno = "Timed Out"
+            await data.save()
+            return res.status(200).json({Status : "OK"})
+        }
+        return res.status(200).json({Status : "OK"})
+    }catch (error) {
+        console.error("❌ Main Catch Error:", error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+})
 
 //new version
 app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) => {
@@ -2888,11 +2912,17 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
 
     try {
 
+
         const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
+        
 
         if (status?.Status === "off") {
             return res.status(200).json({ Status: "Time", message: status.text });
         }
+
+        await Check_y_n_t_Module.deleteMany({user})
+
+        await Check_y_n_t_Module.create({Time, user, Qno : "No Still", x : "2x"})
 
         const lang_data = await LanguageSelectModule.findOne({ user }).lean();
         const balance = await Balancemodule.findOne({ user }); // ac balance
@@ -2912,7 +2942,7 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
         // const get_per = (won_data / (total_play || 1)) * 100;
 
 
-        const Time = new Date().toISOString();
+        
         let create_data = await QuestionListmodule.findOne({ user });
 
         await QuestionModule.deleteMany({ user });
@@ -2920,9 +2950,11 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
         const dif_l = ["Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy"];
 
         const qst_gen = [
-            One(), Two(), Three(), Four(), Five(), Six(),
-            Seven(), Eight(), Nine(), Ten(), Eleven(), Tweleve(), Thirteen(),
-            Fourteen(), Fifteen(), Sixteen()
+            // One(), Two(), Three(), Four(), Five(), Six(),
+            // Seven(), Eight(), Nine(), Ten(), Eleven(), Tweleve(), Thirteen(),
+            // Fourteen(), Fifteen(), Sixteen()
+
+            Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),
         ];
 
         const shuffled = [...qst_gen]
@@ -2938,7 +2970,6 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
             const lvl = dif_l[i]
             data(lvl, user, num, 4, "20")
         });
-        console.log(shuffled)
 
 
         if (!create_data) {
@@ -3029,15 +3060,12 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
 
 
 
-        const newListData = await QuestionListmodule.findOne({ user }).lean();
         const newQstData = await QuestionModule.find({ user: user });
-        console.log("Len From Old :", newListData.list.length)
-        console.log("Len :", newListData.list)
-        if (newListData.list.length < 10 || newQstData.length < 10 || newQstData.length > 10) {
+        if (newQstData.length === 10) {
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
-            await QuestionModule.deleteMany({ user })
+            // await QuestionModule.deleteMany({ user })
             bal_dt.balance = lat.toString()
             await bal_dt.save()
             console.log("BAD")
@@ -3065,6 +3093,10 @@ app.post('/start/playing/by/debit/amount/new/5x', authMiddleware, async (req, re
             return res.status(200).json({ Status: "Time", message: status.text });
         }
 
+        await QuestionModule.deleteMany({ user });
+
+        await Check_y_n_t_Module.create({Time, user, Qno : "No Still", x : "5x"})
+
         const lang_data = await LanguageSelectModule.findOne({ user }).lean();
         const balance = await Balancemodule.findOne({ user }); // ac balance
         const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
@@ -3083,7 +3115,6 @@ app.post('/start/playing/by/debit/amount/new/5x', authMiddleware, async (req, re
         // const get_per = (won_data / (total_play || 1)) * 100;
 
 
-        const Time = new Date().toISOString();
         let create_data = await QuestionListmodule.findOne({ user });
 
         await QuestionModule.deleteMany({ user });
@@ -3200,15 +3231,12 @@ app.post('/start/playing/by/debit/amount/new/5x', authMiddleware, async (req, re
 
 
 
-        const newListData = await QuestionListmodule.findOne({ user }).lean();
         const newQstData = await QuestionModule.find({ user: user });
-        console.log("Len From Old :", newListData.list.length)
-        console.log("Len :", newListData.list)
-        if (newListData.list.length < 10 || newQstData.length < 10 || newQstData.length > 10) {
+        if (newQstData.length === 10) {
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
-            await QuestionModule.deleteMany({ user })
+            // await QuestionModule.deleteMany({ user })
             bal_dt.balance = lat.toString()
             await bal_dt.save()
             console.log("BAD")
@@ -3237,6 +3265,10 @@ app.post('/start/playing/by/debit/amount/new/7x', authMiddleware, async (req, re
             return res.status(200).json({ Status: "Time", message: status.text });
         }
 
+        await QuestionModule.deleteMany({ user });
+
+        await Check_y_n_t_Module.create({Time, user, Qno : "No Still", x : "7x"})
+
         const lang_data = await LanguageSelectModule.findOne({ user }).lean();
         const balance = await Balancemodule.findOne({ user }); // ac balance
         const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
@@ -3255,7 +3287,6 @@ app.post('/start/playing/by/debit/amount/new/7x', authMiddleware, async (req, re
         // const get_per = (won_data / (total_play || 1)) * 100;
 
 
-        const Time = new Date().toISOString();
         let create_data = await QuestionListmodule.findOne({ user });
 
         await QuestionModule.deleteMany({ user });
@@ -3372,15 +3403,12 @@ app.post('/start/playing/by/debit/amount/new/7x', authMiddleware, async (req, re
 
 
 
-        const newListData = await QuestionListmodule.findOne({ user }).lean();
         const newQstData = await QuestionModule.find({ user: user });
-        console.log("Len From Old :", newListData.list.length)
-        console.log("Len :", newListData.list)
-        if (newListData.list.length < 10 || newQstData.length < 10 || newQstData.length > 10) {
+        if (newQstData.length === 10) {
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
-            await QuestionModule.deleteMany({ user })
+            // await QuestionModule.deleteMany({ user })
             bal_dt.balance = lat.toString()
             await bal_dt.save()
             console.log("BAD")
@@ -3410,6 +3438,10 @@ app.post('/start/playing/by/debit/amount/new/10x', authMiddleware, async (req, r
             return res.status(200).json({ Status: "Time", message: status.text });
         }
 
+        await QuestionModule.deleteMany({ user });
+
+        await Check_y_n_t_Module.create({Time, user, Qno : "No Still", x : "10x"})
+
         const lang_data = await LanguageSelectModule.findOne({ user }).lean();
         const balance = await Balancemodule.findOne({ user }); // ac balance
         const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
@@ -3428,7 +3460,6 @@ app.post('/start/playing/by/debit/amount/new/10x', authMiddleware, async (req, r
         // const get_per = (won_data / (total_play || 1)) * 100;
 
 
-        const Time = new Date().toISOString();
         let create_data = await QuestionListmodule.findOne({ user });
 
         await QuestionModule.deleteMany({ user });
@@ -3545,15 +3576,12 @@ app.post('/start/playing/by/debit/amount/new/10x', authMiddleware, async (req, r
 
 
 
-        const newListData = await QuestionListmodule.findOne({ user }).lean();
         const newQstData = await QuestionModule.find({ user: user });
-        console.log("Len From Old :", newListData.list.length)
-        console.log("Len :", newListData.list)
-        if (newListData.list.length < 10 || newQstData.length < 10 || newQstData.length > 10) {
+        if (newQstData.length === 10) {
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
-            await QuestionModule.deleteMany({ user })
+            // await QuestionModule.deleteMany({ user })
             bal_dt.balance = lat.toString()
             await bal_dt.save()
             console.log("BAD")
@@ -3583,6 +3611,10 @@ app.post('/start/playing/by/debit/amount/new/15x', authMiddleware, async (req, r
             return res.status(200).json({ Status: "Time", message: status.text });
         }
 
+        await QuestionModule.deleteMany({ user });
+
+        await Check_y_n_t_Module.create({Time, user, Qno : "No Still", x : "15x"})
+
         const lang_data = await LanguageSelectModule.findOne({ user }).lean();
         const balance = await Balancemodule.findOne({ user }); // ac balance
         const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
@@ -3601,7 +3633,6 @@ app.post('/start/playing/by/debit/amount/new/15x', authMiddleware, async (req, r
         // const get_per = (won_data / (total_play || 1)) * 100;
 
 
-        const Time = new Date().toISOString();
         let create_data = await QuestionListmodule.findOne({ user });
 
         await QuestionModule.deleteMany({ user });
@@ -3718,15 +3749,12 @@ app.post('/start/playing/by/debit/amount/new/15x', authMiddleware, async (req, r
 
 
 
-        const newListData = await QuestionListmodule.findOne({ user }).lean();
         const newQstData = await QuestionModule.find({ user: user });
-        console.log("Len From Old :", newListData.list.length)
-        console.log("Len :", newListData.list)
-        if (newListData.list.length < 10 || newQstData.length < 10 || newQstData.length > 10) {
+        if (newQstData.length === 10) {
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
-            await QuestionModule.deleteMany({ user })
+            // await QuestionModule.deleteMany({ user })
             bal_dt.balance = lat.toString()
             await bal_dt.save()
             console.log("BAD")
@@ -4608,6 +4636,99 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
     }
 });
 
+const Error_Catch_Schema = new mongoose.Schema({
+
+    Time: String,
+    user: String,
+    Type : String,
+    Text : String,
+    api : String,
+    Where : String,
+
+
+});
+
+
+const Error_Catch_Module = mongoose.model('Errors', Error_Catch_Schema);
+
+
+
+
+//After 2x 5x 7x 10x 15x
+app.get("/get/question/no/by/user/name/bf/xx", authMiddleware, async (req, res) => {
+    const user = req.user;
+    try {
+
+
+        if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
+
+
+        // Fetch the user's validity status from StartValidmodule
+        const Data = await StartValidmodule.findOne({ user });
+        // Fetch the user's question list from QuestionListmodule
+        const Get_Qno_info = await QuestionListmodule.findOne({ user }).lean();
+
+        // Check if the user is valid and has a question list
+        if (Data && Data.valid === "yes") {
+            if (Get_Qno_info && Get_Qno_info.list.length >= 0) {
+                // Get the first question number from the list
+                const QNO = Get_Qno_info.list[0];
+
+                if(!QNO || QNO === undefined || QNO === "" || QNO === null){
+                    Data.valid = "No"
+                    await Data.save()
+                    await refund()
+                    await Error_Catch_Module.create({Time, user, Type : QNO, Text : "Error may be occurs due to QNO Undefined are some data Missing", api : "/get/question/no/by/user/name/bf/xx", Where : "On Finding Question Number" })
+                    return res.status(200).json({Status : "EXIT"})
+                }
+
+                const Qno = await QuestionModule.findOne({ Qno: QNO.toString(), user: user }).lean();
+
+                if(!Qno || Qno === undefined || Qno === "" || Qno === null){
+                    Data.valid = "No"
+                    await Data.save()
+                    await refund()
+                    await Error_Catch_Module.create({Time, user, Type : QNO, Text : "Error may be occurs due to QNO Undefined are some data Missing", api : "/get/question/no/by/user/name/bf/xx", Where : "On Finding Question Number" })
+                    return res.status(200).json({Status : "EXIT"})
+                }
+
+                // if(parseInt(sec_cal) > 50){
+                //     return res.status(200).json({Status : "BAD"})
+                // }
+
+
+                if (Qno) {
+                    // Construct the response data
+                    const data = {
+                        _id: Qno._id,
+                        img: Qno.img,
+                        Qno: Qno.Qno,
+                        Question: Qno.Questio,
+                        options: Qno.options,
+                        seconds: Qno.seconds,
+                        Ans: Qno.Ans,
+                        cat: Qno.sub_lang,
+                        tough: Qno.tough
+                    };
+
+                    return res.status(200).json({ data });
+
+                } else {
+                    await Error_Catch_Module.create({Time, user, Type : QNO, Text : "No Qno Data Found then this will occurs", api : "/get/question/no/by/user/name/bf/xx", Where : "at [No Question Found.] " })
+                    return res.status(404).json({ Status: "BAD", message: "No Question Found."});
+                }
+            } else {
+                return res.status(202).json({ Status: "BAD", message: "No Question Found.."});
+            }
+        } else {
+            return res.status(202).json({ Status: "BAD", message: "Not Valid to Yes"});
+        }
+    } 
+    catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message, id: "Some Erorr" });
+    }
+});
 
 
 
@@ -5567,6 +5688,12 @@ app.post('/verify/answer/question/number/xss', authMiddleware, async (req, res) 
 
         if (check_ans) {
 
+            const chk_y_n_t_d = await Check_y_n_t_Module.findOne({user})
+            if(chk_y_n_t_d){
+                chk_y_n_t_d.Qno = `${Answer_Verify.Qno} Verified`
+                await chk_y_n_t_d.save()
+            }
+
 
             const get_t_data = await Seconds_Module.findOne({ category: Answer_Verify.sub_lang, Tough: Answer_Verify.tough })
 
@@ -5718,6 +5845,11 @@ app.post('/verify/answer/question/number/xss', authMiddleware, async (req, res) 
             //make this if answer is false make verified is fale or no to throught the user out from playing
 
             const data = await StartValidmodule.findOne({ user });
+            const chk_y_n_t_d = await Check_y_n_t_Module.findOne({user})
+            if(chk_y_n_t_d){
+                chk_y_n_t_d.Qno = `${Answer_Verify.Qno} Not Verified`
+                await chk_y_n_t_d.save()
+            }
 
             if (data) {
                 data.valid = "no";
