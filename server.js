@@ -3235,6 +3235,9 @@ app.post('/start/playing/by/debit/amount/new/5x', authMiddleware, async (req, re
 
         const count = await QuestionModule.countDocuments({ user });
         if (count === 10) {
+            console.log("✅ Finished successfully");
+            return res.status(200).json({ Status: "OK" });
+        }else{
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
@@ -3244,9 +3247,6 @@ app.post('/start/playing/by/debit/amount/new/5x', authMiddleware, async (req, re
             console.log("BAD")
             return res.status(200).json({ Status: "BAD_CR" })
         }
-
-        console.log("✅ Finished successfully");
-        return res.status(200).json({ Status: "OK" });
 
     } catch (error) {
         console.error("❌ Main Catch Error:", error);
@@ -3407,6 +3407,9 @@ app.post('/start/playing/by/debit/amount/new/7x', authMiddleware, async (req, re
 
         const count = await QuestionModule.countDocuments({ user });
         if (count === 10) {
+            console.log("✅ Finished successfully");
+            return res.status(200).json({ Status: "OK" });
+        }else{
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
@@ -3416,9 +3419,6 @@ app.post('/start/playing/by/debit/amount/new/7x', authMiddleware, async (req, re
             console.log("BAD")
             return res.status(200).json({ Status: "BAD_CR" })
         }
-
-        console.log("✅ Finished successfully");
-        return res.status(200).json({ Status: "OK" });
 
     } catch (error) {
         console.error("❌ Main Catch Error:", error);
@@ -3580,6 +3580,9 @@ app.post('/start/playing/by/debit/amount/new/10x', authMiddleware, async (req, r
 
         const count = await QuestionModule.countDocuments({ user });
         if (count === 10) {
+            console.log("✅ Finished successfully");
+            return res.status(200).json({ Status: "OK" });
+        }else{
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
@@ -3589,9 +3592,6 @@ app.post('/start/playing/by/debit/amount/new/10x', authMiddleware, async (req, r
             console.log("BAD")
             return res.status(200).json({ Status: "BAD_CR" })
         }
-
-        console.log("✅ Finished successfully");
-        return res.status(200).json({ Status: "OK" });
 
     } catch (error) {
         console.error("❌ Main Catch Error:", error);
@@ -3753,6 +3753,9 @@ app.post('/start/playing/by/debit/amount/new/15x', authMiddleware, async (req, r
 
         const count = await QuestionModule.countDocuments({ user });
         if (count === 10) {
+            console.log("✅ Finished successfully");
+            return res.status(200).json({ Status: "OK" });
+        }else{
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
