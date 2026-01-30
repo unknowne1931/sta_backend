@@ -213,7 +213,7 @@ app.post(
 
 
 app.use(cors({
-    origin: ["https://stawro.com", "https://www.stawro.com"],
+    origin: ["https://stawro.com", "https://www.stawro.com", "https://kalanirdhari.in:3000"],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
@@ -344,7 +344,7 @@ const generateOTP = () => {
 //https end
 
 app.get('/', (req, res) => {
-    res.send('Hello, world Vs : 13.0.0 ; Last Updated : 30-01-2026 ; Type : Live');
+    res.send('Hello, world Vs : 14.0.0 ; Last Updated : 30-01-2026 ; Type : Live');
 });
 
 
@@ -5654,13 +5654,12 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
 
 
 //1931
-app.post('/verify/answer/question/number/xss', authMiddleware, async (req, res) => {
-    const { answer, id, seconds, Ans } = req.body;
+app.post('/verify/answer/question/number/xs', authMiddleware, async (req, res) => {
+    const { answer, id, Ans } = req.body;
 
     try {
 
         const user = req.user
-
 
         if (!answer && !user && !id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
 
@@ -5668,7 +5667,7 @@ app.post('/verify/answer/question/number/xss', authMiddleware, async (req, res) 
 
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ success: false, message: "Invalid ObjectId format" });
+            return res.status(400).json({ Status: "BAD" , success: false, message: "Invalid ObjectId format" });
         }
 
 
@@ -5882,6 +5881,201 @@ app.post('/verify/answer/question/number/xss', authMiddleware, async (req, res) 
             find_level_data.rank = newRank.toString();
             await find_level_data.save();
 
+            return res.status(200).json({ Status: "BAD" })
+
+        }
+    }
+    catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+})
+
+
+
+
+
+
+
+
+//1931
+app.post('/verify/answer/question/number/xss', authMiddleware, async (req, res) => {
+    const { answer, id, Ans } = req.body;
+
+    try {
+
+        const user = req.user
+
+
+        if (!answer && !user && !id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
+
+
+
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ Status : "BAD", success: false, message: "Invalid ObjectId format" });
+        }
+
+
+        function compareHash(plainText, hash) {
+            const plainHash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(plainText.toString())
+                .digest("hex");
+
+            return plainHash === hash;
+        }
+
+
+
+
+        const check_ans = compareHash(answer, Ans)
+
+        const Answer_Verify = await QuestionModule.findById({ _id: id })
+        const User_List = await QuestionListmodule.findOne({ user })
+
+        if (check_ans) {
+            if (User_List.list.length === 1 || User_List.list.length === 0) {
+                await User_List.updateOne({ $pull: { list: User_List.list[0] } })
+                // await QuestionListmodule.updateOne(
+                //     { user },
+                //     { $pop: { list: -1 } }   // remove first element
+                // );
+
+                const won = await Wonmodule.find({})
+                const CuponDat = await Cuponmodule.findOne({ no: won.length + 1 })
+                if (CuponDat) {
+                    await Wonmodule.create({ Time, user, no: won.length + 1, ID: CuponDat._id })
+
+                    await Mycoinsmodule.create({
+                        Time: Time,
+                        title: CuponDat.title,
+                        img: CuponDat.img,
+                        user: user,
+                        type: CuponDat.type,
+                        stars: "No",
+                        body: CuponDat.body,
+                        valid: CuponDat.valid
+                    })
+                    //ki1931ck add code here
+                    const rank = toString(won.length + 1)
+                    await Answer_Verify.updateOne({ $push: { yes: user } })
+                    return res.status(200).json({ Status: "OKK", id: CuponDat._id, rank: rank });
+
+
+
+                } else {
+
+                    //if no cupondata it will add ranks
+
+
+                    await Wonmodule.create({ Time, user, no: won.length + 1, ID: "stars" })
+                    const get_user_balanc = await StarBalmodule.findOne({ user })
+
+
+                    // const sum = parseInt(get_user_balanc.balance) + parseInt(get_count_data.stars)
+
+                    if (get_user_balanc) {
+                        if(Answer_Verify?.tough === "Easy"){
+                            await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 10 })
+                            await Historymodule.create({ Time, user, rupee: "10", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "10", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "10", rank: rank });
+                        }else if(Answer_Verify?.tough === "Medium"){
+                            await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 14 })
+                            await Historymodule.create({ Time, user, rupee: "14", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "14", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "14", rank: rank });
+                        }else if(Answer_Verify?.tough === "Tough"){
+                            await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 20 })
+                            await Historymodule.create({ Time, user, rupee: "20", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "20", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "20", rank: rank });
+                        }else if(Answer_Verify?.tough === "Too Tough"){
+                            await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 30 })
+                            await Historymodule.create({ Time, user, rupee: "30", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "30", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "30", rank: rank });
+                        }else{
+                            await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 4 })
+                            await Historymodule.create({ Time, user, rupee: "4", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "4", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "4", rank: rank });
+                        }
+
+                    } else {
+                        if (Answer_Verify?.tough === "Easy") {
+                            await StarBalmodule.create({ Time, user: user, balance: "10".stars });
+                            await Historymodule.create({ Time, user, rupee: "10", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "10", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "10", rank: rank });
+                        }else if(Answer_Verify?.tough === "Medium") {
+                            await StarBalmodule.create({ Time, user: user, balance: "14".stars });
+                            await Historymodule.create({ Time, user, rupee: "14", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "14", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "14", rank: rank });
+                        }else if(Answer_Verify?.tough === "Tough") {
+                            await StarBalmodule.create({ Time, user: user, balance: "20".stars });
+                            await Historymodule.create({ Time, user, rupee: "20", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "20", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "20", rank: rank });
+                        }else if(Answer_Verify?.tough === "Too Tough") {
+                            await StarBalmodule.create({ Time, user: user, balance: "30".stars });
+                            await Historymodule.create({ Time, user, rupee: "30", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "30", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "30", rank: rank });
+                        }else {
+                            await StarBalmodule.create({ Time, user: user, balance: "4".stars });
+                            await Historymodule.create({ Time, user, rupee: "4", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "4", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "4", rank: rank });
+                        }
+
+                        // await StarBalmodule.create({Time, user : user, balance : get_count_data.stars});
+                        // await Historymodule.create({Time, user, rupee : get_count_data.stars, type : "Credited", tp : "Stars"});
+                        // return res.status(200).json({Status : "STARS", stars : get_count_data.stars});
+
+                    }
+
+                }
+
+
+
+            } else {
+                await User_List.updateOne({ $pull: { list: User_List.list[0] } })
+                return res.status(200).json({ Status: "OK" })
+            }
+
+        } else {
+            //make this if answer is false make verified is fale or no to throught the user out from playing
+
+            const data = await StartValidmodule.findOne({ user });
+            if (data) {
+                data.valid = "no";
+                await data.save();
+            } else {
+                await StartValidmodule.create({ Time, user, valid: "no" });
+            }
             return res.status(200).json({ Status: "BAD" })
 
         }
@@ -9834,16 +10028,77 @@ app.get("/get/latest/won/stars/data", adminMiddleware, async (req, res)=>{
         }else{
             return res.status(200).json({Message : "No Data Found"})
         }
-    }catch (error) {
-            console.error("Verify route error:", error);
-            return res
-                .status(500)
-                .json({ Status: "SERVER_ERR", message: "Failed to process request" });
-        }
+    } catch (error) {
+        console.error("Verify route error:", error);
+        return res
+            .status(500)
+            .json({ Status: "SERVER_ERR", message: "Failed to process request" });
+    }
 })
 
 
+// app.get("/add/balance/to/all/user", async (req, res) => {
+//     try {
+//         const fetch_all = await Balancemodule.find({});
+//         const Data = fetch_all.map(element => ({
+//             User: element.user,
+//             Balance: element.balance
+//         }));
 
+//         return res.status(200).json({ Data });
+//     } catch (error) {
+//         console.error("Verify route error:", error);
+//         return res
+//             .status(500)
+//             .json({ Status: "SERVER_ERR", message: "Failed to process request" });
+//     }
+// });
+
+
+
+// app.get("/add/balance/to/all/user", async (req, res) => {
+//     try {
+//         const fetch_all = await Balancemodule.find({});
+
+//         for (let element of fetch_all) {
+//             let currentBalance = Number(element.balance) || 0; // convert string to number safely
+//             element.balance = currentBalance + 1;
+//             await History(element.user, "1")
+//             await element.save();
+//         }
+
+//         const updated = await Balancemodule.find({});
+//         const Data = updated.map(el => ({
+//             User: el.user,
+//             Balance: el.balance
+//         }));
+
+//         return res.status(200).json({ Status: "SUCCESS", Data });
+//     } catch (error) {
+//         console.error("Update route error:", error);
+//         return res
+//             .status(500)
+//             .json({ Status: "SERVER_ERR", message: "Failed to process request" });
+//     }
+// });
+
+
+app.post("/verify/answer/question/number/m", async (req, res)=>{
+    const {
+            answer,
+            id,
+            seconds,
+            Ans
+          } = req.body;
+    try{
+        console.log(answer, id, seconds, Ans)
+    }catch (error) {
+        console.error("Verify route error:", error);
+        return res
+            .status(500)
+            .json({ Status: "SERVER_ERR", message: "Failed to process request" });
+    }
+})
 
 process.on('uncaughtException', (err) => {
     console.error('Uncaught Exception:', err);
