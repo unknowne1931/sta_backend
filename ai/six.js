@@ -245,7 +245,7 @@ const letters = "abcdefghijklmnopqrstuvwxyz";
 // DIFFICULTY MAP
 // ================================
 function getLevelMap(per) {
-    if (per < 5) return { "Too Easy": 19,  "Easy": 20, "Medium": 21, "Tough": 22, "Too Tough": 23 };
+    if (per < 5) return { "Too Easy": 16,  "Easy": 18, "Medium": 20, "Tough": 22, "Too Tough": 24 };
     else if (per < 10) return { "Too Easy": 3, "Easy": 5, "Medium": 7, "Tough": 9, "Too Tough": 11 };
     else if (per < 15) return { "Too Easy": 5, "Easy": 8, "Medium": 11, "Tough": 14, "Too Tough": 17 };
     else if (per < 20) return { "Too Easy": 8, "Easy": 11, "Medium": 14, "Tough": 17, "Too Tough":20 };
@@ -255,7 +255,7 @@ function getLevelMap(per) {
     else if (per < 40) return { "Too Easy": 20, "Easy": 23, "Medium": 26, "Tough": 29, "Too Tough": 32 };
     else if (per < 45) return { "Too Easy": 23, "Easy": 26, "Medium": 29, "Tough": 32, "Too Tough": 35 };
     else if (per < 50) return { "Too Easy": 26, "Easy": 29, "Medium": 32, "Tough": 35, "Too Tough": 38 };
-    else if (per < 55) return { "Too Easy": 29, "Easy": 32, "Medium": 35, "Tough": 38, "Too Tough": 41 };
+    else if (per < 55) return { "Too Easy": 16, "Easy": 19, "Medium": 22, "Tough": 25, "Too Tough": 4 };
     else return { "Too Easy": 40, "Easy": 45, "Medium": 50, "Tough": 55, "Too Tough": 60 };
 }
 

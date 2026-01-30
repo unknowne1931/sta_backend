@@ -500,11 +500,11 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
 
     if (per < 5) {
         COUNT_MAP = { 
-            "Too Easy": 20, 
-            "Easy": 24, 
-            "Medium": 28, 
-            "Tough": 32, 
-            "Too Tough": 35 
+            "Too Easy": 18, 
+            "Easy": 21, 
+            "Medium": 25, 
+            "Tough": 28, 
+            "Too Tough": 33 
         };
     }else if (per < 10) {
         COUNT_MAP = { 
