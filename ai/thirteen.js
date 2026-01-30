@@ -284,11 +284,11 @@ function generateNumbers(level, per) {
 
     if (per < 5) {
         config = {
-            "Too Easy": { count: 13, maxNum: 6 },
+            "Too Easy": { count: 10, maxNum: 6 },
             "Easy": { count: 15, maxNum: 5 },
-            "Medium": { count: 16, maxNum: 6 },
-            "Tough": { count: 18, maxNum: 6 },
-            "Too Tough": { count: 20, maxNum: 5 },
+            "Medium": { count: 18, maxNum: 6 },
+            "Tough": { count: 20, maxNum: 6 },
+            "Too Tough": { count: 22, maxNum: 5 },
         };
     } else if (per < 10) {
         config = {

@@ -213,7 +213,7 @@ app.post(
 
 
 app.use(cors({
-    origin: ["https://stawro.com", "https://www.stawro.com", "http://localhost:3000"],
+    origin: ["https://stawro.com", "https://www.stawro.com"],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
@@ -344,7 +344,7 @@ const generateOTP = () => {
 //https end
 
 app.get('/', (req, res) => {
-    res.send('Hello, world Vs : 12.1.0 ; Last Updated : 29-01-2026 ; Type : Live');
+    res.send('Hello, world Vs : 13.0.0 ; Last Updated : 30-01-2026 ; Type : Live');
 });
 
 

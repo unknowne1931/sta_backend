@@ -247,7 +247,7 @@ const HEIGHT = 250;
 // ==========================
 function def_tough(per) {
     if (per < 5) {
-        return { "Too Easy": 40, "Easy": 45, "Medium": 50, "Tough": 55, "Too Tough": 60 };
+        return { "Too Easy": 50, "Easy": 55, "Medium": 60, "Tough": 65, "Too Tough": 70 };
     } else if (per < 10) {
         return { "Too Easy": 3, "Easy": 4, "Medium": 5, "Tough": 6, "Too Tough": 7 };
     } else if (per < 15) {

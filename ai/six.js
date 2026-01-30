@@ -255,7 +255,7 @@ function getLevelMap(per) {
     else if (per < 40) return { "Too Easy": 20, "Easy": 23, "Medium": 26, "Tough": 29, "Too Tough": 32 };
     else if (per < 45) return { "Too Easy": 23, "Easy": 26, "Medium": 29, "Tough": 32, "Too Tough": 35 };
     else if (per < 50) return { "Too Easy": 26, "Easy": 29, "Medium": 32, "Tough": 35, "Too Tough": 38 };
-    else if (per < 55) return { "Too Easy": 16, "Easy": 19, "Medium": 22, "Tough": 25, "Too Tough": 4 };
+    else if (per < 55) return { "Too Easy": 15, "Easy": 17, "Medium": 19, "Tough": 20, "Too Tough": 22 };
     else return { "Too Easy": 40, "Easy": 45, "Medium": 50, "Tough": 55, "Too Tough": 60 };
 }
 
