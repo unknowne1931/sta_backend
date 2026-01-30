@@ -263,8 +263,8 @@ function getDifficultyMap(per) {
 
     else if(per < 10) {
         return {
-            "Too Easy":  { rows: 5, COLS: 5,  visibleRatio: 1 },
-            "Easy":      { rows: 5, COLS: 6,  visibleRatio: 1 },
+            "Too Easy":  { rows: 10, COLS: 6,  visibleRatio: 1 },
+            "Easy":      { rows: 10, COLS: 7,  visibleRatio: 1 },
             "Medium":    { rows: 5, COLS: 7,  visibleRatio: 1 },
             "Tough":     { rows: 5, COLS: 8, visibleRatio: 1 },
             "Too Tough": { rows: 5, COLS: 9, visibleRatio: 1 }

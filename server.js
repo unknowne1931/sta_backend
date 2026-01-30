@@ -2945,6 +2945,8 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
         
         let create_data = await QuestionListmodule.findOne({ user });
 
+        const won_data = await Wonmodule.find({user})
+
         await QuestionModule.deleteMany({ user });
 
         const dif_l = ["Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy"];
@@ -2964,12 +2966,23 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
         const dif = [];
 
 
-        shuffled.forEach((data, i) => {
-            const num = (i + 1).toString();
-            dif.push(num);
-            const lvl = dif_l[i]
-            data(lvl, user, num, 4, "20")
-        });
+        if (won_data.length < 1) {
+            shuffled.forEach((data, i) => {
+                const num = (i + 1).toString();
+                dif.push(num);
+                const lvl = dif_l[i]
+                data(lvl, user, num, 4, "20")
+            });
+        } else {
+            shuffled.forEach((data, i) => {
+                const num = (i + 1).toString();
+                dif.push(num);
+                const lvl = dif_l[i]
+                data(lvl, user, num, 4, "20")
+            });
+        }
+
+        
 
 
         if (!create_data) {

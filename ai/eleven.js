@@ -508,19 +508,19 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
         };
     }else if (per < 10) {
         COUNT_MAP = { 
-            "Too Easy": 6, 
-            "Easy": 8, 
-            "Medium": 10, 
-            "Tough": 12, 
-            "Too Tough": 14 
+            "Too Easy": 16, 
+            "Easy": 19, 
+            "Medium": 23, 
+            "Tough": 26, 
+            "Too Tough": 30 
         };
     }else if (per < 15) {
         COUNT_MAP = { 
-            "Too Easy": 8, 
-            "Easy": 10, 
-            "Medium": 12, 
-            "Tough": 14, 
-            "Too Tough": 16 
+            "Too Easy": 14, 
+            "Easy": 17, 
+            "Medium": 21, 
+            "Tough": 24, 
+            "Too Tough": 29 
         };
     }else if (per < 20) {
         COUNT_MAP = { 

@@ -291,8 +291,8 @@ function diff_level(per) {
     }
     else if(per < 10){
         DIFFICULTIES = {
-            "Too Easy": { count: 4, range: [5, 10] },
-            "Easy": { count: 7, range: [0, 15] },
+            "Too Easy": { count: 20, range: [5, 10] },
+            "Easy": { count: 25, range: [0, 15] },
             "Medium": { count: 10, range: [0, 12] },
             "Tough": { count: 13, range: [0, 15] },
             "Too Tough": { count: 16, range: [0, 20] }

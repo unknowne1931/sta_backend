@@ -246,8 +246,8 @@ const letters = "abcdefghijklmnopqrstuvwxyz";
 // ================================
 function getLevelMap(per) {
     if (per < 5) return { "Too Easy": 16,  "Easy": 18, "Medium": 20, "Tough": 22, "Too Tough": 24 };
-    else if (per < 10) return { "Too Easy": 3, "Easy": 5, "Medium": 7, "Tough": 9, "Too Tough": 11 };
-    else if (per < 15) return { "Too Easy": 5, "Easy": 8, "Medium": 11, "Tough": 14, "Too Tough": 17 };
+    else if (per < 10) return { "Too Easy": 14, "Easy": 16, "Medium": 18, "Tough": 20, "Too Tough": 22 };
+    else if (per < 15) return { "Too Easy": 12, "Easy": 14, "Medium": 16, "Tough": 18, "Too Tough": 20 };
     else if (per < 20) return { "Too Easy": 8, "Easy": 11, "Medium": 14, "Tough": 17, "Too Tough":20 };
     else if (per < 25) return { "Too Easy": 11, "Easy": 14, "Medium": 17, "Tough": 20, "Too Tough": 22 };
     else if (per < 30) return { "Too Easy": 14, "Easy": 17, "Medium": 20, "Tough": 23, "Too Tough": 26 };

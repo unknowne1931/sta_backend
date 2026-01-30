@@ -271,18 +271,18 @@ function getDifficultyMap(per) {
 
     else if (per < 10) {
         return {
-            "Too Easy":  { rows: 10, COLS: 4,  visibleRatio: 0.70 },
-            "Easy":      { rows: 10, COLS: 5,  visibleRatio: 0.20 },
+            "Too Easy":  { rows: 10, COLS: 7,  visibleRatio: 0.70 },
+            "Easy":      { rows: 10, COLS: 8,  visibleRatio: 0.20 },
             "Medium":    { rows: 10, COLS: 6,  visibleRatio: 0.08 },
             "Tough":     { rows: 10, COLS: 7, visibleRatio: 0.04 },
             "Too Tough": { rows: 10, COLS: 8, visibleRatio: 0.02 }
         };
     }else if (per < 15) {
         return {
-            "Too Easy":  { rows: 10, COLS: 5,  visibleRatio: 0.70 },
-            "Easy":      { rows: 10, COLS: 6,  visibleRatio: 0.20 },
-            "Medium":    { rows: 10, COLS: 7,  visibleRatio: 0.08 },
-            "Tough":     { rows: 10, COLS: 8, visibleRatio: 0.04 },
+            "Too Easy":  { rows: 10, COLS: 6,  visibleRatio: 0.70 },
+            "Easy":      { rows: 10, COLS: 7,  visibleRatio: 0.20 },
+            "Medium":    { rows: 10, COLS: 8,  visibleRatio: 0.08 },
+            "Tough":     { rows: 10, COLS: 9, visibleRatio: 0.04 },
             "Too Tough": { rows: 10, COLS: 9, visibleRatio: 0.02 }
         };
     }else if (per < 20) {

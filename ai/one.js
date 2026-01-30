@@ -349,8 +349,8 @@ export function getDifficultiesByPer(per) {
         }
     }else if(per < 10){
         DIFFICULTIES = {
-            "Too Easy" : { boxes : [4, 6], size : [40, 50], broken: [0, 0]},
-            "Easy" : { boxes : [6, 8], size : [40, 50], broken: [0, 0]},
+            "Too Easy" : { boxes : [30, 40], size : [40, 50], broken: [10, 12]},
+            "Easy" : { boxes : [35, 45], size : [40, 50], broken: [10, 15]},
             "Medium" : { boxes : [8, 10], size : [40, 50], broken: [0, 0]},
             "Tough" : { boxes : [10, 12], size : [20, 30], broken: [0, 0]},
             "Too Tough" : { boxes : [12, 14], size : [20, 30], broken: [0, 0]},

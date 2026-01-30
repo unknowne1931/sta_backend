@@ -318,11 +318,11 @@ function diff_lt(per) {
     }
   }else if (per < 10) {
     DIFF = { 
-      "Too Easy": 5, 
-      "Easy": 6, 
-      "Medium": 7, 
-      "Tough": 8, 
-      "Too Tough": 9 
+      "Too Easy": 16, 
+      "Easy": 18, 
+      "Medium": 23, 
+      "Tough": 26, 
+      "Too Tough": 30 
     }
   }else if (per < 15) {
     DIFF = { 
