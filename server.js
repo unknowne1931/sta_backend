@@ -213,7 +213,7 @@ app.post(
 
 
 app.use(cors({
-    origin: ["https://stawro.com", "https://www.stawro.com", "https://kalanirdhari.in:3000"],
+    origin: ["https://stawro.com", "https://www.stawro.com", "http://localhost:3000"],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
@@ -4711,7 +4711,6 @@ const Error_Catch_Module = mongoose.model('Errors', Error_Catch_Schema);
 
 
 
-
 //After 2x 5x 7x 10x 15x
 app.get("/get/question/no/by/user/name/bf/xx", authMiddleware, async (req, res) => {
     const user = req.user;
@@ -4785,122 +4784,6 @@ app.get("/get/question/no/by/user/name/bf/xx", authMiddleware, async (req, res) 
     catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Internal Server Error", error: error.message, id: "Some Erorr" });
-    }
-});
-
-
-
-app.get("/get/question/no/by/user/name/chatGPT", authMiddleware, async (req, res) => {
-    const user = req.user;
-
-    try {
-        if (!user) {
-            return res.status(400).json({
-                Status: "BAD",
-                message: "Some Data Missing"
-            });
-        }
-
-        // ==========================
-        // LATEST DOC (SAFE)
-        // ==========================
-        let latestDoc = null;
-
-        const latestDoc_main = await Totalusermodule
-            .findOne({ user })
-            .sort({ createdAt: -1 })
-            .lean();
-
-        // Fetch validity data FIRST (important)
-        const Data = await StartValidmodule.findOne({ user }).lean();
-
-        if (latestDoc_main) {
-            latestDoc = latestDoc_main._id;
-        } else if (Data) {
-            latestDoc = `Val${Data.createdAt}`;
-        }
-
-        // ==========================
-        // VALIDATION CHECK
-        // ==========================
-        if (!Data || Data.valid !== "yes") {
-            return res.status(202).json({
-                Status: "BAD",
-                message: "Not Valid to Yes",
-                id: latestDoc
-            });
-        }
-
-        // ==========================
-        // QUESTION LIST
-        // ==========================
-        const Get_Qno_info = await QuestionListmodule.findOne({ user }).lean();
-
-        if (!Get_Qno_info || !Array.isArray(Get_Qno_info.list) || Get_Qno_info.list.length === 0) {
-            await refund(user)
-            return res.status(202).json({
-                Status: "BAD",
-                message: "No Question Found",
-                id: latestDoc
-            });
-        }
-
-        // ==========================
-        // QUESTION FETCH
-        // ==========================
-        const QNO = Get_Qno_info.list[0];
-
-        const Qno = await QuestionModule.findOne({
-            Qno: QNO.toString(),
-            user
-        }).lean();
-
-        if (!Qno) {
-            return res.status(404).json({
-                Status: "BAD",
-                message: "No Question Found",
-                id: latestDoc
-            });
-        }
-
-        // ==========================
-        // LEVEL + SECONDS (SAFE)
-        // ==========================
-        const lel_fnd = await Level_up_Module.findOne({ user }).lean();
-
-        let ll_sec = 0;
-        if (lel_fnd?.rank !== undefined && lel_fnd?.rank !== null) {
-            const levelSec = await get_level_seconds(lel_fnd.rank);
-            ll_sec = parseInt(levelSec, 10) || 0;
-        }
-
-        const baseSeconds = parseInt(Qno.seconds, 10) || 0;
-        const sec = baseSeconds + ll_sec;
-
-        // ==========================
-        // RESPONSE
-        // ==========================
-        const data = {
-            _id: Qno._id,
-            img: Qno.img,
-            Qno: Qno.Qno,
-            Question: Qno.Questio,
-            options: Qno.options,
-            seconds: sec.toString(),
-            Ans: Qno.Ans,
-            cat: Qno.sub_lang,
-            tough: Qno.tough
-        };
-
-        return res.status(200).json({ data });
-
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({
-            message: "Internal Server Error",
-            error: error.message,
-            id: "Some Error"
-        });
     }
 });
 
@@ -5946,14 +5829,26 @@ app.post('/verify/answer/question/number/xs', authMiddleware, async (req, res) =
 
 
 
+const IQ_Data_Schema = new mongoose.Schema({
+
+    Time: String,
+    user: String,
+    difi : String,
+    cat : String,
+    x : String,
+    per : String
 
 
+});
+
+
+const IQ_Data_Module = mongoose.model('IQ_Data', IQ_Data_Schema);
 
 
 
 //1931
 app.post('/verify/answer/question/number/xss', authMiddleware, async (req, res) => {
-    const { answer, id, Ans } = req.body;
+    const { answer,id, sec, Ans } = req.body;
 
     try {
 
@@ -5988,6 +5883,23 @@ app.post('/verify/answer/question/number/xss', authMiddleware, async (req, res) 
         const User_List = await QuestionListmodule.findOne({ user })
 
         if (check_ans) {
+
+            let per_sel;
+
+            if(parseInt(sec) > 1){
+                
+            }
+
+            const iq_data = await IQ_Data_Module.findOne({user : user , difi : Answer_Verify.tough , cat : Answer_Verify.sub_lang})
+            if(!iq_data){
+                await IQ_Data_Module.create({Time , user , difi : Answer_Verify.tough , cat : Answer_Verify.sub_lang , x : "1" , per : "0"})
+            }else{
+                const new_x = parseInt(iq_data.x) + 1
+                iq_data.x = new_x.toString()
+                await iq_data.save()
+            }
+
+
             if (User_List.list.length === 1 || User_List.list.length === 0) {
                 await User_List.updateOne({ $pull: { list: User_List.list[0] } })
                 // await QuestionListmodule.updateOne(
@@ -10109,31 +10021,31 @@ app.get("/get/latest/won/stars/data", adminMiddleware, async (req, res)=>{
 
 
 
-// app.get("/add/balance/to/all/user", async (req, res) => {
-//     try {
-//         const fetch_all = await Balancemodule.find({});
+app.get("/add/balance/to/all/user", async (req, res) => {
+    try {
+        const fetch_all = await Balancemodule.find({});
 
-//         for (let element of fetch_all) {
-//             let currentBalance = Number(element.balance) || 0; // convert string to number safely
-//             element.balance = currentBalance + 1;
-//             await History(element.user, "1")
-//             await element.save();
-//         }
+        for (let element of fetch_all) {
+            let currentBalance = Number(element.balance) || 0; // convert string to number safely
+            element.balance = currentBalance + 9;
+            // await History(element.user, "9")
+            await element.save();
+        }
 
-//         const updated = await Balancemodule.find({});
-//         const Data = updated.map(el => ({
-//             User: el.user,
-//             Balance: el.balance
-//         }));
+        const updated = await Balancemodule.find({});
+        const Data = updated.map(el => ({
+            User: el.user,
+            Balance: el.balance
+        }));
 
-//         return res.status(200).json({ Status: "SUCCESS", Data });
-//     } catch (error) {
-//         console.error("Update route error:", error);
-//         return res
-//             .status(500)
-//             .json({ Status: "SERVER_ERR", message: "Failed to process request" });
-//     }
-// });
+        return res.status(200).json({ Status: "SUCCESS", Data });
+    } catch (error) {
+        console.error("Update route error:", error);
+        return res
+            .status(500)
+            .json({ Status: "SERVER_ERR", message: "Failed to process request" });
+    }
+});
 
 
 app.post("/verify/answer/question/number/m", async (req, res)=>{

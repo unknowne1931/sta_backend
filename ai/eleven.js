@@ -507,7 +507,7 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
             "Too Tough": 33 
         };
     }else if (per < 10) {
-        COUNT_MAP = { 
+        COUNT_MAP = {
             "Too Easy": 16, 
             "Easy": 19, 
             "Medium": 23, 
