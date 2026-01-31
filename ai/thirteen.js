@@ -292,19 +292,19 @@ function generateNumbers(level, per) {
         };
     } else if (per < 10) {
         config = {
-            "Too Easy": { count: 4, maxNum: 3 },
-            "Easy": { count: 5, maxNum: 3 },
-            "Medium": { count: 6, maxNum: 4 },
-            "Tough": { count: 7, maxNum: 5 },
-            "Too Tough": { count: 8, maxNum: 6 },
+            "Too Easy": { count: 8, maxNum: 3 },
+            "Easy": { count: 13, maxNum: 3 },
+            "Medium": { count: 16, maxNum: 4 },
+            "Tough": { count: 18, maxNum: 5 },
+            "Too Tough": { count: 20, maxNum: 6 },
         };
     } else if (per < 15) {
         config = {
-            "Too Easy": { count: 5, maxNum: 6 },
-            "Easy": { count: 6, maxNum: 5 },
-            "Medium": { count: 7, maxNum: 6 },
-            "Tough": { count: 8, maxNum: 6 },
-            "Too Tough": { count: 9, maxNum: 6 },
+            "Too Easy": { count: 6, maxNum: 3 },
+            "Easy": { count: 11, maxNum: 5 },
+            "Medium": { count: 14, maxNum: 6 },
+            "Tough": { count: 16, maxNum: 6 },
+            "Too Tough": { count: 18, maxNum: 6 },
         };
     } else if (per < 20) {
         config = {

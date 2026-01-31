@@ -344,7 +344,7 @@ const generateOTP = () => {
 //https end
 
 app.get('/', (req, res) => {
-    res.send('Hello, world Vs : 14.0.0 ; Last Updated : 30-01-2026 ; Type : Live');
+    res.send('Hello, world Vs : 15.0.0 ; Last Updated : 30-01-2026 ; Type : Live');
 });
 
 
@@ -2945,7 +2945,7 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
         
         let create_data = await QuestionListmodule.findOne({ user });
 
-        const won_data = await Wonmodule.find({user})
+        
 
         await QuestionModule.deleteMany({ user });
 
@@ -2965,15 +2965,25 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
 
         const dif = [];
 
+        const _dec_bal = await Balancemodule.findOne({ user });
+        const won_data = await Wonmodule.find({user})
+
 
         if (won_data.length < 1) {
             shuffled.forEach((data, i) => {
                 const num = (i + 1).toString();
                 dif.push(num);
                 const lvl = dif_l[i]
-                data(lvl, user, num, 4, "20")
+                data(lvl, user, num, 10, "20")
             });
-        } else {
+        } else if( won_data.length < 2 || parseInt(_dec_bal.balance) <= 10 ) {
+            shuffled.forEach((data, i) => {
+                const num = (i + 1).toString();
+                dif.push(num);
+                const lvl = dif_l[i]
+                data(lvl, user, num, 5, "20")
+            });
+        }else{
             shuffled.forEach((data, i) => {
                 const num = (i + 1).toString();
                 dif.push(num);
@@ -3013,7 +3023,7 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
 
         // const _to_str_up_rp = balanceNum - feesNum
 
-        const _dec_bal = await Balancemodule.findOne({ user });
+        
 
         if (_dec_bal) {
             const currentBal = parseInt(_dec_bal.balance);
@@ -3149,13 +3159,33 @@ app.post('/start/playing/by/debit/amount/new/5x', authMiddleware, async (req, re
         const dif = [];
 
 
-        shuffled.forEach((data, i) => {
-            const num = (i + 1).toString();
-            dif.push(num);
-            const lvl = dif_l[i]
-            data(lvl, user, num, 4, "20")
-        });
-        console.log(shuffled)
+        const _dec_bal = await Balancemodule.findOne({ user });
+        const won_data = await Wonmodule.find({user})
+
+
+        if (won_data.length < 1) {
+            shuffled.forEach((data, i) => {
+                const num = (i + 1).toString();
+                dif.push(num);
+                const lvl = dif_l[i]
+                data(lvl, user, num, 10, "20")
+            });
+        } else if( won_data.length < 2 || parseInt(_dec_bal.balance) <= 10 ) {
+            shuffled.forEach((data, i) => {
+                const num = (i + 1).toString();
+                dif.push(num);
+                const lvl = dif_l[i]
+                data(lvl, user, num, 5, "20")
+            });
+        }else{
+            shuffled.forEach((data, i) => {
+                const num = (i + 1).toString();
+                dif.push(num);
+                const lvl = dif_l[i]
+                data(lvl, user, num, 4, "20")
+            });
+        }
+        
 
 
         if (!create_data) {
@@ -3186,7 +3216,6 @@ app.post('/start/playing/by/debit/amount/new/5x', authMiddleware, async (req, re
 
         // const _to_str_up_rp = balanceNum - feesNum
 
-        const _dec_bal = await Balancemodule.findOne({ user });
 
         if (_dec_bal) {
             const currentBal = parseInt(_dec_bal.balance);
@@ -3321,13 +3350,25 @@ app.post('/start/playing/by/debit/amount/new/7x', authMiddleware, async (req, re
         const dif = [];
 
 
-        shuffled.forEach((data, i) => {
-            const num = (i + 1).toString();
-            dif.push(num);
-            const lvl = dif_l[i]
-            data(lvl, user, num, 4, "20")
-        });
-        console.log(shuffled)
+        const _dec_bal = await Balancemodule.findOne({ user });
+        const won_data = await Wonmodule.find({user})
+
+
+        if( won_data.length < 1 || parseInt(_dec_bal.balance) <= 10 ) {
+            shuffled.forEach((data, i) => {
+                const num = (i + 1).toString();
+                dif.push(num);
+                const lvl = dif_l[i]
+                data(lvl, user, num, 5, "20")
+            });
+        }else{
+            shuffled.forEach((data, i) => {
+                const num = (i + 1).toString();
+                dif.push(num);
+                const lvl = dif_l[i]
+                data(lvl, user, num, 4, "20")
+            });
+        }
 
 
         if (!create_data) {
@@ -3358,7 +3399,6 @@ app.post('/start/playing/by/debit/amount/new/7x', authMiddleware, async (req, re
 
         // const _to_str_up_rp = balanceNum - feesNum
 
-        const _dec_bal = await Balancemodule.findOne({ user });
 
         if (_dec_bal) {
             const currentBal = parseInt(_dec_bal.balance);

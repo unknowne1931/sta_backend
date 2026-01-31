@@ -992,19 +992,19 @@ function duff_lelv(per) {
         }
     } else if (per < 10) {
         diff = {
-            "Too Easy": 10,
-            "Easy": 15,
-            "Medium": 20,
-            "Tough": 25,
-            "Too Tough": 30
+            "Too Easy": 50,
+            "Easy": 55,
+            "Medium": 60,
+            "Tough": 65,
+            "Too Tough": 70
         }
     } else if (per < 15) {
         diff = {
-            "Too Easy": 15,
-            "Easy": 20,
-            "Medium": 25,
-            "Tough": 30,
-            "Too Tough": 35
+            "Too Easy": 45,
+            "Easy": 50,
+            "Medium": 55,
+            "Tough": 60,
+            "Too Tough": 65
         }
     } else if (per < 20) {
         diff = {

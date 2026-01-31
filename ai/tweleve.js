@@ -249,9 +249,9 @@ function def_tough(per) {
     if (per < 5) {
         return { "Too Easy": 50, "Easy": 55, "Medium": 60, "Tough": 65, "Too Tough": 70 };
     } else if (per < 10) {
-        return { "Too Easy": 3, "Easy": 4, "Medium": 5, "Tough": 6, "Too Tough": 7 };
+        return { "Too Easy": 45, "Easy": 50, "Medium": 55, "Tough": 60, "Too Tough": 65 };
     } else if (per < 15) {
-        return { "Too Easy": 4, "Easy": 5, "Medium": 6, "Tough": 7, "Too Tough": 8 };
+        return { "Too Easy": 40, "Easy": 45, "Medium": 50, "Tough": 55, "Too Tough": 60 };
     } else if (per < 20) {
         return { "Too Easy": 4, "Easy": 6, "Medium": 7, "Tough": 8, "Too Tough": 9 };
     } else if (per < 25) {

@@ -270,19 +270,19 @@ export function generateArrows(per, level) {
         };
     } else if (per < 10) {
         LEVELS = {
-            "Too Easy": 4,
-            "Easy": 6,
-            "Medium": 8,
-            "Tough": 10,
-            "Too Tough": 12
+            "Too Easy": 20,
+            "Easy": 25,
+            "Medium": 30,
+            "Tough": 35,
+            "Too Tough": 40
         };
     }else if (per < 15) {
         LEVELS = {
-            "Too Easy": 6,
-            "Easy": 8,
-            "Medium": 10,
-            "Tough": 12,
-            "Too Tough": 14
+            "Too Easy": 15,
+            "Easy": 20,
+            "Medium": 25,
+            "Tough": 30,
+            "Too Tough": 35
         };
     }else if (per < 20) {
         LEVELS = {

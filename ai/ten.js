@@ -501,8 +501,8 @@ const HEIGHT = 250;
 // ==========================
 function def_data(per) {
     if (per < 5) return { "Too Easy": 18, "Easy": 16, "Medium": 14, "Tough": 12, "Too Tough": 10 };
-    else if (per < 10) return { "Too Easy": 48, "Easy": 46, "Medium": 44, "Tough": 42, "Too Tough": 40 };
-    else if (per < 15) return { "Too Easy": 46, "Easy": 44, "Medium": 42, "Tough": 40, "Too Tough": 38 };
+    else if (per < 10) return { "Too Easy": 20, "Easy": 18, "Medium": 16, "Tough": 14, "Too Tough": 12 };
+    else if (per < 15) return { "Too Easy": 22, "Easy": 20, "Medium": 18, "Tough": 16, "Too Tough": 14 };
     else if (per < 20) return { "Too Easy": 44, "Easy": 42, "Medium": 40, "Tough": 38, "Too Tough": 36 };
     else if (per < 25) return { "Too Easy": 42, "Easy": 40, "Medium": 38, "Tough": 36, "Too Tough": 34 };
     else if (per < 30) return { "Too Easy": 40, "Easy": 38, "Medium": 36, "Tough": 34, "Too Tough": 32 };

@@ -229,19 +229,19 @@ export function getPlusLevels(per) {
         };
     }else if (per < 10) {
         return {
-            "Too Easy":  { h: 1,  v: 4,  gap: 44 },
-            "Easy":      { h: 1,  v: 5,  gap: 42 },
-            "Medium":    { h: 1,  v: 6,  gap: 40 },
-            "Tough":     { h: 1,  v: 7,  gap: 38 },
-            "Too Tough": { h: 1, v: 8, gap: 36}
+            "Too Easy":  { h: 5,  v: 9,  gap: 44 },
+            "Easy":      { h: 6,  v: 10,  gap: 42 },
+            "Medium":    { h: 7,  v: 10,  gap: 40 },
+            "Tough":     { h: 8,  v: 10,  gap: 38 },
+            "Too Tough": { h: 9, v: 10, gap: 36}
         };
     }else if (per < 15) {
         return {
-            "Too Easy":  { h: 2,  v: 5,  gap: 42 },
-            "Easy":      { h: 2,  v: 6,  gap: 40 },
-            "Medium":    { h: 2,  v: 7,  gap: 38 },
-            "Tough":     { h: 2,  v: 8,  gap: 36 },
-            "Too Tough": { h: 2, v: 9, gap: 34 }
+            "Too Easy":  { h: 4,  v: 8,  gap: 42 },
+            "Easy":      { h: 5,  v: 9,  gap: 40 },
+            "Medium":    { h: 6,  v: 9,  gap: 38 },
+            "Tough":     { h: 7,  v: 9,  gap: 36 },
+            "Too Tough": { h: 8, v: 9, gap: 34 }
         };
     }else if (per < 20) {
         return {
