@@ -5846,6 +5846,9 @@ const IQ_Data_Module = mongoose.model('IQ_Data', IQ_Data_Schema);
 
 
 
+
+
+
 //1931
 app.post('/verify/answer/question/number/xss', authMiddleware, async (req, res) => {
     const { answer,id, sec, Ans } = req.body;
@@ -5882,20 +5885,15 @@ app.post('/verify/answer/question/number/xss', authMiddleware, async (req, res) 
         const Answer_Verify = await QuestionModule.findById({ _id: id })
         const User_List = await QuestionListmodule.findOne({ user })
 
-        if (check_ans) {
-
-            let per_sel;
-
-            if(parseInt(sec) > 1){
-                
-            }
+        if (check_ans) {            
 
             const iq_data = await IQ_Data_Module.findOne({user : user , difi : Answer_Verify.tough , cat : Answer_Verify.sub_lang})
+            
             if(!iq_data){
-                await IQ_Data_Module.create({Time , user , difi : Answer_Verify.tough , cat : Answer_Verify.sub_lang , x : "1" , per : "0"})
+                await IQ_Data_Module.create({Time , user , difi : Answer_Verify.tough , cat : Answer_Verify.sub_lang , x : Answer_Verify.tough , per : sec.toString()})
             }else{
-                const new_x = parseInt(iq_data.x) + 1
-                iq_data.x = new_x.toString()
+                const new_x = parseInt(iq_data.per) + parseInt(sec)
+                iq_data.per = new_x.toString()
                 await iq_data.save()
             }
 
