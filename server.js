@@ -8916,6 +8916,19 @@ app.post("/refer/and/earn", async (req, res) => {
     }
 });
 
+async function get_iq(user, cat, level) {
+    try {
+        const iq_data = await IQ_module.findOne({ user: user, category: cat, level: level });
+        if (iq_data) {
+            return iq_data.iq;
+        } else {
+            return 1; // default IQ
+        }
+    } catch (error) {
+        console.error("Error fetching IQ data:", error);
+        return 1; // default IQ on error
+    }
+}
 
 function One() {
     return async function (level, user, qno, per, sec) {
