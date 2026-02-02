@@ -336,13 +336,15 @@ const HEIGHT = 250;
 
 const SHAPES = ["circle", "star", "triangle"];
 
-export function getDifficultiesByPer(per) {
+export function getDifficultiesByPer(per, nl) {
     let DIFFICULTIES = {};
+
+    const n = parseInt(nl);
 
     if(per < 5){
         DIFFICULTIES = {
-            "Too Easy" : { boxes : [50, 55], size : [30, 30], broken: [10, 18]},
-            "Easy" : { boxes : [55, 60], size : [30, 30], broken: [12, 13]},
+            "Too Easy" : { boxes : [5 + n, 5 + n], size : [30, 30], broken: [10, 18]},
+            "Easy" : { boxes : [55 + n, 60 + n], size : [30, 30], broken: [12, 13]},
             "Medium" : { boxes : [60, 65], size : [25, 25], broken: [13, 15]},
             "Tough" : { boxes : [65, 70], size : [25, 25], broken: [15, 17]},
             "Too Tough" : { boxes : [70, 75], size : [25, 25], broken: [17, 20]},

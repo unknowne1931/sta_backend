@@ -627,26 +627,20 @@ const HEIGHT = 250;
 const MAX_SAFE_PIECES = 28;
 
 // -------- PER-BASED DIFFICULTY (UNCHANGED STRUCTURE) --------
-function diff_lt(per) {
+function diff_lt(per, nl) {
     let DIFF;
+
+    const n = parseInt(nl);
 
     if (per < 5) {
         DIFF = {
-            0: [4, 5],
-            1: [5, 6],
-            2: [6, 7],
-            3: [7, 8],
-            4: [8, 9]
+            0: [1 + n, 2 + n],
+            1: [2 + n, 3 + n],
+            2: [3 + n, 4 + n],
+            3: [4 + n, 5 + n],
+            4: [5 + n, 6 + n]
         };
     } else if (per < 10) {
-        DIFF = {
-            0: [3, 4],
-            1: [4, 5],
-            2: [5, 6],
-            3: [6, 7],
-            4: [7, 8]
-        };
-    } else if (per < 15) {
         DIFF = {
             0: [2, 3],
             1: [3, 4],
@@ -654,7 +648,23 @@ function diff_lt(per) {
             3: [5, 6],
             4: [6, 7]
         };
+    } else if (per < 15) {
+        DIFF = {
+            0: [3, 4],
+            1: [4, 5],
+            2: [5, 6],
+            3: [6, 7],
+            4: [7, 8]
+        };
     } else if (per < 20) {
+        DIFF = {
+            0: [4, 5],
+            1: [5, 6],
+            2: [6, 7],
+            3: [7, 8],
+            4: [8, 9]
+        };
+    } else if (per < 25) {
         DIFF = {
             0: [5, 6],
             1: [6, 7],
@@ -662,7 +672,7 @@ function diff_lt(per) {
             3: [8, 9],
             4: [9, 10]
         };
-    } else if (per < 25) {
+    } else if (per < 30) {
         DIFF = {
             0: [6, 7],
             1: [7, 8],
@@ -670,15 +680,15 @@ function diff_lt(per) {
             3: [9, 10],
             4: [10, 11]
         };
-    } else if (per < 30) {
+    } else if (per < 35) {
         DIFF = {
             0: [7, 8],
-            1: [8, 8],
-            2: [8, 9],
-            3: [9, 10],
-            4: [10, 11]
+            1: [8, 9],
+            2: [9, 10],
+            3: [10, 11],
+            4: [11, 12]
         };
-    } else if (per < 35) {
+    } else if (per < 40) {
         DIFF = {
             0: [8, 9],
             1: [9, 10],
@@ -686,7 +696,7 @@ function diff_lt(per) {
             3: [11, 12],
             4: [12, 13]
         };
-    } else if (per < 40) {
+    } else if (per < 45) {
         DIFF = {
             0: [9, 10],
             1: [10, 11],
@@ -694,7 +704,7 @@ function diff_lt(per) {
             3: [12, 13],
             4: [13, 14]
         };
-    } else if (per < 45) {
+    } else if (per < 50) {
         DIFF = {
             0: [10, 11],
             1: [11, 12],
@@ -702,7 +712,7 @@ function diff_lt(per) {
             3: [13, 14],
             4: [14, 15]
         };
-    } else if (per < 50) {
+    } else if (per < 55) {
         DIFF = {
             0: [11, 12],
             1: [12, 13],
@@ -710,15 +720,15 @@ function diff_lt(per) {
             3: [14, 15],
             4: [15, 16]
         };
-    } else if (per < 55) {
+    } else if (per < 60) {
         DIFF = {
-            0: [5, 6],
+            0: [12, 13],
             1: [13, 14],
             2: [14, 15],
             3: [15, 16],
             4: [16, 17]
         };
-    } else if (per < 60) {
+    } else if (per < 65) {
         DIFF = {
             0: [13, 14],
             1: [14, 15],
@@ -726,7 +736,7 @@ function diff_lt(per) {
             3: [16, 17],
             4: [17, 18]
         };
-    } else if (per < 65) {
+    } else if (per < 70) {
         DIFF = {
             0: [14, 15],
             1: [15, 16],
@@ -734,7 +744,7 @@ function diff_lt(per) {
             3: [17, 18],
             4: [18, 19]
         };
-    } else if (per < 70) {
+    } else if (per < 75) {
         DIFF = {
             0: [15, 16],
             1: [16, 17],
@@ -742,21 +752,13 @@ function diff_lt(per) {
             3: [18, 19],
             4: [19, 20]
         };
-    } else if (per < 75) {
+    } else if (per < 80) {
         DIFF = {
             0: [16, 17],
             1: [17, 18],
             2: [18, 19],
             3: [19, 20],
             4: [20, 21]
-        };
-    } else if (per < 80) {
-        DIFF = {
-            0: [17, 18],
-            1: [18, 19],
-            2: [19, 20],
-            3: [20, 21],
-            4: [21, 22]
         };
     } else if (per < 85) {
         DIFF = {
@@ -888,8 +890,8 @@ export function drawCircles(circles) {
 }
 
 // -------- GENERATE PUZZLE + OPTIONS --------
-export function generatePuzzle(difficulty, per) {
-    const let_data = diff_lt(per);
+export function generatePuzzle(difficulty, per, nl) {
+    const let_data = diff_lt(per, nl);
 
     let lett;
     if (difficulty === "Too Easy") lett = 0;

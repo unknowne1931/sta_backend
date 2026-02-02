@@ -5877,9 +5877,6 @@ app.post('/verify/answer/question/number/xss', authMiddleware, async (req, res) 
             return plainHash === hash;
         }
 
-
-
-
         const check_ans = compareHash(answer, Ans)
 
         const Answer_Verify = await QuestionModule.findById({ _id: id })
@@ -8918,7 +8915,7 @@ app.post("/refer/and/earn", async (req, res) => {
 
 async function get_iq(user, cat, level) {
     try {
-        const iq_data = await IQ_module.findOne({ user: user, category: cat, level: level });
+        const iq_data = await IQ_Data_Module.findOne({ user: user, category: cat, level: level });
         if (iq_data) {
             return iq_data.iq;
         } else {
@@ -8933,9 +8930,10 @@ async function get_iq(user, cat, level) {
 function One() {
     return async function (level, user, qno, per, sec) {
         try {
-            // const per = await get_per("star_cir_tri", level, user);
 
-            const DIFFICULTIES = getDifficultiesByPer(per);
+            const iq = await get_iq(user, "star_cir_tri", level);
+
+            const DIFFICULTIES = getDifficultiesByPer(per, iq);
 
             const difficulty = DIFFICULTIES[level];
             const boxes = generateBoxesData(difficulty);
@@ -9003,7 +9001,8 @@ function Two() {
             // const per = await get_per("news_side", level, user);
 
             // 1) Generate arrows
-            const angles = generateArrows(per, level);
+            const iq = await get_iq(user, "news_side", level);
+            const angles = generateArrows(per, level, iq);
 
             // 2) Draw & upload image
             const buffer = drawArrowsImage(angles);
@@ -9108,7 +9107,8 @@ function Three() {
 
         try {
             // const per = await get_per("plus", level, user);
-            const data = await generatePlusQuestionImage(per, level);
+            const iq = await get_iq(user, "plus", level);
+            const data = await generatePlusQuestionImage(per, level, iq);
 
             // const hash = crypto
             //     .createHash('sha256')
@@ -9154,9 +9154,10 @@ function Four() {
         try {
             // const level = req.query.level || "Easy";
             // const per = await get_per("two_leters_word", level, user);
+            const iq = await get_iq(user, "two_leters_word", level);
 
 
-            const { words, question, correctAnswer, options } = generateData(level, per);
+            const { words, question, correctAnswer, options } = generateData(level, per, iq);
             const base64Image = await renderImageBase64(words);
 
             // const sec = await get_lel_dif(level, "two_leters_word")
@@ -9194,7 +9195,8 @@ function Five() {
         try {
             // const level = req.query.level || "Easy";
             // const per = await get_per("singel_word", level, user);
-            const data = generateData1(level, per);
+            const iq = await get_iq(user, "singel_word", level);
+            const data = generateData1(level, per, iq);
 
             console.log(data);
 
@@ -9236,10 +9238,8 @@ function Six() {
 
         try {
             // const per = await get_per("ran_leters", level, user);
-
-
-
-            createChallenge(level, per).then(async out => {
+            const iq = await get_iq(user, "ran_leters", level);
+            createChallenge(level, per, iq).then(async out => {
                 // console.log("Correct:", out.correct);
                 // console.log("Options:", out.options);
                 // console.log("Base64 length:", out.base64img.length);
@@ -9286,8 +9286,8 @@ function Seven() {
         try {
             // const per = await get_per("less_grtr", level, user);
 
-
-            const data = await createAdvancedNumberMCQ(level, per);
+            const iq = await get_iq(user, "less_grtr", level);
+            const data = await createAdvancedNumberMCQ(level, per, iq);
 
             // const sec = await get_lel_dif(level, "less_grtr")
 
@@ -9325,7 +9325,9 @@ function Eight() {
     return async function (level, user, qno, per, sec) {
         try {
             // const per = await get_per("circle_pieces", level, user);
-            const puzzle = generatePuzzle(level, per);
+
+            const iq = await get_iq(user, "circle_pieces", level);
+            const puzzle = generatePuzzle(level, per, iq);
             const canvas = drawCircles(puzzle.circles);
             const base64Image = canvas.toBuffer('image/png').toString('base64');
 
@@ -9366,7 +9368,8 @@ function Nine() {
         try {
 
             // const per = await get_per("emoji_01", level, user);
-            const puzzle = generateEmojiPuzzle(level, per);
+            const iq = await get_iq(user, "emoji_01", level);
+            const puzzle = generateEmojiPuzzle(level, per, iq);
             // console.log(puzzle);
 
             // const sec = await get_lel_dif(level, "emoji_01")
@@ -9404,7 +9407,9 @@ function Ten() {
         try {
             // const per = await get_per("maze", level, user);
             // const per = 100
-            const mazeQuestion = generateMazeQuestion(level, per);
+
+            const iq = await get_iq(user, "maze", level);
+            const mazeQuestion = generateMazeQuestion(level, per, iq);
 
             // const sec = await get_lel_dif(level, "maze")
 
@@ -9440,8 +9445,10 @@ function Eleven() {
     return async function (level, user, qno, per, sec) {
         try {
             // const per = await get_per("colours", level, user);
+
+            const iq = await get_iq(user, "colours", level);
             const result = generateColorMatchQuestion({
-                level, per
+                level, per, iq
             });
 
             // const sec = await get_lel_dif(level, "colours")
@@ -9480,7 +9487,8 @@ function Tweleve() {
         try {
             // const per = await get_per("code_int_char", level, user);
 
-            const test = createStringCountImage(level, per);
+            const iq = await get_iq(user, "code_int_char", level);
+            const test = createStringCountImage(level, per, iq);
 
             // const sec = await get_lel_dif(level, "code_int_char")
 
@@ -9517,7 +9525,8 @@ function Thirteen() {
 
         // const per = await get_per("num_pairs", level, user);
 
-        const puzzle = await generateNumberPairMCQ(level, per)
+        const iq = await get_iq(user, "num_pairs", level);
+        const puzzle = await generateNumberPairMCQ(level, per, iq)
 
         // const sec = await get_lel_dif(level, "num_pairs")
         // console.log(puzzle.question);
@@ -9554,7 +9563,9 @@ function Thirteen() {
 function Fourteen() {
     return async function (level, user, qno, per, sec) {
         // const per = await get_per("OMR_1", level);
-        const puzzle = generateOMRQuestion(level, per);
+
+        const iq = await get_iq(user, "OMR_1", level);
+        const puzzle = generateOMRQuestion(level, per, iq);
         // console.log(puzzle.question);
         // console.log("Answer:", puzzle.correctAnswer);
         // console.log(puzzle.base64Image);
@@ -9602,7 +9613,9 @@ function Fourteen() {
 function Fifteen() {
     return async function (level, user, qno, per, sec) {
         // const per = await get_per("OMR", level);
-        const puzzle = generateOMRQuestion15(level, per);
+
+        const iq = await get_iq(user, "OMR", level);
+        const puzzle = generateOMRQuestion15(level, per, iq);
         // console.log(puzzle.question);
         // console.log("Answer:", puzzle.correctAnswer);
         // console.log(puzzle.base64Image);
@@ -9646,6 +9659,8 @@ function Fifteen() {
 function Sixteen() {
     return async function (level, user, qno, per, sec) {
         // const per = await get_per("Train", level);
+
+        const iq = await get_iq(user, "Train", level);
         const puzzle = generateTrainQuestionImage(level, per);
         // console.log(puzzle.question);
         // console.log("Answer:", puzzle.correctAnswer);
