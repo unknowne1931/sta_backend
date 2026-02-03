@@ -632,6 +632,8 @@ function diff_lt(per, nl) {
 
     const n = parseInt(nl);
 
+    console.log("NL VALUE IN DIFF_LT:", n);
+
     if (per < 5) {
         DIFF = {
             0: [1 + n, 2 + n],
@@ -892,6 +894,8 @@ export function drawCircles(circles) {
 // -------- GENERATE PUZZLE + OPTIONS --------
 export function generatePuzzle(difficulty, per, nl) {
     const let_data = diff_lt(per, nl);
+
+    console.log(`LET DATA IN GENERATE PUZZLE ... : per : ${per} : `, let_data);
 
     let lett;
     if (difficulty === "Too Easy") lett = 0;

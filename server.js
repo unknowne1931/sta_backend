@@ -2952,11 +2952,10 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
         const dif_l = ["Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy"];
 
         const qst_gen = [
-            One(), Two(), Three(), Four(), Five(), Six(),
-            Seven(), Eight(), Nine(), Ten(), Eleven(), Tweleve(), Thirteen(),
-            Fourteen(), Fifteen(), Sixteen()
-
-            // Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),Sixteen(),
+            // One(), Two(), Three(), Four(), Five(), Six(),
+            // Seven(), Eight(), Nine(), Ten(), Eleven(), Tweleve(), Thirteen(),
+            // Fourteen(), Fifteen(), Sixteen()
+            Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),
         ];
 
         const shuffled = [...qst_gen]
