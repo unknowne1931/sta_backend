@@ -500,23 +500,23 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
 
     if (per < 5) {
         COUNT_MAP = { 
-            "Too Easy": 18, 
-            "Easy": 21, 
-            "Medium": 25, 
-            "Tough": 28, 
+            "Too Easy": 2, 
+            "Easy": 4, 
+            "Medium":6, 
+            "Tough": 8, 
             "Too Tough": 33 
         };
     }else if (per < 10) {
         COUNT_MAP = {
-            "Too Easy": 16, 
-            "Easy": 19, 
+            "Too Easy": 4, 
+            "Easy": 4, 
             "Medium": 23, 
             "Tough": 26, 
             "Too Tough": 30 
         };
     }else if (per < 15) {
         COUNT_MAP = { 
-            "Too Easy": 14, 
+            "Too Easy": 6, 
             "Easy": 17, 
             "Medium": 21, 
             "Tough": 24, 
@@ -524,7 +524,7 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
         };
     }else if (per < 20) {
         COUNT_MAP = { 
-            "Too Easy": 10, 
+            "Too Easy": 8, 
             "Easy": 12, 
             "Medium": 14, 
             "Tough": 16, 
@@ -532,7 +532,7 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
         };
     }else if (per < 25) {
         COUNT_MAP = { 
-            "Too Easy": 12, 
+            "Too Easy": 10, 
             "Easy": 14, 
             "Medium": 16, 
             "Tough": 18, 
@@ -540,7 +540,7 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
         };
     }else if (per < 30) {
         COUNT_MAP = { 
-            "Too Easy": 14, 
+            "Too Easy": 12, 
             "Easy": 16, 
             "Medium": 18, 
             "Tough": 20, 
@@ -548,7 +548,7 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
         };
     }else if (per < 35) {
         COUNT_MAP = { 
-            "Too Easy": 16, 
+            "Too Easy": 14, 
             "Easy": 18, 
             "Medium": 20, 
             "Tough": 22, 
@@ -556,7 +556,7 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
         };
     }else if (per < 40) {
         COUNT_MAP = { 
-            "Too Easy": 18, 
+            "Too Easy": 16, 
             "Easy": 20, 
             "Medium": 22, 
             "Tough": 24, 
@@ -564,7 +564,7 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
         };
     }else if (per < 45) {
         COUNT_MAP = { 
-            "Too Easy": 20, 
+            "Too Easy": 18, 
             "Easy": 22, 
             "Medium": 24, 
             "Tough": 26, 
@@ -572,7 +572,7 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
         };
     }else if (per < 50) {
         COUNT_MAP = { 
-            "Too Easy": 22, 
+            "Too Easy": 20, 
             "Easy": 24, 
             "Medium": 26, 
             "Tough": 28, 
@@ -580,7 +580,7 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
         };
     }else if (per < 55) {
         COUNT_MAP = { 
-            "Too Easy": 24, 
+            "Too Easy": 22, 
             "Easy": 26, 
             "Medium": 28, 
             "Tough": 30, 
@@ -588,7 +588,7 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
         };
     }else if (per < 60) {
         COUNT_MAP = { 
-            "Too Easy": 26, 
+            "Too Easy": 24, 
             "Easy": 28, 
             "Medium": 30, 
             "Tough": 32, 
@@ -596,7 +596,7 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
         };
     }else if (per < 65) {
         COUNT_MAP = { 
-            "Too Easy": 28, 
+            "Too Easy": 26, 
             "Easy": 30, 
             "Medium": 32, 
             "Tough": 34, 
@@ -604,7 +604,7 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
         };
     }else if (per < 70) {
         COUNT_MAP = { 
-            "Too Easy": 30, 
+            "Too Easy": 28, 
             "Easy": 32, 
             "Medium": 34, 
             "Tough": 36, 
@@ -612,7 +612,7 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
         };
     }else if (per < 75) {
         COUNT_MAP = { 
-            "Too Easy": 32, 
+            "Too Easy": 30, 
             "Easy": 34, 
             "Medium": 36, 
             "Tough": 38, 
@@ -620,7 +620,7 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
         };
     }else if (per < 80) {
         COUNT_MAP = { 
-            "Too Easy": 34, 
+            "Too Easy": 32, 
             "Easy": 36, 
             "Medium": 38, 
             "Tough": 40, 
@@ -628,7 +628,7 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
         };
     }else if (per < 85) {
         COUNT_MAP = { 
-            "Too Easy": 36, 
+            "Too Easy": 34, 
             "Easy": 38, 
             "Medium": 40, 
             "Tough": 42, 
@@ -636,7 +636,7 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
         };
     }else if (per < 90) {
         COUNT_MAP = { 
-            "Too Easy": 38, 
+            "Too Easy": 36, 
             "Easy": 40, 
             "Medium": 42, 
             "Tough": 44, 
@@ -644,7 +644,7 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
         };
     }else if (per < 95) {
         COUNT_MAP = { 
-            "Too Easy": 40, 
+            "Too Easy": 38, 
             "Easy": 42, 
             "Medium": 44, 
             "Tough": 46, 
@@ -652,7 +652,7 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
         };
     }else {
         COUNT_MAP = { 
-            "Too Easy": 42, 
+            "Too Easy": 40, 
             "Easy": 44, 
             "Medium": 46, 
             "Tough": 48, 

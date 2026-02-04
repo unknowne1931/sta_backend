@@ -631,16 +631,13 @@ function diff_lt(per, nl) {
     let DIFF;
 
     const n = parseInt(nl);
-
-    console.log("NL VALUE IN DIFF_LT:", n);
-
     if (per < 5) {
         DIFF = {
-            0: [1 + n, 2 + n],
-            1: [2 + n, 3 + n],
-            2: [3 + n, 4 + n],
-            3: [4 + n, 5 + n],
-            4: [5 + n, 6 + n]
+            0: [1, 2],
+            1: [2, 3],
+            2: [3, 4],
+            3: [4, 5],
+            4: [5, 6]
         };
     } else if (per < 10) {
         DIFF = {
@@ -889,13 +886,12 @@ export function drawCircles(circles) {
 
 
     return canvas;
+
 }
 
 // -------- GENERATE PUZZLE + OPTIONS --------
 export function generatePuzzle(difficulty, per, nl) {
     const let_data = diff_lt(per, nl);
-
-    console.log(`LET DATA IN GENERATE PUZZLE ... : per : ${per} : `, let_data);
 
     let lett;
     if (difficulty === "Too Easy") lett = 0;
