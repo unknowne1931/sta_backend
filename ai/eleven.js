@@ -494,57 +494,57 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
 
     let COUNT_MAP;
 
-    if (per < 5) {
+    if (per < 1) {
         
         COUNT_MAP = { 
-            "Too Easy": 2, 
-            "Easy": 5, 
-            "Medium":6, 
-            "Tough": 8, 
-            "Too Tough": 33 
+            "Too Easy": 1, 
+            "Easy": 1, 
+            "Medium":1, 
+            "Tough": 1, 
+            "Too Tough": 1 
         };
 
-    }else if (per < 10) {
+    }else if (per <2) {
         
         COUNT_MAP = {
+            "Too Easy": 2, 
+            "Easy": 2, 
+            "Medium":2, 
+            "Tough": 2, 
+            "Too Tough": 2 
+        };
+
+    }else if (per < 3) {
+        
+        COUNT_MAP = { 
+            "Too Easy": 3, 
+            "Easy": 3, 
+            "Medium": 3, 
+            "Tough": 3, 
+            "Too Tough": 3 
+        };
+        
+    }else if (per < 4) {
+
+        COUNT_MAP = { 
             "Too Easy": 4, 
-            "Easy": 10, 
-            "Medium": 23, 
-            "Tough": 26, 
-            "Too Tough": 30 
+            "Easy": 4, 
+            "Medium": 4, 
+            "Tough": 4, 
+            "Too Tough": 4 
         };
 
-    }else if (per < 15) {
-        
-        COUNT_MAP = { 
-            "Too Easy": 6, 
-            "Easy": 16, 
-            "Medium": 21, 
-            "Tough": 24, 
-            "Too Tough": 29 
-        };
-        
-    }else if (per < 20) {
+    }else if (per < 5) {
 
         COUNT_MAP = { 
-            "Too Easy": 8, 
-            "Easy": 32, 
-            "Medium": 14, 
-            "Tough": 16, 
-            "Too Tough": 18 
+            "Too Easy": 5, 
+            "Easy": 5, 
+            "Medium": 5, 
+            "Tough": 5, 
+            "Too Tough": 5 
         };
 
-    }else if (per < 25) {
-
-        COUNT_MAP = { 
-            "Too Easy": 10, 
-            "Easy": 14, 
-            "Medium": 16, 
-            "Tough": 18, 
-            "Too Tough": 20 
-        };
-
-    }else if (per < 30) {
+    }else if (per < 6) {
         COUNT_MAP = { 
             "Too Easy": 12, 
             "Easy": 16, 
