@@ -476,9 +476,7 @@
 
 import { createCanvas } from "canvas";
 
-// ==========================
-// CONFIG
-// ==========================
+
 const WIDTH = 400;
 const HEIGHT = 250;
 
@@ -491,46 +489,53 @@ const COLORS = [
     { name: "ORANGE", value: "#ff7700" }
 ];
 
-// ==========================
-// MAIN EXPORT
-// ==========================
+
 export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
 
     let COUNT_MAP;
 
     if (per < 5) {
+        
         COUNT_MAP = { 
             "Too Easy": 2, 
-            "Easy": 4, 
+            "Easy": 5, 
             "Medium":6, 
             "Tough": 8, 
             "Too Tough": 33 
         };
+
     }else if (per < 10) {
+        
         COUNT_MAP = {
             "Too Easy": 4, 
-            "Easy": 4, 
+            "Easy": 10, 
             "Medium": 23, 
             "Tough": 26, 
             "Too Tough": 30 
         };
+
     }else if (per < 15) {
+        
         COUNT_MAP = { 
             "Too Easy": 6, 
-            "Easy": 17, 
+            "Easy": 16, 
             "Medium": 21, 
             "Tough": 24, 
             "Too Tough": 29 
         };
+        
     }else if (per < 20) {
+
         COUNT_MAP = { 
             "Too Easy": 8, 
-            "Easy": 12, 
+            "Easy": 32, 
             "Medium": 14, 
             "Tough": 16, 
             "Too Tough": 18 
         };
+
     }else if (per < 25) {
+
         COUNT_MAP = { 
             "Too Easy": 10, 
             "Easy": 14, 
@@ -538,6 +543,7 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
             "Tough": 18, 
             "Too Tough": 20 
         };
+
     }else if (per < 30) {
         COUNT_MAP = { 
             "Too Easy": 12, 
@@ -660,23 +666,20 @@ export function generateColorMatchQuestion({ level = "Medium", per = 0 } = {}) {
         };
     }
 
-
     const totalWords = COUNT_MAP[level] || 12;
-
-    // --------------------
-    // Generate items
-    // --------------------
+    
     const items = [];
     let correctCount = 0;
 
     for (let i = 0; i < totalWords; i++) {
+
         let word = COLORS[Math.floor(Math.random() * COLORS.length)];
         let color = COLORS[Math.floor(Math.random() * COLORS.length)];
 
         if (Math.random() < 0.35) {
             color = word;
         }
-
+        
         if (word.name === color.name) correctCount++;
 
         items.push({
