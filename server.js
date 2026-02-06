@@ -8932,7 +8932,7 @@ function One() {
 
             const iq = await get_iq(user, "star_cir_tri", level);
 
-            const DIFFICULTIES = getDifficultiesByPer(per, iq);
+            const DIFFICULTIES = getDifficultiesByPer(iq);
 
             const difficulty = DIFFICULTIES[level];
             const boxes = generateBoxesData(difficulty);
@@ -9156,7 +9156,7 @@ function Four() {
             const iq = await get_iq(user, "two_leters_word", level);
 
 
-            const { words, question, correctAnswer, options } = generateData(level, per, iq);
+            const { words, question, correctAnswer, options } = generateData(level, iq);
             const base64Image = await renderImageBase64(words);
 
             // const sec = await get_lel_dif(level, "two_leters_word")
@@ -9195,7 +9195,7 @@ function Five() {
             // const level = req.query.level || "Easy";
             // const per = await get_per("singel_word", level, user);
             const iq = await get_iq(user, "singel_word", level);
-            const data = generateData1(level, per, iq);
+            const data = generateData1(level, iq);
 
             console.log(data);
 
@@ -9238,7 +9238,7 @@ function Six() {
         try {
             // const per = await get_per("ran_leters", level, user);
             const iq = await get_iq(user, "ran_leters", level);
-            createChallenge(level, per, iq).then(async out => {
+            createChallenge(level, iq).then(async out => {
                 // console.log("Correct:", out.correct);
                 // console.log("Options:", out.options);
                 // console.log("Base64 length:", out.base64img.length);
@@ -9286,7 +9286,7 @@ function Seven() {
             // const per = await get_per("less_grtr", level, user);
 
             const iq = await get_iq(user, "less_grtr", level);
-            const data = await createAdvancedNumberMCQ(level, per, iq);
+            const data = await createAdvancedNumberMCQ(level, iq);
 
             // const sec = await get_lel_dif(level, "less_grtr")
 
@@ -9326,7 +9326,7 @@ function Eight() {
             // const per = await get_per("circle_pieces", level, user);
 
             const iq = await get_iq(user, "circle_pieces", level);
-            const puzzle = generatePuzzle(level, per, iq);
+            const puzzle = generatePuzzle(level, iq);
             const canvas = drawCircles(puzzle.circles);
             const base64Image = canvas.toBuffer('image/png').toString('base64');
 
@@ -9408,7 +9408,7 @@ function Ten() {
             // const per = 100
 
             const iq = await get_iq(user, "maze", level);
-            const mazeQuestion = generateMazeQuestion(level, per, iq);
+            const mazeQuestion = generateMazeQuestion(level, iq);
 
             // const sec = await get_lel_dif(level, "maze")
 
@@ -9447,7 +9447,7 @@ function Eleven() {
 
             const iq = await get_iq(user, "colours", level);
             const result = generateColorMatchQuestion({
-                level, per, iq
+                level, iq
             });
 
             // const sec = await get_lel_dif(level, "colours")
@@ -9525,7 +9525,7 @@ function Thirteen() {
         // const per = await get_per("num_pairs", level, user);
 
         const iq = await get_iq(user, "num_pairs", level);
-        const puzzle = await generateNumberPairMCQ(level, per, iq)
+        const puzzle = await generateNumberPairMCQ(level, iq)
 
         // const sec = await get_lel_dif(level, "num_pairs")
         // console.log(puzzle.question);
@@ -9564,7 +9564,7 @@ function Fourteen() {
         // const per = await get_per("OMR_1", level);
 
         const iq = await get_iq(user, "OMR_1", level);
-        const puzzle = generateOMRQuestion(level, per, iq);
+        const puzzle = generateOMRQuestion(level, iq);
         // console.log(puzzle.question);
         // console.log("Answer:", puzzle.correctAnswer);
         // console.log(puzzle.base64Image);
@@ -9614,7 +9614,7 @@ function Fifteen() {
         // const per = await get_per("OMR", level);
 
         const iq = await get_iq(user, "OMR", level);
-        const puzzle = generateOMRQuestion15(level, per, iq);
+        const puzzle = generateOMRQuestion15(level, iq);
         // console.log(puzzle.question);
         // console.log("Answer:", puzzle.correctAnswer);
         // console.log(puzzle.base64Image);
@@ -9660,7 +9660,7 @@ function Sixteen() {
         // const per = await get_per("Train", level);
 
         const iq = await get_iq(user, "Train", level);
-        const puzzle = generateTrainQuestionImage(level, per);
+        const puzzle = generateTrainQuestionImage(level, iq);
         // console.log(puzzle.question);
         // console.log("Answer:", puzzle.correctAnswer);
         // console.log(puzzle.base64Image);

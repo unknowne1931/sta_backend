@@ -231,6 +231,264 @@
 
 
 
+// import { createCanvas } from "canvas";
+
+// // ==========================
+// // CONFIG
+// // ==========================
+// const WIDTH = 430;
+// const HEIGHT = 270;
+
+// // const GAP_X = 25;
+// // const GAP_Y = 25;
+// // const RADIUS = 10;
+
+// const GAP_X = 19;
+// const GAP_Y = 18;
+// const RADIUS = 8;
+
+// // ==========================
+// // DIFFICULTY RESOLVER (per-based)
+// // ==========================
+// function getDifficultyMap(per) {
+//     if (per < 5) {
+//         return {
+//             "Too Easy":  { rows: 11, COLS: 8,  visibleRatio: 1},
+//             "Easy":      { rows: 11, COLS: 10,  visibleRatio: 1 },
+//             "Medium":    { rows: 12, COLS: 11,  visibleRatio: 1 },
+//             "Tough":     { rows: 12, COLS: 12, visibleRatio: 1 },
+//             "Too Tough": { rows: 13, COLS: 13, visibleRatio: 1 }
+//         };
+//     }
+
+//     else if(per < 10) {
+//         return {
+//             "Too Easy":  { rows: 10, COLS: 7,  visibleRatio: 1 },
+//             "Easy":      { rows: 10, COLS: 9,  visibleRatio: 1 },
+//             "Medium":    { rows: 10, COLS: 10,  visibleRatio: 1 },
+//             "Tough":     { rows: 10, COLS: 11, visibleRatio: 1 },
+//             "Too Tough": { rows: 10, COLS: 12, visibleRatio: 1 }
+//         };
+//     }
+
+//     else if(per < 15) {
+//         return {
+//             "Too Easy":  { rows: 10, COLS: 6,  visibleRatio: 1 },
+//             "Easy":      { rows: 10, COLS: 8,  visibleRatio: 1 },
+//             "Medium":    { rows: 10, COLS: 9,  visibleRatio: 1 },
+//             "Tough":     { rows: 10, COLS: 10, visibleRatio: 1 },
+//             "Too Tough": { rows: 10, COLS: 11, visibleRatio: 1 }
+//         };
+//     }else if(per < 20) {
+//         return {
+//             "Too Easy":  { rows: 7, COLS: 7,  visibleRatio: 1 },
+//             "Easy":      { rows: 7, COLS: 8,  visibleRatio: 1 },
+//             "Medium":    { rows: 7, COLS: 9,  visibleRatio: 1 },
+//             "Tough":     { rows: 7, COLS: 10, visibleRatio: 1 },
+//             "Too Tough": { rows: 7, COLS: 11, visibleRatio: 1 }
+//         };
+//     }else if(per < 25) {
+//         return {
+//             "Too Easy":  { rows: 8, COLS: 8,  visibleRatio: 1 },
+//             "Easy":      { rows: 8, COLS: 9,  visibleRatio: 1 },
+//             "Medium":    { rows: 8, COLS: 10,  visibleRatio: 1 },
+//             "Tough":     { rows: 8, COLS: 11, visibleRatio: 1 },
+//             "Too Tough": { rows: 8, COLS: 12, visibleRatio: 1 }
+//         };
+//     }else if(per < 30) {
+//         return {
+//             "Too Easy":  { rows: 9, COLS: 8,  visibleRatio: 1 },
+//             "Easy":      { rows: 9, COLS: 9,  visibleRatio: 1 },
+//             "Medium":    { rows: 9, COLS: 10,  visibleRatio: 1 },
+//             "Tough":     { rows: 9, COLS: 11, visibleRatio: 1 },
+//             "Too Tough": { rows: 9, COLS: 12, visibleRatio: 1 }
+//         };
+//     }else if(per < 35) {
+//         return {
+//             "Too Easy":  { rows: 10, COLS: 8,  visibleRatio: 1 },
+//             "Easy":      { rows: 10, COLS: 9,  visibleRatio: 1 },
+//             "Medium":    { rows: 10, COLS: 10,  visibleRatio: 1 },
+//             "Tough":     { rows: 10, COLS: 11, visibleRatio: 1 },
+//             "Too Tough": { rows: 10, COLS: 12, visibleRatio: 1 }
+//         };
+//     }else if(per < 40) {
+//         return {
+//             "Too Easy":  { rows: 10, COLS: 9,  visibleRatio: 1 },
+//             "Easy":      { rows: 10, COLS: 10,  visibleRatio: 1 },
+//             "Medium":    { rows: 10, COLS: 11,  visibleRatio: 1 },
+//             "Tough":     { rows: 10, COLS: 12, visibleRatio: 1 },
+//             "Too Tough": { rows: 10, COLS: 13, visibleRatio: 1 }
+//         };
+//     }else {
+//         return {
+//             "Too Easy":  { rows: 10, COLS: 9,  visibleRatio: 1 },
+//             "Easy":      { rows: 10, COLS: 10,  visibleRatio: 1 },
+//             "Medium":    { rows: 10, COLS: 11,  visibleRatio: 1 },
+//             "Tough":     { rows: 10, COLS: 12, visibleRatio: 1 },
+//             "Too Tough": { rows: 10, COLS: 13, visibleRatio: 1 }
+//         };
+//     }
+// }
+
+// // ==========================
+// // HELPERS
+// // ==========================
+// function rand(max) {
+//     return Math.floor(Math.random() * max);
+// }
+
+// function clone(arr) {
+//     return JSON.parse(JSON.stringify(arr));
+// }
+
+// // ==========================
+// // GENERATE ANSWER DIGITS
+// // ==========================
+// function generateAnswerDigits(rows, COLS) {
+//     const digits = [];
+//     for (let i = 0; i < COLS; i++) {
+//         digits.push(rand(rows));
+//     }
+//     return digits;
+// }
+
+// // ==========================
+// // GENERATE OPTIONS
+// // ==========================
+// function generateOptions(correctDigits, COLS) {
+//     const correctValue = correctDigits.join("");
+//     const optionsSet = new Set();
+//     const options = [];
+
+//     const correctIndex = rand(7);
+//     const centerIdx = Math.floor(COLS / 2);
+
+//     for (let i = 0; i < 7; i++) {
+//         if (i === correctIndex) {
+//             options.push(correctValue);
+//             optionsSet.add(correctValue);
+//             continue;
+//         }
+
+//         let fakeValue;
+//         do {
+//             const fake = clone(correctDigits);
+//             let newDigit;
+//             do {
+//                 newDigit = rand(10);
+//             } while (newDigit === fake[centerIdx]);
+
+//             fake[centerIdx] = newDigit;
+//             fakeValue = fake.join("");
+//         } while (optionsSet.has(fakeValue));
+
+//         options.push(fakeValue);
+//         optionsSet.add(fakeValue);
+//     }
+
+//     return { options, correctIndex };
+// }
+
+// // ==========================
+// // DRAW IMAGE
+// // ==========================
+// function drawOMRImage(answerDigits, config) {
+//     const { rows, COLS, visibleRatio } = config;
+
+//     const canvas = createCanvas(WIDTH, HEIGHT);
+//     const ctx = canvas.getContext("2d");
+
+//     ctx.fillStyle = "#fff";
+//     ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+//     ctx.strokeStyle = "#000";
+//     ctx.fillStyle = "#000";
+//     ctx.font = "12px monospace";
+//     ctx.textAlign = "center";
+//     ctx.textBaseline = "middle";
+
+//     const gridWidth = (COLS - 1) * GAP_X;
+//     const gridHeight = (rows - 1) * GAP_Y;
+
+//     const START_X = (WIDTH - gridWidth) / 2;
+//     const START_Y = (HEIGHT - gridHeight) / 2;
+
+//     for (let col = 0; col < COLS; col++) {
+//         const visibleCount = Math.max(1, Math.floor(rows * visibleRatio));
+//         const visibleRows = new Set();
+
+//         while (visibleRows.size < visibleCount) {
+//             visibleRows.add(rand(rows));
+//         }
+
+//         for (let row = 0; row < rows; row++) {
+//             const x = START_X + col * GAP_X;
+//             const y = START_Y + row * GAP_Y;
+
+//             ctx.beginPath();
+//             ctx.arc(x, y, RADIUS, 0, Math.PI * 2);
+//             ctx.stroke();
+
+//             if (row === answerDigits[col]) {
+//                 ctx.beginPath();
+//                 ctx.arc(x, y, RADIUS - 2, 0, Math.PI * 2);
+//                 ctx.fill();
+//                 continue;
+//             }
+
+//             if (visibleRows.has(row)) {
+//                 ctx.fillText(row.toString(), x, y);
+//             }
+//         }
+//     }
+
+//     return canvas.toBuffer("image/png");
+// }
+
+// // ==========================
+// // MAIN EXPORT
+// // ==========================
+// export function generateOMRQuestion(difficulty, per = 0) {
+//     const DIFFICULTY_MAP = getDifficultyMap(per);
+//     const config = DIFFICULTY_MAP[difficulty] || DIFFICULTY_MAP["Medium"];
+
+//     const answerDigits = generateAnswerDigits(config.rows, config.COLS);
+//     const { options, correctIndex } = generateOptions(answerDigits, config.COLS);
+//     const buffer = drawOMRImage(answerDigits, config);
+
+//     return {
+//         difficulty,
+//         question: "Choose correct OMR number [Find First 5 Numbers and check Answer ]",
+//         options,
+//         correctAnswer: String.fromCharCode(65 + correctIndex),
+//         answerValue: options[correctIndex],
+//         base64Image: buffer.toString("base64"),
+//         meta: {
+//             digits: answerDigits,
+//             columns: config.COLS,
+//             rows: config.rows,
+//             per
+//         }
+//     };
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { createCanvas } from "canvas";
 
 // ==========================
@@ -250,84 +508,17 @@ const RADIUS = 8;
 // ==========================
 // DIFFICULTY RESOLVER (per-based)
 // ==========================
-function getDifficultyMap(per) {
-    if (per < 5) {
-        return {
-            "Too Easy":  { rows: 11, COLS: 8,  visibleRatio: 1},
-            "Easy":      { rows: 11, COLS: 10,  visibleRatio: 1 },
-            "Medium":    { rows: 12, COLS: 11,  visibleRatio: 1 },
-            "Tough":     { rows: 12, COLS: 12, visibleRatio: 1 },
-            "Too Tough": { rows: 13, COLS: 13, visibleRatio: 1 }
-        };
-    }
+function getDifficultyMap(iq) {
+    const n = parseInt(iq);
+    return {
+        "Too Easy": { rows: 3, COLS: 3+n, visibleRatio: 1 },
+        "Easy": { rows: 5, COLS: 5+n, visibleRatio: 1 },
+        "Medium": { rows: 7, COLS: 7+n, visibleRatio: 1 },
+        "Tough": { rows: 9, COLS: 9+n, visibleRatio: 1 },
+        "Too Tough": { rows: 10, COLS: 10+n, visibleRatio: 1 }
+    };
 
-    else if(per < 10) {
-        return {
-            "Too Easy":  { rows: 10, COLS: 7,  visibleRatio: 1 },
-            "Easy":      { rows: 10, COLS: 9,  visibleRatio: 1 },
-            "Medium":    { rows: 10, COLS: 10,  visibleRatio: 1 },
-            "Tough":     { rows: 10, COLS: 11, visibleRatio: 1 },
-            "Too Tough": { rows: 10, COLS: 12, visibleRatio: 1 }
-        };
-    }
 
-    else if(per < 15) {
-        return {
-            "Too Easy":  { rows: 10, COLS: 6,  visibleRatio: 1 },
-            "Easy":      { rows: 10, COLS: 8,  visibleRatio: 1 },
-            "Medium":    { rows: 10, COLS: 9,  visibleRatio: 1 },
-            "Tough":     { rows: 10, COLS: 10, visibleRatio: 1 },
-            "Too Tough": { rows: 10, COLS: 11, visibleRatio: 1 }
-        };
-    }else if(per < 20) {
-        return {
-            "Too Easy":  { rows: 7, COLS: 7,  visibleRatio: 1 },
-            "Easy":      { rows: 7, COLS: 8,  visibleRatio: 1 },
-            "Medium":    { rows: 7, COLS: 9,  visibleRatio: 1 },
-            "Tough":     { rows: 7, COLS: 10, visibleRatio: 1 },
-            "Too Tough": { rows: 7, COLS: 11, visibleRatio: 1 }
-        };
-    }else if(per < 25) {
-        return {
-            "Too Easy":  { rows: 8, COLS: 8,  visibleRatio: 1 },
-            "Easy":      { rows: 8, COLS: 9,  visibleRatio: 1 },
-            "Medium":    { rows: 8, COLS: 10,  visibleRatio: 1 },
-            "Tough":     { rows: 8, COLS: 11, visibleRatio: 1 },
-            "Too Tough": { rows: 8, COLS: 12, visibleRatio: 1 }
-        };
-    }else if(per < 30) {
-        return {
-            "Too Easy":  { rows: 9, COLS: 8,  visibleRatio: 1 },
-            "Easy":      { rows: 9, COLS: 9,  visibleRatio: 1 },
-            "Medium":    { rows: 9, COLS: 10,  visibleRatio: 1 },
-            "Tough":     { rows: 9, COLS: 11, visibleRatio: 1 },
-            "Too Tough": { rows: 9, COLS: 12, visibleRatio: 1 }
-        };
-    }else if(per < 35) {
-        return {
-            "Too Easy":  { rows: 10, COLS: 8,  visibleRatio: 1 },
-            "Easy":      { rows: 10, COLS: 9,  visibleRatio: 1 },
-            "Medium":    { rows: 10, COLS: 10,  visibleRatio: 1 },
-            "Tough":     { rows: 10, COLS: 11, visibleRatio: 1 },
-            "Too Tough": { rows: 10, COLS: 12, visibleRatio: 1 }
-        };
-    }else if(per < 40) {
-        return {
-            "Too Easy":  { rows: 10, COLS: 9,  visibleRatio: 1 },
-            "Easy":      { rows: 10, COLS: 10,  visibleRatio: 1 },
-            "Medium":    { rows: 10, COLS: 11,  visibleRatio: 1 },
-            "Tough":     { rows: 10, COLS: 12, visibleRatio: 1 },
-            "Too Tough": { rows: 10, COLS: 13, visibleRatio: 1 }
-        };
-    }else {
-        return {
-            "Too Easy":  { rows: 10, COLS: 9,  visibleRatio: 1 },
-            "Easy":      { rows: 10, COLS: 10,  visibleRatio: 1 },
-            "Medium":    { rows: 10, COLS: 11,  visibleRatio: 1 },
-            "Tough":     { rows: 10, COLS: 12, visibleRatio: 1 },
-            "Too Tough": { rows: 10, COLS: 13, visibleRatio: 1 }
-        };
-    }
 }
 
 // ==========================
