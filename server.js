@@ -10090,6 +10090,18 @@ app.post("/verify/answer/question/number/m", async (req, res)=>{
     }
 })
 
+
+app.get("/get/paid/user/list", async (req, res) => {
+    try {
+        const paidUsers = await ClaimedCoinsmodule.find({}).lean();
+        return res.status(200).json({ Status: "OK", data: paidUsers });
+    } catch (error) {
+        console.error("Error fetching paid users:", error);
+        return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch paid users" });
+    }
+});
+
+
 process.on('uncaughtException', (err) => {
     console.error('Uncaught Exception:', err);
 });
