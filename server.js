@@ -2952,10 +2952,10 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
         const dif_l = ["Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy", "Too Easy"];
 
         const qst_gen = [
-            // One(), Two(), Three(), Four(), Five(), Six(),
-            // Seven(), Eight(), Nine(), Ten(), Eleven(), Tweleve(), Thirteen(),
-            // Fourteen(), Fifteen(), Sixteen()
-            Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),
+            One(), Two(), Three(), Four(), Five(), Six(),
+            Seven(), Eight(), Nine(), Ten(), Eleven(), Tweleve(), Thirteen(),
+            Fourteen(), Fifteen(), Sixteen()
+            // Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),
         ];
 
         const shuffled = [...qst_gen]
@@ -2973,21 +2973,22 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
                 const num = (i + 1).toString();
                 dif.push(num);
                 const lvl = dif_l[i]
-                data(lvl, user, num, 10, "20")
+                //make easy before creating add some logics
+                data(lvl, user, num, "20")
             });
         } else if( won_data.length < 2 || parseInt(_dec_bal.balance) <= 10 ) {
             shuffled.forEach((data, i) => {
                 const num = (i + 1).toString();
                 dif.push(num);
                 const lvl = dif_l[i]
-                data(lvl, user, num, 5, "20")
+                data(lvl, user, num, "20")
             });
         }else{
             shuffled.forEach((data, i) => {
                 const num = (i + 1).toString();
                 dif.push(num);
                 const lvl = dif_l[i]
-                data(lvl, user, num, 4, "20")
+                data(lvl, user, num, "20")
             });
         }
 
@@ -3167,21 +3168,21 @@ app.post('/start/playing/by/debit/amount/new/5x', authMiddleware, async (req, re
                 const num = (i + 1).toString();
                 dif.push(num);
                 const lvl = dif_l[i]
-                data(lvl, user, num, 10, "20")
+                data(lvl, user, num, "20")
             });
         } else if( won_data.length < 2 || parseInt(_dec_bal.balance) <= 10 ) {
             shuffled.forEach((data, i) => {
                 const num = (i + 1).toString();
                 dif.push(num);
                 const lvl = dif_l[i]
-                data(lvl, user, num, 5, "20")
+                data(lvl, user, num, "20")
             });
         }else{
             shuffled.forEach((data, i) => {
                 const num = (i + 1).toString();
                 dif.push(num);
                 const lvl = dif_l[i]
-                data(lvl, user, num, 4, "20")
+                data(lvl, user, num, "20")
             });
         }
         
@@ -3358,14 +3359,14 @@ app.post('/start/playing/by/debit/amount/new/7x', authMiddleware, async (req, re
                 const num = (i + 1).toString();
                 dif.push(num);
                 const lvl = dif_l[i]
-                data(lvl, user, num, 5, "20")
+                data(lvl, user, num, "20")
             });
         }else{
             shuffled.forEach((data, i) => {
                 const num = (i + 1).toString();
                 dif.push(num);
                 const lvl = dif_l[i]
-                data(lvl, user, num, 4, "20")
+                data(lvl, user, num, "20")
             });
         }
 
@@ -3537,7 +3538,7 @@ app.post('/start/playing/by/debit/amount/new/10x', authMiddleware, async (req, r
             const num = (i + 1).toString();
             dif.push(num);
             const lvl = dif_l[i]
-            data(lvl, user, num, 4, "20")
+            data(lvl, user, num, "20")
         });
         console.log(shuffled)
 
@@ -3710,7 +3711,7 @@ app.post('/start/playing/by/debit/amount/new/15x', authMiddleware, async (req, r
             const num = (i + 1).toString();
             dif.push(num);
             const lvl = dif_l[i]
-            data(lvl, user, num, 4, "20")
+            data(lvl, user, num, "20")
         });
         console.log(shuffled)
 
@@ -8927,7 +8928,7 @@ async function get_iq(user, cat, level) {
 }
 
 function One() {
-    return async function (level, user, qno, per, sec) {
+    return async function (level, user, qno, sec) {
         try {
 
             const iq = await get_iq(user, "star_cir_tri", level);
@@ -8995,13 +8996,13 @@ function One() {
 
 
 function Two() {
-    return async function (level, user, qno, per, sec) {
+    return async function (level, user, qno, sec) {
         try {
             // const per = await get_per("news_side", level, user);
 
             // 1) Generate arrows
             const iq = await get_iq(user, "news_side", level);
-            const angles = generateArrows(per, level, iq);
+            const angles = generateArrows(iq, level);
 
             // 2) Draw & upload image
             const buffer = drawArrowsImage(angles);
@@ -9102,12 +9103,12 @@ function Two() {
 
 
 function Three() {
-    return async function (level, user, qno, per, sec) {
+    return async function (level, user, qno, sec) {
 
         try {
             // const per = await get_per("plus", level, user);
             const iq = await get_iq(user, "plus", level);
-            const data = await generatePlusQuestionImage(per, level, iq);
+            const data = await generatePlusQuestionImage(iq, level);
 
             // const hash = crypto
             //     .createHash('sha256')
@@ -9149,7 +9150,7 @@ function Three() {
 
 
 function Four() {
-    return async function (level, user, qno, per, sec) {
+    return async function (level, user, qno, sec) {
         try {
             // const level = req.query.level || "Easy";
             // const per = await get_per("two_leters_word", level, user);
@@ -9190,7 +9191,7 @@ function Four() {
 
 
 function Five() {
-    return async function (level, user, qno, per, sec) {
+    return async function (level, user, qno, sec) {
         try {
             // const level = req.query.level || "Easy";
             // const per = await get_per("singel_word", level, user);
@@ -9233,7 +9234,7 @@ function Five() {
 
 
 function Six() {
-    return async function (level, user, qno, per, sec) {
+    return async function (level, user, qno, sec) {
 
         try {
             // const per = await get_per("ran_leters", level, user);
@@ -9281,7 +9282,7 @@ function Six() {
 
 
 function Seven() {
-    return async function (level, user, qno, per, sec) {
+    return async function (level, user, qno, sec) {
         try {
             // const per = await get_per("less_grtr", level, user);
 
@@ -9321,7 +9322,7 @@ function Seven() {
 
 
 function Eight() {
-    return async function (level, user, qno, per, sec) {
+    return async function (level, user, qno, sec) {
         try {
             // const per = await get_per("circle_pieces", level, user);
 
@@ -9362,13 +9363,13 @@ function Eight() {
 }
 
 function Nine() {
-    return async function (level, user, qno, per, sec) {
+    return async function (level, user, qno, sec) {
 
         try {
 
             // const per = await get_per("emoji_01", level, user);
             const iq = await get_iq(user, "emoji_01", level);
-            const puzzle = generateEmojiPuzzle(level, per, iq);
+            const puzzle = generateEmojiPuzzle(level, iq);
             // console.log(puzzle);
 
             // const sec = await get_lel_dif(level, "emoji_01")
@@ -9402,7 +9403,7 @@ function Nine() {
 
 
 function Ten() {
-    return async function (level, user, qno, per, sec) {
+    return async function (level, user, qno, sec) {
         try {
             // const per = await get_per("maze", level, user);
             // const per = 100
@@ -9441,7 +9442,7 @@ function Ten() {
 
 
 function Eleven() {
-    return async function (level, user, qno, per, sec) {
+    return async function (level, user, qno, sec) {
         try {
             // const per = await get_per("colours", level, user);
 
@@ -9481,13 +9482,13 @@ function Eleven() {
 }
 
 function Tweleve() {
-    return async function (level, user, qno, per, sec) {
+    return async function (level, user, qno, sec) {
 
         try {
             // const per = await get_per("code_int_char", level, user);
 
             const iq = await get_iq(user, "code_int_char", level);
-            const test = createStringCountImage(level, per, iq);
+            const test = createStringCountImage(level, iq);
 
             // const sec = await get_lel_dif(level, "code_int_char")
 
@@ -9520,7 +9521,7 @@ function Tweleve() {
 
 
 function Thirteen() {
-    return async function (level, user, qno, per, sec) {
+    return async function (level, user, qno, sec) {
 
         // const per = await get_per("num_pairs", level, user);
 
@@ -9560,7 +9561,7 @@ function Thirteen() {
 
 
 function Fourteen() {
-    return async function (level, user, qno, per, sec) {
+    return async function (level, user, qno, sec) {
         // const per = await get_per("OMR_1", level);
 
         const iq = await get_iq(user, "OMR_1", level);
@@ -9610,7 +9611,7 @@ function Fourteen() {
 
 
 function Fifteen() {
-    return async function (level, user, qno, per, sec) {
+    return async function (level, user, qno, sec) {
         // const per = await get_per("OMR", level);
 
         const iq = await get_iq(user, "OMR", level);
@@ -9656,7 +9657,7 @@ function Fifteen() {
 
 
 function Sixteen() {
-    return async function (level, user, qno, per, sec) {
+    return async function (level, user, qno, sec) {
         // const per = await get_per("Train", level);
 
         const iq = await get_iq(user, "Train", level);
