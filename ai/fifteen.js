@@ -699,7 +699,6 @@ export function generateOMRQuestion15(difficulty, iq = 0) {
             digits: answerDigits,
             columns: config.COLS,
             rows: config.rows,
-            per
         }
     };
 }

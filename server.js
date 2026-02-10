@@ -2686,15 +2686,29 @@ const check_y_n_t_Schema = new mongoose.Schema({
 const Check_y_n_t_Module = mongoose.model('Check_y_n_t', check_y_n_t_Schema);
 
 
-app.get("/verify/by/timed/out/data/v/fy", authMiddleware, async(req, res)=>{
+app.post("/verify/by/timed/out/data/v/fy", authMiddleware, async(req, res)=>{
+    const {difi, cat, q_id} = req.body;
     const user = req.user
     try{
-        const data = await Check_y_n_t_Module.findOne({user})
+        const data = await IQ_Data_Module.findOne({user, difi, cat})
         if(data){
-            data.Qno = "Timed Out"
-            await data.save()
+            if(parseInt(data.per)>=1 && data.x !== q_id){
+                const new_val = parseInt(data.per) - 1
+                data.per = new_val.toString()
+                data.x = q_id
+                await data.save()
+            }
             return res.status(200).json({Status : "OK"})
         }
+        await IQ_Data_Module.create({
+            Time,
+            user,
+            difi,
+            cat,
+            x: q_id,
+            per: "0"
+        })
+
         return res.status(200).json({Status : "OK"})
     }catch (error) {
         console.error("❌ Main Catch Error:", error);
@@ -2974,21 +2988,22 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
                 dif.push(num);
                 const lvl = dif_l[i]
                 //make easy before creating add some logics
-                data(lvl, user, num, "20")
+                data(lvl, user, num, "20", "1")
             });
-        } else if( won_data.length < 2 || parseInt(_dec_bal.balance) <= 10 ) {
+        } else if( parseInt(_dec_bal.balance) <= 10 ) {
             shuffled.forEach((data, i) => {
                 const num = (i + 1).toString();
                 dif.push(num);
                 const lvl = dif_l[i]
-                data(lvl, user, num, "20")
+                data(lvl, user, num, "20", "2")
             });
-        }else{
+        }
+        else{
             shuffled.forEach((data, i) => {
                 const num = (i + 1).toString();
                 dif.push(num);
                 const lvl = dif_l[i]
-                data(lvl, user, num, "20")
+                data(lvl, user, num, "20", "0")
             });
         }
 
@@ -3162,27 +3177,28 @@ app.post('/start/playing/by/debit/amount/new/5x', authMiddleware, async (req, re
         const _dec_bal = await Balancemodule.findOne({ user });
         const won_data = await Wonmodule.find({user})
 
-
         if (won_data.length < 1) {
             shuffled.forEach((data, i) => {
                 const num = (i + 1).toString();
                 dif.push(num);
                 const lvl = dif_l[i]
-                data(lvl, user, num, "20")
+                //make easy before creating add some logics
+                data(lvl, user, num, "20", "1")
             });
-        } else if( won_data.length < 2 || parseInt(_dec_bal.balance) <= 10 ) {
+        } else if( parseInt(_dec_bal.balance) <= 10 ) {
             shuffled.forEach((data, i) => {
                 const num = (i + 1).toString();
                 dif.push(num);
                 const lvl = dif_l[i]
-                data(lvl, user, num, "20")
+                data(lvl, user, num, "20", "2")
             });
-        }else{
+        }
+        else{
             shuffled.forEach((data, i) => {
                 const num = (i + 1).toString();
                 dif.push(num);
                 const lvl = dif_l[i]
-                data(lvl, user, num, "20")
+                data(lvl, user, num, "20", "0")
             });
         }
         
@@ -3354,19 +3370,19 @@ app.post('/start/playing/by/debit/amount/new/7x', authMiddleware, async (req, re
         const won_data = await Wonmodule.find({user})
 
 
-        if( won_data.length < 1 || parseInt(_dec_bal.balance) <= 10 ) {
+        if( won_data.length < 1 ) {
             shuffled.forEach((data, i) => {
                 const num = (i + 1).toString();
                 dif.push(num);
                 const lvl = dif_l[i]
-                data(lvl, user, num, "20")
+                data(lvl, user, num, "20", "0")
             });
         }else{
             shuffled.forEach((data, i) => {
                 const num = (i + 1).toString();
                 dif.push(num);
                 const lvl = dif_l[i]
-                data(lvl, user, num, "20")
+                data(lvl, user, num, "20", "0")
             });
         }
 
@@ -3538,7 +3554,7 @@ app.post('/start/playing/by/debit/amount/new/10x', authMiddleware, async (req, r
             const num = (i + 1).toString();
             dif.push(num);
             const lvl = dif_l[i]
-            data(lvl, user, num, "20")
+            data(lvl, user, num, "20", "0")
         });
         console.log(shuffled)
 
@@ -3711,7 +3727,7 @@ app.post('/start/playing/by/debit/amount/new/15x', authMiddleware, async (req, r
             const num = (i + 1).toString();
             dif.push(num);
             const lvl = dif_l[i]
-            data(lvl, user, num, "20")
+            data(lvl, user, num, "20", "0")
         });
         console.log(shuffled)
 
@@ -3981,8 +3997,6 @@ app.post('/start/playing/by/debit/amount/try', authMiddleware, async (req, res) 
         return res.status(500).json({ message: "Internal Server Error" });
     }
 });
-
-
 
 
 app.post('/start/playing/by/debit/amount/app', async (req, res) => {
@@ -5887,10 +5901,11 @@ app.post('/verify/answer/question/number/xss', authMiddleware, async (req, res) 
             const iq_data = await IQ_Data_Module.findOne({user : user , difi : Answer_Verify.tough , cat : Answer_Verify.sub_lang})
             
             if(!iq_data){
-                await IQ_Data_Module.create({Time , user , difi : Answer_Verify.tough , cat : Answer_Verify.sub_lang , x : Answer_Verify.tough , per : sec.toString()})
+                await IQ_Data_Module.create({Time , user , difi : Answer_Verify.tough , cat : Answer_Verify.sub_lang , x : id , per : sec.toString()})
             }else{
                 const new_x = parseInt(iq_data.per) + parseInt(sec)
                 iq_data.per = new_x.toString()
+                iq_data.x = id
                 await iq_data.save()
             }
 
@@ -8928,12 +8943,14 @@ async function get_iq(user, cat, level) {
 }
 
 function One() {
-    return async function (level, user, qno, sec) {
+    return async function (level, user, qno, sec, sum) {
         try {
 
             const iq = await get_iq(user, "star_cir_tri", level);
 
-            const DIFFICULTIES = getDifficultiesByPer(iq);
+            const iq_s = parseInt(iq) - parseInt(sum)
+
+            const DIFFICULTIES = getDifficultiesByPer(iq_s);
 
             const difficulty = DIFFICULTIES[level];
             const boxes = generateBoxesData(difficulty);
@@ -8996,13 +9013,14 @@ function One() {
 
 
 function Two() {
-    return async function (level, user, qno, sec) {
+    return async function (level, user, qno, sec, sum) {
         try {
             // const per = await get_per("news_side", level, user);
 
             // 1) Generate arrows
             const iq = await get_iq(user, "news_side", level);
-            const angles = generateArrows(iq, level);
+            const iq_s = parseInt(iq) - parseInt(sum)
+            const angles = generateArrows(iq_s, level);
 
             // 2) Draw & upload image
             const buffer = drawArrowsImage(angles);
@@ -9103,12 +9121,13 @@ function Two() {
 
 
 function Three() {
-    return async function (level, user, qno, sec) {
+    return async function (level, user, qno, sec, sum) {
 
         try {
             // const per = await get_per("plus", level, user);
             const iq = await get_iq(user, "plus", level);
-            const data = await generatePlusQuestionImage(iq, level);
+            const iq_s = parseInt(iq) - parseInt(sum)
+            const data = await generatePlusQuestionImage(iq_s, level);
 
             // const hash = crypto
             //     .createHash('sha256')
@@ -9150,14 +9169,15 @@ function Three() {
 
 
 function Four() {
-    return async function (level, user, qno, sec) {
+    return async function (level, user, qno, sec, sum) {
         try {
             // const level = req.query.level || "Easy";
             // const per = await get_per("two_leters_word", level, user);
             const iq = await get_iq(user, "two_leters_word", level);
+            const iq_s = parseInt(iq) - parseInt(sum)
 
 
-            const { words, question, correctAnswer, options } = generateData(level, iq);
+            const { words, question, correctAnswer, options } = generateData(level, iq_s);
             const base64Image = await renderImageBase64(words);
 
             // const sec = await get_lel_dif(level, "two_leters_word")
@@ -9191,12 +9211,13 @@ function Four() {
 
 
 function Five() {
-    return async function (level, user, qno, sec) {
+    return async function (level, user, qno, sec, sum) {
         try {
             // const level = req.query.level || "Easy";
             // const per = await get_per("singel_word", level, user);
             const iq = await get_iq(user, "singel_word", level);
-            const data = generateData1(level, iq);
+            const iq_s = parseInt(iq) - parseInt(sum)
+            const data = generateData1(level, iq_s);
 
             console.log(data);
 
@@ -9234,12 +9255,13 @@ function Five() {
 
 
 function Six() {
-    return async function (level, user, qno, sec) {
+    return async function (level, user, qno, sec, sum) {
 
         try {
             // const per = await get_per("ran_leters", level, user);
             const iq = await get_iq(user, "ran_leters", level);
-            createChallenge(level, iq).then(async out => {
+            const iq_s = parseInt(iq) - parseInt(sum)
+            createChallenge(level, iq_s).then(async out => {
                 // console.log("Correct:", out.correct);
                 // console.log("Options:", out.options);
                 // console.log("Base64 length:", out.base64img.length);
@@ -9282,12 +9304,13 @@ function Six() {
 
 
 function Seven() {
-    return async function (level, user, qno, sec) {
+    return async function (level, user, qno, sec, sum) {
         try {
             // const per = await get_per("less_grtr", level, user);
 
             const iq = await get_iq(user, "less_grtr", level);
-            const data = await createAdvancedNumberMCQ(level, iq);
+            const iq_s = parseInt(iq) - parseInt(sum)
+            const data = await createAdvancedNumberMCQ(level, iq_s);
 
             // const sec = await get_lel_dif(level, "less_grtr")
 
@@ -9322,12 +9345,13 @@ function Seven() {
 
 
 function Eight() {
-    return async function (level, user, qno, sec) {
+    return async function (level, user, qno, sec, sum) {
         try {
             // const per = await get_per("circle_pieces", level, user);
 
             const iq = await get_iq(user, "circle_pieces", level);
-            const puzzle = generatePuzzle(level, iq);
+            const iq_s = parseInt(iq) - parseInt(sum)
+            const puzzle = generatePuzzle(level, iq_s);
             const canvas = drawCircles(puzzle.circles);
             const base64Image = canvas.toBuffer('image/png').toString('base64');
 
@@ -9363,13 +9387,14 @@ function Eight() {
 }
 
 function Nine() {
-    return async function (level, user, qno, sec) {
+    return async function (level, user, qno, sec, sum) {
 
         try {
 
             // const per = await get_per("emoji_01", level, user);
             const iq = await get_iq(user, "emoji_01", level);
-            const puzzle = generateEmojiPuzzle(level, iq);
+            const iq_s = parseInt(iq) - parseInt(sum)
+            const puzzle = generateEmojiPuzzle(level, iq_s);
             // console.log(puzzle);
 
             // const sec = await get_lel_dif(level, "emoji_01")
@@ -9403,13 +9428,14 @@ function Nine() {
 
 
 function Ten() {
-    return async function (level, user, qno, sec) {
+    return async function (level, user, qno, sec, sum) {
         try {
             // const per = await get_per("maze", level, user);
             // const per = 100
 
             const iq = await get_iq(user, "maze", level);
-            const mazeQuestion = generateMazeQuestion(level, iq);
+            const iq_s = parseInt(iq) - parseInt(sum)
+            const mazeQuestion = generateMazeQuestion(level, iq_s);
 
             // const sec = await get_lel_dif(level, "maze")
 
@@ -9442,13 +9468,14 @@ function Ten() {
 
 
 function Eleven() {
-    return async function (level, user, qno, sec) {
+    return async function (level, user, qno, sec, sum) {
         try {
             // const per = await get_per("colours", level, user);
 
             const iq = await get_iq(user, "colours", level);
+            const iq_s = parseInt(iq) - parseInt(sum)
             const result = generateColorMatchQuestion({
-                level, iq
+                level, iq_s
             });
 
             // const sec = await get_lel_dif(level, "colours")
@@ -9482,13 +9509,14 @@ function Eleven() {
 }
 
 function Tweleve() {
-    return async function (level, user, qno, sec) {
+    return async function (level, user, qno, sec, sum) {
 
         try {
             // const per = await get_per("code_int_char", level, user);
 
             const iq = await get_iq(user, "code_int_char", level);
-            const test = createStringCountImage(level, iq);
+            const iq_s = parseInt(iq) - parseInt(sum)
+            const test = createStringCountImage(level, iq_s);
 
             // const sec = await get_lel_dif(level, "code_int_char")
 
@@ -9521,12 +9549,13 @@ function Tweleve() {
 
 
 function Thirteen() {
-    return async function (level, user, qno, sec) {
+    return async function (level, user, qno, sec, sum) {
 
         // const per = await get_per("num_pairs", level, user);
 
         const iq = await get_iq(user, "num_pairs", level);
-        const puzzle = await generateNumberPairMCQ(level, iq)
+        const iq_s = parseInt(iq) - parseInt(sum)
+        const puzzle = await generateNumberPairMCQ(level, iq_s)
 
         // const sec = await get_lel_dif(level, "num_pairs")
         // console.log(puzzle.question);
@@ -9561,11 +9590,12 @@ function Thirteen() {
 
 
 function Fourteen() {
-    return async function (level, user, qno, sec) {
+    return async function (level, user, qno, sec, sum) {
         // const per = await get_per("OMR_1", level);
 
         const iq = await get_iq(user, "OMR_1", level);
-        const puzzle = generateOMRQuestion(level, iq);
+        const iq_s = parseInt(iq) - parseInt(sum)
+        const puzzle = generateOMRQuestion(level, iq_s);
         // console.log(puzzle.question);
         // console.log("Answer:", puzzle.correctAnswer);
         // console.log(puzzle.base64Image);
@@ -9611,11 +9641,12 @@ function Fourteen() {
 
 
 function Fifteen() {
-    return async function (level, user, qno, sec) {
+    return async function (level, user, qno, sec, sum) {
         // const per = await get_per("OMR", level);
 
         const iq = await get_iq(user, "OMR", level);
-        const puzzle = generateOMRQuestion15(level, iq);
+        const iq_s = parseInt(iq) - parseInt(sum)
+        const puzzle = generateOMRQuestion15(level, iq_s);
         // console.log(puzzle.question);
         // console.log("Answer:", puzzle.correctAnswer);
         // console.log(puzzle.base64Image);
@@ -9657,11 +9688,12 @@ function Fifteen() {
 
 
 function Sixteen() {
-    return async function (level, user, qno, sec) {
+    return async function (level, user, qno, sec, sum) {
         // const per = await get_per("Train", level);
 
         const iq = await get_iq(user, "Train", level);
-        const puzzle = generateTrainQuestionImage(level, iq);
+        const iq_s = parseInt(iq) - parseInt(sum)
+        const puzzle = generateTrainQuestionImage(level, iq_s);
         // console.log(puzzle.question);
         // console.log("Answer:", puzzle.correctAnswer);
         // console.log(puzzle.base64Image);
