@@ -2686,35 +2686,51 @@ const check_y_n_t_Schema = new mongoose.Schema({
 const Check_y_n_t_Module = mongoose.model('Check_y_n_t', check_y_n_t_Schema);
 
 
-app.post("/verify/by/timed/out/data/v/fy", authMiddleware, async(req, res)=>{
-    const {difi, cat, q_id} = req.body;
-    const user = req.user
-    try{
-        const data = await IQ_Data_Module.findOne({user, difi, cat})
-        if(data){
-            if(parseInt(data.per)>=1 && data.x !== q_id){
-                const new_val = parseInt(data.per) - 1
-                data.per = new_val.toString()
-                data.x = q_id
-                await data.save()
-            }
-            return res.status(200).json({Status : "OK"})
-        }
-        await IQ_Data_Module.create({
-            Time,
-            user,
-            difi,
-            cat,
-            x: q_id,
-            per: "0"
-        })
+app.post("/verify/by/timed/out/data/v/fy", authMiddleware, async (req, res) => {
+  const { difi, cat, q_id } = req.body;
+  const user = req.user; // assuming authMiddleware sets req.user
 
-        return res.status(200).json({Status : "OK"})
-    }catch (error) {
-        console.error("❌ Main Catch Error:", error);
-        return res.status(500).json({ message: "Internal Server Error", error: error.message });
+  try {
+    const data = await IQ_Data_Module.findOne({
+      user: user._id ?? user, // works whether user is object or id
+      difi,
+      cat
+    });
+
+    if (data) {
+      const per = parseInt(data.per, 10) || 0;
+
+      // decrease only once per question
+      if (per >= 1 && data.x !== q_id) {
+        data.per = String(per - 1);
+        data.x = q_id;
+        await data.save();
+      }
+
+      return res.status(200).json({ status: "OK" });
     }
-})
+
+    // create new document
+    await IQ_Data_Module.create({
+      user: user._id ?? user,
+      difi,
+      cat,
+      x: q_id,
+      per: "0",
+      Time: new Date()
+    });
+
+    return res.status(200).json({ status: "OK" });
+
+  } catch (error) {
+    console.error("❌ Main Catch Error:", error);
+    return res.status(500).json({
+      message: "Internal Server Error",
+      error: error.message
+    });
+  }
+});
+
 
 //new version
 app.post('/start/playing/by/debit/amount/new', authMiddleware, async (req, res) => {
