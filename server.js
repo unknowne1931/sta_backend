@@ -3864,6 +3864,191 @@ app.post('/start/playing/by/debit/amount/new/15x', authMiddleware, async (req, r
 
 
 
+app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req, res) => {
+    const user = req.user;
+    if (!user) return res.status(400).json({ Status: "s_m", message: "Some Data Missing" });
+
+    try {
+
+
+        const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
+        
+
+        if (status?.Status === "off") {
+            return res.status(200).json({ Status: "Time", message: status.text });
+        }
+
+
+
+        const lang_data = await LanguageSelectModule.findOne({ user }).lean();
+        const balance = await Balancemodule.findOne({ user }); // ac balance
+        const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
+
+        if (!lang_data || !lang_data.lang) throw new Error("No language data found");
+
+        if (!balance) return res.status(200).json({ Status: "no_us" });
+
+        const balanceNum = parseInt(balance.balance);
+        const feesNum = parseInt(fees.rupee);
+
+        if (balanceNum < feesNum) {
+            return res.status(200).json({ Status: "Low-Bal" });
+        }
+
+        // const get_per = (won_data / (total_play || 1)) * 100;
+
+
+        
+        let create_data = await QuestionListmodule.findOne({ user });
+
+        
+
+        await QuestionModule.deleteMany({ user });
+
+        const dif_l = ["Singel"];
+
+        const qst_gen = [
+            One(), Two(), Three(), Four(), Five(), Six(),
+            Seven(), Eight(), Nine(), Ten(), Eleven(), Tweleve(), Thirteen(),
+            Fourteen(), Fifteen(), Sixteen()
+            // Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),
+        ];
+
+        const _dec_bal = await Balancemodule.findOne({ user });
+
+        const randomFunction =
+            qst_gen[Math.floor(Math.random() * qst_gen.length)];
+
+        randomFunction(105, user, "1", "20", "0")
+
+
+
+        // shuffled.forEach((data, i) => {
+        //     const num = (i + 1).toString();
+        //     dif.push(num);
+        //     const lvl = dif_l[i]
+        //     //make easy before creating add some logics
+        //     data(lvl, user, num, "20", "1")
+        // });
+
+        
+
+
+        if (!create_data) {
+            create_data = await QuestionListmodule.create({
+                user,
+                Time,
+                lang: lang_data.lang[0],
+                list: ["1"],
+                oldlist: ["1"],
+            });
+        }
+
+
+        await Promise.all([
+
+            StartValidmodule.create({ Time, user, valid: "yes" }),
+            Totalusermodule.create({ Time, user }),
+            Historymodule.create({ Time, user, rupee: fees.rupee, type: "Debited", tp: "Rupee" }),
+            QuestionListmodule.updateOne(
+                { user: user },
+                {
+                    $set: { list: "1" },
+                    $push: { oldlist: "1" },
+                }
+            )
+        ]);
+
+
+        // const _to_str_up_rp = balanceNum - feesNum
+
+        
+
+        if (_dec_bal) {
+            const currentBal = parseInt(_dec_bal.balance);
+            const updatedBal = currentBal - feesNum;
+
+            _dec_bal.balance = updatedBal.toString(); // ✅ convert number to string
+            await _dec_bal.save();
+        }
+
+        const wal_cnt_mod = await Amount_walet_count_Module.findOne({ user: "kick" });
+
+        if (wal_cnt_mod) {
+            wal_cnt_mod.count = parseInt(wal_cnt_mod.count) + feesNum;
+
+            wal_cnt_mod.user_id.push({
+                Time,
+                user,
+                rupee: feesNum,
+            });
+
+            await wal_cnt_mod.save();
+        } else {
+            await Amount_walet_count_Module.create({
+                Time,
+                user: "kick",   // <-- ADD THIS
+                count: feesNum,
+                user_id: [{
+                    Time,
+                    user,
+                    rupee: feesNum
+                }]
+            });
+        }
+
+
+        // ✅ Convert updated balance back to string
+        const updatedBal = await Balancemodule.findOne({ user });
+
+        if (typeof updatedBal.balance === "number") {
+            await Balancemodule.updateOne(
+                { user },
+                { $set: { balance: updatedBal.balance.toString() } }
+            );
+        }
+
+        const balance_to_admin_account = await Amount_Count_Module.findOne({ user: "kick" });
+
+        if (balance_to_admin_account) {
+            balance_to_admin_account.count = parseInt(balance_to_admin_account.count) + parseInt(fees.rupee)
+            await balance_to_admin_account.save()
+        } else {
+            await Amount_Count_Module.create({ Time, user: "kick", count: fees.rupee })
+        }
+
+
+
+
+
+
+        const count = await QuestionModule.countDocuments({ user });
+        if (count === 1) {
+            console.log("✅ Finished successfully");
+            return res.status(200).json({ Status: "OK" });
+        }else{
+            console.log("amount credited")
+            const bal_dt = await Balancemodule.findOne({ user: user })
+            const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
+            await QuestionModule.deleteMany({ user })
+            bal_dt.balance = lat.toString()
+            await bal_dt.save()
+            console.log("BAD")
+            return res.status(200).json({ Status: "BAD_CR" })
+        }
+
+        
+
+    } catch (error) {
+        console.error("❌ Main Catch Error:", error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+});
+
+
+
+
+
 app.get("/triallll/go/first", async (req, res) => {
     try {
         const user = "686dfffb45b524709b831957";
