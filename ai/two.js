@@ -548,13 +548,23 @@ export function generateArrows(per, level) {
 
     const n = parseInt(per)
 
-    LEVELS = {
-        "Too Easy": 5 + n,
-        "Easy": 10 + n,
-        "Medium": 15 + n,
-        "Tough": 20 + n,
-        "Too Tough": 25 + n
-    };
+    if (n === 105) {
+        LEVELS = {
+            "Too Easy": 5 + n,
+            "Easy": 10 + n,
+            "Medium": 15 + n,
+            "Tough": 20 + n,
+            "Too Tough": 25 + n
+        };
+    } else {
+        LEVELS = {
+            "Too Easy": 5 + n,
+            "Easy": 10 + n,
+            "Medium": 15 + n,
+            "Tough": 20 + n,
+            "Too Tough": 25 + n
+        };
+    }
 
     const count = LEVELS[level] || 5;
     const arrows = [];

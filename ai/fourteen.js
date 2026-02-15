@@ -510,13 +510,23 @@ const RADIUS = 8;
 // ==========================
 function getDifficultyMap(iq) {
     const n = parseInt(iq);
-    return {
-        "Too Easy": { rows: 3, COLS: 3+n, visibleRatio: 1 },
-        "Easy": { rows: 5, COLS: 5+n, visibleRatio: 1 },
-        "Medium": { rows: 7, COLS: 7+n, visibleRatio: 1 },
-        "Tough": { rows: 9, COLS: 9+n, visibleRatio: 1 },
-        "Too Tough": { rows: 10, COLS: 10+n, visibleRatio: 1 }
-    };
+    if(n === 105){
+        return {
+            "Too Easy": { rows: 3, COLS: 3+n, visibleRatio: 1 },
+            "Easy": { rows: 5, COLS: 5+n, visibleRatio: 1 },
+            "Medium": { rows: 7, COLS: 7+n, visibleRatio: 1 },
+            "Tough": { rows: 9, COLS: 9+n, visibleRatio: 1 },
+            "Too Tough": { rows: 10, COLS: 10+n, visibleRatio: 1 }
+        };
+    }else{
+        return {
+            "Too Easy": { rows: 3, COLS: 3+n, visibleRatio: 1 },
+            "Easy": { rows: 5, COLS: 5+n, visibleRatio: 1 },
+            "Medium": { rows: 7, COLS: 7+n, visibleRatio: 1 },
+            "Tough": { rows: 9, COLS: 9+n, visibleRatio: 1 },
+            "Too Tough": { rows: 10, COLS: 10+n, visibleRatio: 1 }
+        };
+    }
 
 
 }

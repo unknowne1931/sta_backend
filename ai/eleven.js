@@ -815,13 +815,25 @@ export function generateColorMatchQuestion({ level = "Medium", iq } = {}) {
 
     const n = parseInt(iq);
 
-    COUNT_MAP = {
-        "Too Easy": 5 + n,
-        "Easy": 10 + n,
-        "Medium": 15 + n,
-        "Tough": 20 + n,
-        "Too Tough": 25 + n
-    };
+    if(n === 105){
+        COUNT_MAP = {
+            "Too Easy": 5 + n,
+            "Easy": 10 + n,
+            "Medium": 15 + n,
+            "Tough": 20 + n,
+            "Too Tough": 25 + n
+        };
+    }else{
+        COUNT_MAP = {
+            "Too Easy": 5 + n,
+            "Easy": 10 + n,
+            "Medium": 15 + n,
+            "Tough": 20 + n,
+            "Too Tough": 25 + n
+        };
+    }
+
+    
 
     
 

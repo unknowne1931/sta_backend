@@ -2,7 +2,6 @@ import jwt from 'jsonwebtoken';
 
 const authMiddleware = (req, res, next) => {
   const token = req.header('Authorization')?.split(' ')[1];
-
   if (!token) {
     return res.status(201).json({ Logout : "OUT" });
   }
@@ -13,7 +12,7 @@ const authMiddleware = (req, res, next) => {
     if(req.user = decoded.id){
       next();
     }else{
-        res.status(201).json({ Logout : "OUT" });
+      res.status(201).json({ Logout : "OUT" });
     }
   } catch (err) {
     

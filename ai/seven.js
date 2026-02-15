@@ -528,6 +528,7 @@ function diff_level(per) {
     const ln = parseInt(per)
     let DIFFICULTIES;
 
+    if (n === 105) {
         DIFFICULTIES = {
             "Too Easy": { count: 6 + ln, range: [2, 3] },
             "Easy": { count: 8 + ln, range: [3, 4] },
@@ -535,7 +536,16 @@ function diff_level(per) {
             "Tough": { count: 15 + ln, range: [6, 7] },
             "Too Tough": { count: 20 + ln, range: [8, 10] }
         };
-    
+    } else {
+        DIFFICULTIES = {
+            "Too Easy": { count: 6 + ln, range: [2, 3] },
+            "Easy": { count: 8 + ln, range: [3, 4] },
+            "Medium": { count: 12 + ln, range: [5, 6] },
+            "Tough": { count: 15 + ln, range: [6, 7] },
+            "Too Tough": { count: 20 + ln, range: [8, 10] }
+        };
+    }
+
 
 
     return DIFFICULTIES;

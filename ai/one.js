@@ -666,12 +666,22 @@ export function getDifficultiesByPer(nl) {
 
     const n = parseInt(nl);
 
-    DIFFICULTIES = {
-        "Too Easy": { boxes: [10, 15 + n], size: [30, 30], broken: [3, 5] },
-        "Easy": { boxes: [15, 20 + n], size: [30, 30], broken: [12, 13] },
-        "Medium": { boxes: [20, 30 + n], size: [25, 25], broken: [13, 15] },
-        "Tough": { boxes: [30, 40 + n], size: [25, 25], broken: [15, 17] },
-        "Too Tough": { boxes: [40, 50 + n], size: [25, 25], broken: [17, 20] },
+    if(n === 105){
+        DIFFICULTIES = {
+            "Too Easy": { boxes: [10, 15 + n], size: [30, 30], broken: [3, 5] },
+            "Easy": { boxes: [15, 20 + n], size: [30, 30], broken: [12, 13] },
+            "Medium": { boxes: [20, 30 + n], size: [25, 25], broken: [13, 15] },
+            "Tough": { boxes: [30, 40 + n], size: [25, 25], broken: [15, 17] },
+            "Too Tough": { boxes: [40, 50 + n], size: [25, 25], broken: [17, 20] },
+        }
+    }else{
+        DIFFICULTIES = {
+            "Too Easy": { boxes: [10, 15 + n], size: [30, 30], broken: [3, 5] },
+            "Easy": { boxes: [15, 20 + n], size: [30, 30], broken: [12, 13] },
+            "Medium": { boxes: [20, 30 + n], size: [25, 25], broken: [13, 15] },
+            "Tough": { boxes: [30, 40 + n], size: [25, 25], broken: [15, 17] },
+            "Too Tough": { boxes: [40, 50 + n], size: [25, 25], broken: [17, 20] },
+        }
     }
 
 

@@ -720,13 +720,27 @@ function diff_data(iq) {
 
   const n = parseInt(iq)
 
-  const DIFFICULTY = {
-    "Too Easy": 2 + n,
-    "Easy": 5 + n,
-    "Medium": 10 + n,
-    "Tough": 15 + n,
-    "Too Tough": 20 + n
-  };
+  let DIFFICULTY;
+
+  if(n === 105){
+    const DIFFICULTY = {
+      "Too Easy": 2 + n,
+      "Easy": 5 + n,
+      "Medium": 10 + n,
+      "Tough": 15 + n,
+      "Too Tough": 20 + n
+    };
+  }else{
+    const DIFFICULTY = {
+      "Too Easy": 2 + n,
+      "Easy": 5 + n,
+      "Medium": 10 + n,
+      "Tough": 15 + n,
+      "Too Tough": 20 + n
+    };
+  }
+
+  
 
 
   return Object.fromEntries(

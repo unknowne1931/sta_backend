@@ -1314,12 +1314,22 @@ function duff_lelv(per) {
     
     let diff = {}
 
-    diff = {
-        "Too Easy": 10+ln,
-        "Easy": 15+ln,
-        "Medium": 20+ln,
-        "Tough": 25+ln,
-        "Too Tough": 30+ln
+    if (n === 105) {
+        diff = {
+            "Too Easy": 10 + ln,
+            "Easy": 15 + ln,
+            "Medium": 20 + ln,
+            "Tough": 25 + ln,
+            "Too Tough": 30 + ln
+        }
+    } else {
+        diff = {
+            "Too Easy": 10 + ln,
+            "Easy": 15 + ln,
+            "Medium": 20 + ln,
+            "Tough": 25 + ln,
+            "Too Tough": 30 + ln
+        }
     }
 
     return diff

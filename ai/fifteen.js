@@ -551,13 +551,23 @@ function getDifficultyMap(iq) {
 
     const n = parseInt(iq);
     
-    return {
+    if(n === 105){
+        return {
             "Too Easy":  { rows: 3, COLS: 3 + n,  visibleRatio: 0.15 },
             "Easy":      { rows: 5, COLS: 5 + n,  visibleRatio: 0.12 },
             "Medium":    { rows: 7, COLS: 7 + n,  visibleRatio: 0.11 },
             "Tough":     { rows: 9, COLS: 9 + n, visibleRatio: 0.10 },
             "Too Tough": { rows: 10, COLS: 10 + n, visibleRatio: 0.09 }
         };
+    }else{
+        return {
+            "Too Easy":  { rows: 3, COLS: 3 + n,  visibleRatio: 0.15 },
+            "Easy":      { rows: 5, COLS: 5 + n,  visibleRatio: 0.12 },
+            "Medium":    { rows: 7, COLS: 7 + n,  visibleRatio: 0.11 },
+            "Tough":     { rows: 9, COLS: 9 + n, visibleRatio: 0.10 },
+            "Too Tough": { rows: 10, COLS: 10 + n, visibleRatio: 0.09 }
+        };
+    }
 
     
 }

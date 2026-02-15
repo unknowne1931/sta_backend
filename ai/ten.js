@@ -738,12 +738,22 @@ const HEIGHT = 250;
 // ==========================
 function def_data(per) {
     const ln = parseInt(per)
-    return { 
-        "Too Easy": 50-ln, 
-        "Easy": 40-ln, 
-        "Medium": 30 - ln, 
-        "Tough": 20 - ln, 
-        "Too Tough": 10 - ln
+    if (n === 105) {
+        return {
+            "Too Easy": 50 - ln,
+            "Easy": 40 - ln,
+            "Medium": 30 - ln,
+            "Tough": 20 - ln,
+            "Too Tough": 10 - ln
+        }
+    } else {
+        return {
+            "Too Easy": 50 - ln,
+            "Easy": 40 - ln,
+            "Medium": 30 - ln,
+            "Tough": 20 - ln,
+            "Too Tough": 10 - ln
+        }
     }
 }
 

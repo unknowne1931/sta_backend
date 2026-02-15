@@ -2687,40 +2687,16 @@ const Check_y_n_t_Module = mongoose.model('Check_y_n_t', check_y_n_t_Schema);
 
 
 app.post("/verify/by/timed/out/data/v/fy", authMiddleware, async (req, res) => {
-  const { difi, cat, q_id } = req.body;
+  const {cat, q_id,  } = req.body;
   const user = req.user; // assuming authMiddleware sets req.user
 
   try {
-    const data = await IQ_Data_Module.findOne({
-      user: user._id ?? user, // works whether user is object or id
-      difi,
-      cat
-    });
-
-    if (data) {
-      const per = parseInt(data.per, 10) || 0;
-
-      // decrease only once per question
-      if (per >= 1 && data.x !== q_id) {
-        data.per = String(per - 1);
-        data.x = q_id;
-        await data.save();
-      }
-
-      return res.status(200).json({ status: "OK" });
+    const data = sng_qst_20_Module.findOne({user, cat, lst_q_id : q_id})
+    if(data){
+        const lstsec = parseInt(data.lst_sec) - 1
+        data.update({$set : {lst_sec : lstsec, lst_q_id : "" }})
     }
-
-    // create new document
-    await IQ_Data_Module.create({
-      user: user._id ?? user,
-      difi,
-      cat,
-      x: q_id,
-      per: "0",
-      Time: new Date()
-    });
-
-    return res.status(200).json({ status: "OK" });
+    return res.status(200).json({Status : "OK"})
 
   } catch (error) {
     console.error("❌ Main Catch Error:", error);
@@ -3921,6 +3897,12 @@ app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req
 
         randomFunction(105, user, "1", "20", "0")
 
+        //105 = per
+        //user = user
+        //1 = question number
+        //20 = seconds
+        //0 = minus - 0
+
 
 
         // shuffled.forEach((data, i) => {
@@ -5004,6 +4986,85 @@ app.get("/get/question/no/by/user/name/bf/xx", authMiddleware, async (req, res) 
 
 
 
+app.get("/get/question/no/by/user/name/bf/all/xx", authMiddleware, async (req, res) => {
+    const user = req.user;
+    try {
+
+
+        if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
+
+
+        // Fetch the user's validity status from StartValidmodule
+        const Data = await StartValidmodule.findOne({ user });
+        // Fetch the user's question list from QuestionListmodule
+        const Get_Qno_info = await QuestionListmodule.findOne({ user }).lean();
+
+        // Check if the user is valid and has a question list
+        if (Data && Data.valid === "yes") {
+            if (Get_Qno_info && Get_Qno_info.list.length >= 0) {
+                // Get the first question number from the list
+                const QNO = Get_Qno_info.list[0];
+
+                if(!QNO || QNO === undefined || QNO === "" || QNO === null){
+                    Data.valid = "No"
+                    await Data.save()
+                    await refund()
+                    await Error_Catch_Module.create({Time, user, Type : QNO, Text : "Error may be occurs due to QNO Undefined are some data Missing", api : "/get/question/no/by/user/name/bf/xx", Where : "On Finding Question Number" })
+                    return res.status(200).json({Status : "EXIT"})
+                }
+
+                const Qno = await QuestionModule.findOne({ Qno: QNO.toString(), user: user }).lean();
+
+                if(!Qno || Qno === undefined || Qno === "" || Qno === null){
+                    Data.valid = "No"
+                    await Data.save()
+                    await refund()
+                    await Error_Catch_Module.create({Time, user, Type : QNO, Text : "Error may be occurs due to QNO Undefined are some data Missing", api : "/get/question/no/by/user/name/bf/xx", Where : "On Finding Question Number" })
+                    return res.status(200).json({Status : "EXIT"})
+                }
+
+                // if(parseInt(sec_cal) > 50){
+                //     return res.status(200).json({Status : "BAD"})
+                // }
+
+
+                if (Qno) {
+                    // Construct the response data
+                    const data = {
+                        _id: Qno._id,
+                        img: Qno.img,
+                        Qno: Qno.Qno,
+                        Question: Qno.Questio,
+                        options: Qno.options,
+                        seconds: Qno.seconds,
+                        Ans: Qno.Ans,
+                        cat: Qno.sub_lang,
+                        tough: Qno.tough
+                    };
+
+                    return res.status(200).json({ data });
+
+                } else {
+                    await Error_Catch_Module.create({Time, user, Type : QNO, Text : "No Qno Data Found then this will occurs", api : "/get/question/no/by/user/name/bf/xx", Where : "at [No Question Found.] " })
+                    return res.status(404).json({ Status: "BAD", message: "No Question Found."});
+                }
+            } else {
+                return res.status(202).json({ Status: "BAD", message: "No Question Found.."});
+            }
+        } else {
+            return res.status(202).json({ Status: "BAD", message: "Not Valid to Yes"});
+        }
+    } 
+    catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message, id: "Some Erorr" });
+    }
+});
+
+
+
+
+
 const WonSchema = new mongoose.Schema({
     Time: String,
     user: String,
@@ -6032,6 +6093,175 @@ app.post('/verify/answer/question/number/xs', authMiddleware, async (req, res) =
             find_level_data.rank = newRank.toString();
             await find_level_data.save();
 
+            return res.status(200).json({ Status: "BAD" })
+
+        }
+    }
+    catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+})
+
+
+const sec_qst_20_Schema = new mongoose.Schema({
+    user : String,
+    cat : String,
+    yes : [],
+    no : [],
+    lst_sec : String,
+    lst_q_id : String,
+}, { timestamps: true });
+
+const sng_qst_20_Module = mongoose.model('sng_cal_20', sec_qst_20_Schema);
+
+
+//1948
+app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, res) => {
+    const { answer, id, Ans, sec } = req.body;
+
+    try {
+
+        const user = req.user
+
+        if (!answer && !user && !id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
+
+            const STARS = 20 - parseInt(sec)
+
+
+
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ Status: "BAD" , success: false, message: "Invalid ObjectId format" });
+        }
+
+
+        function compareHash(plainText, hash) {
+            const plainHash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(plainText.toString())
+                .digest("hex");
+
+            return plainHash === hash;
+        }
+
+
+
+
+        const check_ans = compareHash(answer, Ans)
+
+        const Answer_Verify = await QuestionModule.findById({ _id: id })
+        let up_sec_lst = await sng_qst_20_Module.findOne({
+            user,
+            cat: Answer_Verify.sub_lang
+        });
+
+        if (!up_sec_lst) {
+            up_sec_lst = await sng_qst_20_Module.create({
+                user,
+                cat: Answer_Verify.sub_lang,
+                yes: [],
+                no: [],
+                lst_sec: "0",
+                lst_q_id : Answer_Verify._id
+            });
+        }
+
+        const User_List = await QuestionListmodule.findOne({ user })
+
+
+        if (check_ans) {
+
+            await up_sec_lst.updateOne({$set : {lst_sec : STARS}, $push : {yes : user} })
+
+            if (User_List.list.length === 1 || User_List.list.length === 0) {
+                await User_List.updateOne({ $pull: { list: User_List.list[0] } })
+                // await QuestionListmodule.updateOne(
+                //     { user },
+                //     { $pop: { list: -1 } }   // remove first element
+                // );
+
+                const won = await Wonmodule.find({})
+                const CuponDat = await Cuponmodule.findOne({ no: won.length + 1 })
+                if (CuponDat) {
+                    await Wonmodule.create({ Time, user, no: won.length + 1, ID: CuponDat._id })
+
+                    await Mycoinsmodule.create({
+                        Time: Time,
+                        title: CuponDat.title,
+                        img: CuponDat.img,
+                        user: user,
+                        type: CuponDat.type,
+                        stars: "No",
+                        body: CuponDat.body,
+                        valid: CuponDat.valid
+                    })
+                    //ki1931ck add code here
+                    const rank = toString(won.length + 1)
+                    await Answer_Verify.updateOne({ $push: { yes: user } })
+                    return res.status(200).json({ Status: "OKK", id: CuponDat._id, rank: rank });
+
+
+
+                } else {
+
+                    //if no cupondata it will add ranks
+
+
+                    await Wonmodule.create({ Time, user, no: won.length + 1, ID: "stars" })
+                    const get_user_balanc = await StarBalmodule.findOne({ user })
+
+
+                    // const sum = parseInt(get_user_balanc.balance) + parseInt(get_count_data.stars)
+                    const starrrs = STARS * 2
+
+                    if (get_user_balanc) {
+                        
+                        await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + starrrs })
+                        await Historymodule.create({ Time, user, rupee: `${starrrs}`, type: "Credited", tp: "Stars" });
+                        await To_Admin_Historymodule.create({ Time, user, rupee: `${starrrs}`, type: "Credited", tp: "Stars" });
+                        const rank = toString(won.length + 1)
+                        await Answer_Verify.updateOne({ $push: { yes: user } })
+                        return res.status(200).json({ Status: "STARS", stars: `${starrrs}`, rank: rank });
+
+                    } else {
+                        await StarBalmodule.create({ Time, user: user, balance: `${starrrs}` });
+                        await Historymodule.create({ Time, user, rupee: `${starrrs}`, type: "Credited", tp: "Stars" });
+                        await To_Admin_Historymodule.create({ Time, user, rupee: `${starrrs}`, type: "Credited", tp: "Stars" });
+                        const rank = toString(won.length + 1)
+                        await Answer_Verify.updateOne({ $push: { yes: user } })
+                        return res.status(200).json({ Status: "STARS", stars: `${starrrs}`, rank: rank });
+
+                        // await StarBalmodule.create({Time, user : user, balance : get_count_data.stars});
+                        // await Historymodule.create({Time, user, rupee : get_count_data.stars, type : "Credited", tp : "Stars"});
+                        // return res.status(200).json({Status : "STARS", stars : get_count_data.stars});
+
+                    }
+
+                }
+
+
+
+            } else {
+                await User_List.updateOne({ $pull: { list: User_List.list[0] } })
+                await Answer_Verify.updateOne({ $push: { yes: user } })
+                return res.status(200).json({ Status: "OK" })
+
+            }
+
+        } else {
+            await up_sec_lst.updateOne({ $set : {lst_q_id : Answer_Verify._id} ,$push : {no : user}})
+            await Answer_Verify.updateOne({ $push: { no: user } })
+            //make this if answer is false make verified is fale or no to throught the user out from playing
+
+            const data = await StartValidmodule.findOne({ user });
+
+            if (data) {
+                data.valid = "no";
+                await data.save();
+            } else {
+                await StartValidmodule.create({ Time, user, valid: "no" });
+            }
             return res.status(200).json({ Status: "BAD" })
 
         }
@@ -9155,7 +9385,6 @@ function One() {
 
             const difficulty = DIFFICULTIES[level];
             const boxes = generateBoxesData(difficulty);
-
             let question, correct;
 
             // 30% chance to ask total boxes

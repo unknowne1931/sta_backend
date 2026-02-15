@@ -797,13 +797,23 @@ function sel_dif(per) {
   const n = Math.max(0, parseInt(per, 10) || 0);
   const shuffled = shuffleArray(emoji);
 
-  return {
-    "Too Easy": shuffled.slice(0, 2 + n),
-    "Easy": shuffled.slice(0, 4 + n),
-    "Medium": shuffled.slice(0, 6 + n),
-    "Tough": shuffled.slice(0, 9 + n),
-    "Too Tough": shuffled.slice(0, 12 + n)
-  };
+  if(n === 105){
+    return {
+      "Too Easy": shuffled.slice(0, 2 + n),
+      "Easy": shuffled.slice(0, 4 + n),
+      "Medium": shuffled.slice(0, 6 + n),
+      "Tough": shuffled.slice(0, 9 + n),
+      "Too Tough": shuffled.slice(0, 12 + n)
+    };
+  }else{
+    return {
+      "Too Easy": shuffled.slice(0, 2 + n),
+      "Easy": shuffled.slice(0, 4 + n),
+      "Medium": shuffled.slice(0, 6 + n),
+      "Tough": shuffled.slice(0, 9 + n),
+      "Too Tough": shuffled.slice(0, 12 + n)
+    };
+  }
 }
 
 // ==========================

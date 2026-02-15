@@ -477,12 +477,22 @@ export function getPlusLevels(per) {
 
     const n = parseInt(per)
     
-    return{
-        "Too Easy" : {h : 3 + n, v : 3 + n, gap : 20 + n},
-        "Easy" : {h : 4 + n, v : 4 + n, gap : 20 + n},
-        "Medium" : {h : 5 + n, v : 5 + n, gap : 20 + n},
-        "Tough" : {h : 6 + n, v : 6 + n, gap : 20 + n},
-        "Too Tough" : {h : 7 + n, v : 7 + n, gap : 20 + n},
+    if (n === 105) {
+        return {
+            "Too Easy": { h: 3 + n, v: 3 + n, gap: 20 + n },
+            "Easy": { h: 4 + n, v: 4 + n, gap: 20 + n },
+            "Medium": { h: 5 + n, v: 5 + n, gap: 20 + n },
+            "Tough": { h: 6 + n, v: 6 + n, gap: 20 + n },
+            "Too Tough": { h: 7 + n, v: 7 + n, gap: 20 + n },
+        }
+    } else {
+        return {
+            "Too Easy": { h: 3 + n, v: 3 + n, gap: 20 + n },
+            "Easy": { h: 4 + n, v: 4 + n, gap: 20 + n },
+            "Medium": { h: 5 + n, v: 5 + n, gap: 20 + n },
+            "Tough": { h: 6 + n, v: 6 + n, gap: 20 + n },
+            "Too Tough": { h: 7 + n, v: 7 + n, gap: 20 + n },
+        }
     }
 
     

@@ -467,13 +467,23 @@ function def_tough(per) {
 
     const n = parseInt(per)
     
-    return { 
-        "Too Easy": 15 + n, 
-        "Easy": 20 + n, 
-        "Medium": 30 + n, 
-        "Tough": 40 + n, 
-        "Too Tough": 45 + n 
-    };
+    if (n === 105) {
+        return {
+            "Too Easy": 15 + n,
+            "Easy": 20 + n,
+            "Medium": 30 + n,
+            "Tough": 40 + n,
+            "Too Tough": 45 + n
+        };
+    } else {
+        return {
+            "Too Easy": 15 + n,
+            "Easy": 20 + n,
+            "Medium": 30 + n,
+            "Tough": 40 + n,
+            "Too Tough": 45 + n
+        };
+    }
     
     // if (per < 5) {
     //     return { "Too Easy": 50, "Easy": 55, "Medium": 60, "Tough": 65, "Too Tough": 70 };

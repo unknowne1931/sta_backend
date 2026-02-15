@@ -459,12 +459,22 @@ function getLevelMap(per) {
 
     const nl = parseInt(per);
 
-    return { 
-        "Too Easy": 5 + nl, 
-        "Easy": 10 + nl, 
-        "Medium": 15 + nl, 
-        "Tough": 20 + nl, 
-        "Too Tough": 25 + nl
+    if (n === 105) {
+        return {
+            "Too Easy": 5 + nl,
+            "Easy": 10 + nl,
+            "Medium": 15 + nl,
+            "Tough": 20 + nl,
+            "Too Tough": 25 + nl
+        }
+    } else {
+        return {
+            "Too Easy": 5 + nl,
+            "Easy": 10 + nl,
+            "Medium": 15 + nl,
+            "Tough": 20 + nl,
+            "Too Tough": 25 + nl
+        }
     }
 }
 

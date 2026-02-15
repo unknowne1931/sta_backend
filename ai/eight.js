@@ -646,13 +646,24 @@ function diff_lt(nl) {
     let DIFF;
 
     const n = parseInt(nl);
-    DIFF = {
+    if(n === 105){
+        DIFF = {
             0: [1, 1 + n],
             1: [2, 2 + n],
             2: [3, 3 + n],
             3: [4, 4 + n],
             4: [5, 5 + n]
         };
+    }else{
+        DIFF = {
+            0: [1, 1 + n],
+            1: [2, 2 + n],
+            2: [3, 3 + n],
+            3: [4, 4 + n],
+            4: [5, 5 + n]
+        };
+    }
+    
 
     return DIFF;
 }

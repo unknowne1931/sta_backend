@@ -612,13 +612,23 @@ function generateNumbers(level, per) {
     const ln = parseInt(per) 
     let config;
 
-    config = {
-        "Too Easy": { count: 6 + ln, maxNum: 6 },
-        "Easy": { count: 10 + ln, maxNum: 5 },
-        "Medium": { count: 15 + ln, maxNum: 6 },
-        "Tough": { count: 20 + ln, maxNum: 6 },
-        "Too Tough": { count: 25 + ln, maxNum: 5 },
-    };
+    if (n === 105) {
+        config = {
+            "Too Easy": { count: 6 + ln, maxNum: 6 },
+            "Easy": { count: 10 + ln, maxNum: 5 },
+            "Medium": { count: 15 + ln, maxNum: 6 },
+            "Tough": { count: 20 + ln, maxNum: 6 },
+            "Too Tough": { count: 25 + ln, maxNum: 5 },
+        };
+    } else {
+        config = {
+            "Too Easy": { count: 6 + ln, maxNum: 6 },
+            "Easy": { count: 10 + ln, maxNum: 5 },
+            "Medium": { count: 15 + ln, maxNum: 6 },
+            "Tough": { count: 20 + ln, maxNum: 6 },
+            "Too Tough": { count: 25 + ln, maxNum: 5 },
+        };
+    }
 
     const safeLevel = config[level] ?? config["Easy"];
     const { count, maxNum } = safeLevel;

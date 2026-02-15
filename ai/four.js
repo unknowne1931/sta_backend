@@ -645,12 +645,22 @@ function diff_lt(iq) {
   const n = parseInt(iq);
   let DIFF;
 
-  DIFF = {
-    "Too Easy": 5+n,
-    "Easy": 10+n,
-    "Medium": 15+n,
-    "Tough": 20+n,
-    "Too Tough": 25+n
+  if(n === 105){
+    DIFF = {
+      "Too Easy": 5 + n,
+      "Easy": 10 + n,
+      "Medium": 15 + n,
+      "Tough": 20 + n,
+      "Too Tough": 25 + n
+    }
+  }else{
+    DIFF = {
+      "Too Easy": 5 + n,
+      "Easy": 10 + n,
+      "Medium": 15 + n,
+      "Tough": 20 + n,
+      "Too Tough": 25 + n
+    }
   }
 
 
