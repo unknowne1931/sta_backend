@@ -3891,9 +3891,13 @@ app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req
         ];
 
         const _dec_bal = await Balancemodule.findOne({ user });
+        const won_data = await Wonmodule.find({user})
 
         const randomFunction =
             qst_gen[Math.floor(Math.random() * qst_gen.length)];
+
+        
+        if(won_data) //make continue from here work 4831
 
         randomFunction(105, user, "1", "20", "0")
 
