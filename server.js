@@ -2675,15 +2675,7 @@ const Amount_count_Schema = new mongoose.Schema({
 
 const Amount_Count_Module = mongoose.model('Amount_admin', Amount_count_Schema);
 
-const check_y_n_t_Schema = new mongoose.Schema({
-    Time: String,
-    user: String,
-    Qno : String,
-    x : String,
 
-}, { timestamps: true });
-
-const Check_y_n_t_Module = mongoose.model('Check_y_n_t', check_y_n_t_Schema);
 
 
 app.post("/verify/by/timed/out/data/v/fy", authMiddleware, async (req, res) => {
@@ -3837,7 +3829,17 @@ app.post('/start/playing/by/debit/amount/new/15x', authMiddleware, async (req, r
 });
 
 
+const time_ansSchema = new mongoose.Schema({
+    Time: String,
+    user: String,
+    Qno_ID : String,
+    Qst_crt_tm : String,
+    Qst_get_tm : String,
+    Qst_ans_tm : String
 
+}, { timestamps: true });
+
+const time_ans_Module = mongoose.model('time_ans', time_ansSchema);
 
 
 app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req, res) => {
@@ -3897,7 +3899,7 @@ app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req
             qst_gen[Math.floor(Math.random() * qst_gen.length)];
 
         
-        if(won_data) //make continue from here work 4831
+        //make continue from here work 4831
 
         randomFunction(105, user, "1", "20", "0")
 
@@ -9422,7 +9424,7 @@ function One() {
                 .update(correct.toString())
                 .digest("hex");
 
-            await QuestionModule.create({
+            const dt_post = await QuestionModule.create({
                 Time: Time,
                 user: user,
                 img: upload.image,
@@ -9436,6 +9438,17 @@ function One() {
                 yes: [],
                 no: []
             });
+
+            await time_ans_Module.create({
+                Time: Time,
+                user: user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: Time,
+                Qst_get_tm: "",
+                Qst_ans_tm: ""
+            })
+            
+            
 
         } catch (err) {
             // ✅ FIX: no res → rethrow so caller can handle
@@ -9494,7 +9507,7 @@ function Two() {
                     .update(correct.toString())
                     .digest("hex");
 
-                await QuestionModule.create({
+                const dt_post = await QuestionModule.create({
                     Time,
                     user,
                     img: imageURL,
@@ -9508,6 +9521,15 @@ function Two() {
                     yes: [],
                     no: []
                 });
+
+                await time_ans_Module.create({
+                    Time: Time,
+                    user: user,
+                    Qno_ID: dt_post._id,
+                    Qst_crt_tm: Time,
+                    Qst_get_tm: "",
+                    Qst_ans_tm: ""
+                })
 
                 return; // ✅ STOP HERE
             }
@@ -9575,7 +9597,7 @@ function Three() {
                 .update(data.question.correct.toString())
                 .digest("hex");
 
-            await QuestionModule.create({
+            const dt_post = await QuestionModule.create({
                 Time: Time,
                 user: user,
                 img: data.imageUrl,
@@ -9588,6 +9610,15 @@ function Three() {
                 sub_lang: "plus",
                 yes: [],
                 no: []
+            })
+
+            await time_ans_Module.create({
+                Time: Time,
+                user: user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: Time,
+                Qst_get_tm: "",
+                Qst_ans_tm: ""
             })
 
 
@@ -9622,7 +9653,7 @@ function Four() {
                 .update(correctAnswer.toString())
                 .digest("hex");
 
-            await QuestionModule.create({
+            const dt_post = await QuestionModule.create({
                 Time: Time,
                 user: user,
                 img: base64Image,
@@ -9635,6 +9666,15 @@ function Four() {
                 sub_lang: "two_leters_word",
                 yes: [],
                 no: []
+            })
+
+            await time_ans_Module.create({
+                Time: Time,
+                user: user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: Time,
+                Qst_get_tm: "",
+                Qst_ans_tm: ""
             })
 
         } catch (error) {
@@ -9665,7 +9705,7 @@ function Five() {
                 .digest("hex");
 
 
-            await QuestionModule.create({
+            const dt_post = await QuestionModule.create({
                 Time: Time,
                 user: user,
                 img: base64Image,
@@ -9678,6 +9718,15 @@ function Five() {
                 sub_lang: "singel_word",
                 yes: [],
                 no: []
+            })
+
+            await time_ans_Module.create({
+                Time: Time,
+                user: user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: Time,
+                Qst_get_tm: "",
+                Qst_ans_tm: ""
             })
 
         } catch (error) {
@@ -9710,7 +9759,7 @@ function Six() {
                     .digest("hex");
 
 
-                await QuestionModule.create({
+                const dt_post = await QuestionModule.create({
                     Time: Time,
                     user: user,
                     img: img,
@@ -9723,6 +9772,15 @@ function Six() {
                     sub_lang: "ran_leters",
                     yes: [],
                     no: []
+                })
+
+                await time_ans_Module.create({
+                    Time: Time,
+                    user: user,
+                    Qno_ID: dt_post._id,
+                    Qst_crt_tm: Time,
+                    Qst_get_tm: "",
+                    Qst_ans_tm: ""
                 })
 
 
