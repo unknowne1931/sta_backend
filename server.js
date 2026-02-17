@@ -9758,7 +9758,6 @@ function Six() {
                     .update(out.correct.toString())
                     .digest("hex");
 
-
                 const dt_post = await QuestionModule.create({
                     Time: Time,
                     user: user,
@@ -9877,6 +9876,7 @@ function Eight() {
 
     }
 }
+
 
 function Nine() {
     return async function (level, user, qno, sec, sum) {
@@ -9999,6 +9999,7 @@ function Eleven() {
 
     }
 }
+
 
 function Tweleve() {
     return async function (level, user, qno, sec, sum) {
@@ -10236,7 +10237,6 @@ app.get("/admin/balance/played", adminMiddleware, async (req, res) => {
         return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch balance" });
     }
 });
-
 
 app.get("/admin/balance/free/played", adminMiddleware, async (req, res) => {
     try {
