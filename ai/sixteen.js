@@ -1314,7 +1314,7 @@ function duff_lelv(per) {
     
     let diff = {}
 
-    if (n === 105) {
+    if (ln === 105) {
         diff = {
             "Too Easy": 10 + ln,
             "Easy": 15 + ln,

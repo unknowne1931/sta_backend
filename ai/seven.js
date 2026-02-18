@@ -528,7 +528,7 @@ function diff_level(per) {
     const ln = parseInt(per)
     let DIFFICULTIES;
 
-    if (n === 105) {
+    if (ln === 105) {
         DIFFICULTIES = {
             "Too Easy": { count: 6 + ln, range: [2, 3] },
             "Easy": { count: 8 + ln, range: [3, 4] },

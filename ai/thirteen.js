@@ -612,7 +612,7 @@ function generateNumbers(level, per) {
     const ln = parseInt(per) 
     let config;
 
-    if (n === 105) {
+    if (ln === 105) {
         config = {
             "Too Easy": { count: 6 + ln, maxNum: 6 },
             "Easy": { count: 10 + ln, maxNum: 5 },

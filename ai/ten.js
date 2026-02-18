@@ -738,7 +738,7 @@ const HEIGHT = 250;
 // ==========================
 function def_data(per) {
     const ln = parseInt(per)
-    if (n === 105) {
+    if (ln === 105) {
         return {
             "Too Easy": 50 - ln,
             "Easy": 40 - ln,

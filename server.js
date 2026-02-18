@@ -46,6 +46,45 @@ const app = express();
 app.use(express.static('public'))
 // app.use(express.json());
 
+function getNow() {
+  return {
+    ts: Date.now(), // milliseconds (for calculation)
+    readable: new Date().toLocaleString("en-US", {
+      timeZone: "Asia/Kolkata",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true
+    })
+  };
+}
+
+
+const Time = new Date().toLocaleString("en-US", {
+    timeZone: "Asia/Kolkata",
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true // or false for 24-hour format
+});
+
+
+const Time_2 = Time.toLocaleString("en-US", {
+  timeZone: "Asia/Kolkata",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: true
+});
+
+
+
 app.post(
     "/razorpay/webhook",
     express.raw({ type: "application/json" }),
@@ -292,13 +331,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // });
 
 
-const Time = new Date().toLocaleString("en-US", {
-    timeZone: "Asia/Kolkata",
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true // or false for 24-hour format
-});
+
 
 
 // MongoDB connection
@@ -3835,7 +3868,12 @@ const time_ansSchema = new mongoose.Schema({
     Qno_ID : String,
     Qst_crt_tm : String,
     Qst_get_tm : String,
-    Qst_ans_tm : String
+    Qst_ans_tm : String,
+    cl_sec : String,
+    r_sec : {
+        default : "",
+        type : String
+    }
 
 }, { timestamps: true });
 
@@ -3898,7 +3936,6 @@ app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req
         const randomFunction =
             qst_gen[Math.floor(Math.random() * qst_gen.length)];
 
-        
         //make continue from here work 4831
 
         randomFunction(105, user, "1", "20", "0")
@@ -5048,6 +5085,13 @@ app.get("/get/question/no/by/user/name/bf/all/xx", authMiddleware, async (req, r
                         tough: Qno.tough
                     };
 
+                    const get_fetch_data = await time_ans_Module.findOne({user, Qno_ID : Qno._id})
+
+                    if(get_fetch_data.Qst_get_tm === ""){
+                        get_fetch_data.Qst_get_tm = Time
+                        await get_fetch_data.save()
+                    }
+
                     return res.status(200).json({ data });
 
                 } else {
@@ -6126,16 +6170,17 @@ const sng_qst_20_Module = mongoose.model('sng_cal_20', sec_qst_20_Schema);
 app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, res) => {
     const { answer, id, Ans, sec } = req.body;
 
+
     try {
+
+        console.log(req.body)
+        console.log(answer, id, Ans, sec)
 
         const user = req.user
 
         if (!answer && !user && !id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
 
-            const STARS = 20 - parseInt(sec)
-
-
-
+            const STARS = sec
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ Status: "BAD" , success: false, message: "Invalid ObjectId format" });
@@ -6175,15 +6220,36 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
 
         const User_List = await QuestionListmodule.findOne({ user })
 
+        console.log(`Answer is ${check_ans}`)
+
 
         if (check_ans) {
+
+            console.log("verifyed Ans")
+            const check_sec_vrf = await time_ans_Module.findOne({user, Qno_ID : id})
+            // const exactSeconds = (check_sec_vrf.updatedAt - check_sec_vrf.createdAt) / 1000;
+
+            const diffMs = Math.floor(
+                (check_sec_vrf.updatedAt - check_sec_vrf.createdAt) / 1000
+            );   // milliseconds
+
+
+
+            if (check_sec_vrf.Qst_ans_tm === "") {
+                check_sec_vrf.Qst_ans_tm = Time
+                check_sec_vrf.cl_sec = diffMs
+                check_sec_vrf.r_sec = sec
+                await check_sec_vrf.save()
+            }
+
 
             await up_sec_lst.updateOne({$set : {lst_sec : STARS}, $push : {yes : user} })
 
             if (User_List.list.length === 1 || User_List.list.length === 0) {
-                await User_List.updateOne({ $pull: { list: User_List.list[0] } })
+                await User_List.updateOne({ $pull: { list: User_List.list[0] }})
+
                 // await QuestionListmodule.updateOne(
-                //     { user },
+                //     { user },bharathikeethireddy
                 //     { $pop: { list: -1 } }   // remove first element
                 // );
 
@@ -6205,6 +6271,15 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
                     //ki1931ck add code here
                     const rank = toString(won.length + 1)
                     await Answer_Verify.updateOne({ $push: { yes: user } })
+
+                    const data = await StartValidmodule.findOne({ user });
+
+                    if (data) {
+                        data.valid = "no";
+                        await data.save();
+                    } else {
+                        await StartValidmodule.create({ Time, user, valid: "no" });
+                    }
                     return res.status(200).json({ Status: "OKK", id: CuponDat._id, rank: rank });
 
 
@@ -6220,6 +6295,15 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
 
                     // const sum = parseInt(get_user_balanc.balance) + parseInt(get_count_data.stars)
                     const starrrs = STARS * 2
+
+                    const data = await StartValidmodule.findOne({ user });
+
+                    if (data) {
+                        data.valid = "no";
+                        await data.save();
+                    } else {
+                        await StartValidmodule.create({ Time, user, valid: "no" });
+                    }
 
                     if (get_user_balanc) {
                         
@@ -6720,12 +6804,6 @@ app.get("/users/name/and/more/get/:id", authMiddleware, async (req, res) => {
 
 app.get('/exact/time/by/new', async (req, res) => {
     try {
-        const now = new Date();
-
-        // Extract year, month, and day
-        const year = now.getFullYear();
-        const month = (now.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-indexed
-        const day = now.getDate().toString().padStart(2, '0');
 
         // Format the date as "YYYY-MM-DD"
         const formattedDate = `${year}-${month}-${day}`;
@@ -9445,7 +9523,8 @@ function One() {
                 Qno_ID: dt_post._id,
                 Qst_crt_tm: Time,
                 Qst_get_tm: "",
-                Qst_ans_tm: ""
+                Qst_ans_tm: "",
+                cl_sec : ""
             })
             
             
@@ -9523,13 +9602,14 @@ function Two() {
                 });
 
                 await time_ans_Module.create({
-                    Time: Time,
-                    user: user,
-                    Qno_ID: dt_post._id,
-                    Qst_crt_tm: Time,
-                    Qst_get_tm: "",
-                    Qst_ans_tm: ""
-                })
+                Time: Time,
+                user: user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: Time,
+                Qst_get_tm: "",
+                Qst_ans_tm: "",
+                cl_sec : ""
+            })
 
                 return; // ✅ STOP HERE
             }
@@ -9563,6 +9643,16 @@ function Two() {
                 yes: [],
                 no: []
             });
+
+            await time_ans_Module.create({
+                Time: Time,
+                user: user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: Time,
+                Qst_get_tm: "",
+                Qst_ans_tm: "",
+                cl_sec : ""
+            })
 
             return; // optional but explicit
 
@@ -9618,7 +9708,8 @@ function Three() {
                 Qno_ID: dt_post._id,
                 Qst_crt_tm: Time,
                 Qst_get_tm: "",
-                Qst_ans_tm: ""
+                Qst_ans_tm: "",
+                cl_sec : ""
             })
 
 
@@ -9674,7 +9765,8 @@ function Four() {
                 Qno_ID: dt_post._id,
                 Qst_crt_tm: Time,
                 Qst_get_tm: "",
-                Qst_ans_tm: ""
+                Qst_ans_tm: "",
+                cl_sec : ""
             })
 
         } catch (error) {
@@ -9726,7 +9818,8 @@ function Five() {
                 Qno_ID: dt_post._id,
                 Qst_crt_tm: Time,
                 Qst_get_tm: "",
-                Qst_ans_tm: ""
+                Qst_ans_tm: "",
+                cl_sec : ""
             })
 
         } catch (error) {
@@ -9774,13 +9867,14 @@ function Six() {
                 })
 
                 await time_ans_Module.create({
-                    Time: Time,
-                    user: user,
-                    Qno_ID: dt_post._id,
-                    Qst_crt_tm: Time,
-                    Qst_get_tm: "",
-                    Qst_ans_tm: ""
-                })
+                Time: Time,
+                user: user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: Time,
+                Qst_get_tm: "",
+                Qst_ans_tm: "",
+                cl_sec : ""
+            })
 
 
 
@@ -9811,7 +9905,7 @@ function Seven() {
                 .digest("hex");
 
 
-            await QuestionModule.create({
+            const dt_post = await QuestionModule.create({
                 Time: Time,
                 user: user,
                 img: data.image,
@@ -9824,6 +9918,16 @@ function Seven() {
                 sub_lang: "less_grtr",
                 yes: [],
                 no: []
+            })
+
+            await time_ans_Module.create({
+                Time: Time,
+                user: user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: Time,
+                Qst_get_tm: "",
+                Qst_ans_tm: "",
+                cl_sec : ""
             })
 
 
@@ -9855,7 +9959,7 @@ function Eight() {
                 .digest("hex");
 
 
-            await QuestionModule.create({
+            const dt_post = await QuestionModule.create({
                 Time: Time,
                 user: user,
                 img: base64Image,
@@ -9868,6 +9972,16 @@ function Eight() {
                 sub_lang: "circle_pieces",
                 yes: [],
                 no: []
+            })
+
+            await time_ans_Module.create({
+                Time: Time,
+                user: user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: Time,
+                Qst_get_tm: "",
+                Qst_ans_tm: "",
+                cl_sec : ""
             })
         } catch (error) {
             console.log(error)
@@ -9897,7 +10011,7 @@ function Nine() {
                 .digest("hex");
 
 
-            await QuestionModule.create({
+            const dt_post = await QuestionModule.create({
                 Time: Time,
                 user: user,
                 img: puzzle.image,
@@ -9910,6 +10024,16 @@ function Nine() {
                 sub_lang: "emoji_01",
                 yes: [],
                 no: []
+            })
+
+            await time_ans_Module.create({
+                Time: Time,
+                user: user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: Time,
+                Qst_get_tm: "",
+                Qst_ans_tm: "",
+                cl_sec : ""
             })
 
         } catch (error) {
@@ -9937,7 +10061,7 @@ function Ten() {
                 .digest("hex");
 
 
-            await QuestionModule.create({
+            const dt_post = await QuestionModule.create({
                 Time: Time,
                 user: user,
                 img: mazeQuestion.image,
@@ -9950,6 +10074,16 @@ function Ten() {
                 sub_lang: "maze",
                 yes: [],
                 no: []
+            })
+
+            await time_ans_Module.create({
+                Time: Time,
+                user: user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: Time,
+                Qst_get_tm: "",
+                Qst_ans_tm: "",
+                cl_sec : ""
             })
         } catch (error) {
             console.log(error)
@@ -9978,7 +10112,7 @@ function Eleven() {
                 .digest("hex");
 
 
-            await QuestionModule.create({
+            const dt_post = await QuestionModule.create({
                 Time: Time,
                 user: user,
                 img: result.image,
@@ -9991,6 +10125,16 @@ function Eleven() {
                 sub_lang: "colours",
                 yes: [],
                 no: []
+            })
+
+            await time_ans_Module.create({
+                Time: Time,
+                user: user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: Time,
+                Qst_get_tm: "",
+                Qst_ans_tm: "",
+                cl_sec : ""
             })
         } catch (error) {
             console.log(error)
@@ -10019,7 +10163,7 @@ function Tweleve() {
                 .digest("hex");
 
 
-            await QuestionModule.create({
+            const dt_post = await QuestionModule.create({
                 Time: Time,
                 user: user,
                 img: test.imageBase64,
@@ -10032,6 +10176,16 @@ function Tweleve() {
                 sub_lang: "code_int_char",
                 yes: [],
                 no: []
+            })
+
+            await time_ans_Module.create({
+                Time: Time,
+                user: user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: Time,
+                Qst_get_tm: "",
+                Qst_ans_tm: "",
+                cl_sec : ""
             })
         } catch (error) {
             console.log(error)
@@ -10061,7 +10215,7 @@ function Thirteen() {
             .digest("hex");
 
 
-        await QuestionModule.create({
+        const dt_post = await QuestionModule.create({
             Time: Time,
             user: user,
             img: puzzle.base64Image,
@@ -10075,6 +10229,16 @@ function Thirteen() {
             yes: [],
             no: []
         })
+
+        await time_ans_Module.create({
+                Time: Time,
+                user: user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: Time,
+                Qst_get_tm: "",
+                Qst_ans_tm: "",
+                cl_sec : ""
+            })
 
 
 
@@ -10105,7 +10269,7 @@ function Fourteen() {
             .digest("hex");
 
 
-        await QuestionModule.create({
+        const dt_post = await QuestionModule.create({
             Time: Time,
             user: user,
             img: puzzle.base64Image,
@@ -10119,6 +10283,16 @@ function Fourteen() {
             yes: [],
             no: []
         })
+
+        await time_ans_Module.create({
+                Time: Time,
+                user: user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: Time,
+                Qst_get_tm: "",
+                Qst_ans_tm: "",
+                cl_sec : ""
+            })
 
         // res.json({
         //     Questio : puzzle.question,
@@ -10153,7 +10327,7 @@ function Fifteen() {
             .digest("hex");
 
 
-        await QuestionModule.create({
+        const dt_post = await QuestionModule.create({
             Time: Time,
             user: user,
             img: puzzle.base64Image,
@@ -10167,6 +10341,16 @@ function Fifteen() {
             yes: [],
             no: []
         })
+
+        await time_ans_Module.create({
+                Time: Time,
+                user: user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: Time,
+                Qst_get_tm: "",
+                Qst_ans_tm: "",
+                cl_sec : ""
+            })
 
         // res.json({
         //     Questio: puzzle.question,
@@ -10199,7 +10383,7 @@ function Sixteen() {
             .digest("hex");
 
 
-        await QuestionModule.create({
+        const dt_post = await QuestionModule.create({
             Time: Time,
             user: user,
             img: (await puzzle).base64Image,
@@ -10213,6 +10397,16 @@ function Sixteen() {
             yes: [],
             no: []
         })
+
+        await time_ans_Module.create({
+                Time: Time,
+                user: user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: Time,
+                Qst_get_tm: "",
+                Qst_ans_tm: "",
+                cl_sec : ""
+            })
 
 
 
