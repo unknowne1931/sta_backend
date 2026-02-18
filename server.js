@@ -6249,7 +6249,7 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
                 await User_List.updateOne({ $pull: { list: User_List.list[0] }})
 
                 // await QuestionListmodule.updateOne(
-                //     { user },bharathikeethireddy
+                //     { user },bharathikethireddy
                 //     { $pop: { list: -1 } }   // remove first element
                 // );
 
@@ -6287,6 +6287,7 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
                 } else {
 
                     //if no cupondata it will add ranks
+                    //
 
 
                     await Wonmodule.create({ Time, user, no: won.length + 1, ID: "stars" })
