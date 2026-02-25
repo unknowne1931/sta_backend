@@ -3880,6 +3880,68 @@ const time_ansSchema = new mongoose.Schema({
 const time_ans_Module = mongoose.model('time_ans', time_ansSchema);
 
 
+
+const Controle_Schema = new mongoose.Schema({
+    Time: String,
+    user: String,
+    make_win_fees_low : String
+
+
+}, { timestamps: true });
+
+const Controles_Module = mongoose.model('time_ans', Controle_Schema);
+
+
+
+async function get_cat_per(user) {
+    const bal_valid = await Balancemodule.findOne({user})
+    const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
+    const balanceNum = parseInt(bal_valid.balance);
+    const feesNum = parseInt(fees.rupee);
+    let check_controls = Controles_Module.findOne({user : "kick"})
+    if(!check_controls){
+        check_controls = await Controle_Schema.create({
+            Time,
+            user : "kick",
+            make_win_fees_low : "no",
+            make_lse_from_mst_ans_qst : "no"
+        }) 
+    }
+
+    if(check_controls.make_win_fees_low === "no"){
+        return 0; //make complete This they must get random one cat , ex { cat : one(), sec : 0}
+    }
+
+    if (balanceNum >= feesNum * 2) {
+
+
+        let doc = await sng_qst_20_Module.findOne({
+            user: user,
+            $expr: {
+                $gt: [
+                    { $size: "$yes" },
+                    { $size: "$no" }
+                ]
+            }
+        });
+
+        if(check_controls.make_lse_from_mst_ans_qst === "yes"){
+            return {
+                cat : doc.cat,
+                sec : doc.lst_sec,  //trying to make win if sec = 5 then make generate to it then the users must answer at last 3 or 2 seconds
+            }
+        }
+
+        
+    }
+
+
+    
+
+
+}
+
+
 app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req, res) => {
     const user = req.user;
     if (!user) return res.status(400).json({ Status: "s_m", message: "Some Data Missing" });
@@ -4951,81 +5013,7 @@ const Error_Catch_Module = mongoose.model('Errors', Error_Catch_Schema);
 
 
 
-//After 2x 5x 7x 10x 15x
-app.get("/get/question/no/by/user/name/bf/xx", authMiddleware, async (req, res) => {
-    const user = req.user;
-    try {
 
-
-        if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
-
-
-        // Fetch the user's validity status from StartValidmodule
-        const Data = await StartValidmodule.findOne({ user });
-        // Fetch the user's question list from QuestionListmodule
-        const Get_Qno_info = await QuestionListmodule.findOne({ user }).lean();
-
-        // Check if the user is valid and has a question list
-        if (Data && Data.valid === "yes") {
-            if (Get_Qno_info && Get_Qno_info.list.length >= 0) {
-                // Get the first question number from the list
-                const QNO = Get_Qno_info.list[0];
-
-                if(!QNO || QNO === undefined || QNO === "" || QNO === null){
-                    Data.valid = "No"
-                    await Data.save()
-                    await refund()
-                    await Error_Catch_Module.create({Time, user, Type : QNO, Text : "Error may be occurs due to QNO Undefined are some data Missing", api : "/get/question/no/by/user/name/bf/xx", Where : "On Finding Question Number" })
-                    return res.status(200).json({Status : "EXIT"})
-                }
-
-                const Qno = await QuestionModule.findOne({ Qno: QNO.toString(), user: user }).lean();
-
-                if(!Qno || Qno === undefined || Qno === "" || Qno === null){
-                    Data.valid = "No"
-                    await Data.save()
-                    await refund()
-                    await Error_Catch_Module.create({Time, user, Type : QNO, Text : "Error may be occurs due to QNO Undefined are some data Missing", api : "/get/question/no/by/user/name/bf/xx", Where : "On Finding Question Number" })
-                    return res.status(200).json({Status : "EXIT"})
-                }
-
-                // if(parseInt(sec_cal) > 50){
-                //     return res.status(200).json({Status : "BAD"})
-                // }
-
-
-                if (Qno) {
-                    // Construct the response data
-                    const data = {
-                        _id: Qno._id,
-                        img: Qno.img,
-                        Qno: Qno.Qno,
-                        Question: Qno.Questio,
-                        options: Qno.options,
-                        seconds: Qno.seconds,
-                        Ans: Qno.Ans,
-                        cat: Qno.sub_lang,
-                        tough: Qno.tough
-                    };
-
-                    return res.status(200).json({ data });
-
-                } else {
-                    await Error_Catch_Module.create({Time, user, Type : QNO, Text : "No Qno Data Found then this will occurs", api : "/get/question/no/by/user/name/bf/xx", Where : "at [No Question Found.] " })
-                    return res.status(404).json({ Status: "BAD", message: "No Question Found."});
-                }
-            } else {
-                return res.status(202).json({ Status: "BAD", message: "No Question Found.."});
-            }
-        } else {
-            return res.status(202).json({ Status: "BAD", message: "Not Valid to Yes"});
-        }
-    } 
-    catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal Server Error", error: error.message, id: "Some Erorr" });
-    }
-});
 
 
 
@@ -6169,7 +6157,6 @@ const sng_qst_20_Module = mongoose.model('sng_cal_20', sec_qst_20_Schema);
 //1948
 app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, res) => {
     const { answer, id, Ans, sec } = req.body;
-
 
     try {
 
