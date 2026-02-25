@@ -3884,12 +3884,13 @@ const time_ans_Module = mongoose.model('time_ans', time_ansSchema);
 const Controle_Schema = new mongoose.Schema({
     Time: String,
     user: String,
-    make_win_fees_low : String
+    make_win_fees_low : String,
+    make_add_unsolved_during_low_bal : String,
 
 
 }, { timestamps: true });
 
-const Controles_Module = mongoose.model('time_ans', Controle_Schema);
+const Controles_Module = mongoose.model('Controls', Controle_Schema);
 
 
 
@@ -3898,44 +3899,8 @@ async function get_cat_per(user) {
     const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
     const balanceNum = parseInt(bal_valid.balance);
     const feesNum = parseInt(fees.rupee);
-    let check_controls = Controles_Module.findOne({user : "kick"})
-    if(!check_controls){
-        check_controls = await Controle_Schema.create({
-            Time,
-            user : "kick",
-            make_win_fees_low : "no",
-            make_lse_from_mst_ans_qst : "no"
-        }) 
-    }
 
-    if(check_controls.make_win_fees_low === "no"){
-        return 0; //make complete This they must get random one cat , ex { cat : one(), sec : 0}
-    }
-
-    if (balanceNum >= feesNum * 2) {
-
-
-        let doc = await sng_qst_20_Module.findOne({
-            user: user,
-            $expr: {
-                $gt: [
-                    { $size: "$yes" },
-                    { $size: "$no" }
-                ]
-            }
-        });
-
-        if(check_controls.make_lse_from_mst_ans_qst === "yes"){
-            return {
-                cat : doc.cat,
-                sec : doc.lst_sec,  //trying to make win if sec = 5 then make generate to it then the users must answer at last 3 or 2 seconds
-            }
-        }
-
-        
-    }
-
-
+    
     
 
 
