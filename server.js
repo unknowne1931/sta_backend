@@ -40,11 +40,14 @@ import { generateNumberPairMCQ } from "./ai/thirteen.js";
 import { generateOMRQuestion } from "./ai/fourteen.js";
 import { generateOMRQuestion15 } from "./ai/fifteen.js";
 import { generateTrainQuestionImage } from "./ai/sixteen.js";
+import { type } from 'os';
 
 
 const app = express();
 app.use(express.static('public'))
 // app.use(express.json());
+
+
 
 function getNow() {
   return {
@@ -3933,6 +3936,7 @@ async function get_cat_per(user) {
     const balanceNum = parseInt(bal_valid.balance);
     const feesNum = parseInt(fees.rupee);
     if(balanceNum >= feesNum*2){
+        console.log("Making Loos")
         const data = await lest_answrd_cat_sec(user)
         if(data !== "none"){
             //make return object example Nine() and sec can be managed here work start 1948
@@ -3941,8 +3945,33 @@ async function get_cat_per(user) {
                 lst_sec : data.lst_sec
             }
         }
+        return "none"
     }else{
-        
+        console.log("Making win")
+        const count = await Wonmodule.countDocuments({ user });
+        const tot_p = await Totalusermodule.countDocuments({user})
+        if (count >= 3) {
+            const data = await lest_answrd_cat_sec(user)
+            if (data !== "none") {
+                //make return object example Nine() and sec can be managed here work start 1948
+                return {
+                    fun: data.ob,
+                    lst_sec: data.lst_sec
+                }
+            }
+            return "none"
+        }else{
+            const data = await highest_answrd_cat_sec(user)
+            if (data !== "none") {
+                //make return object example Nine() and sec can be managed here work start 1948
+                return {
+                    fun: data.ob,
+                    lst_sec: data.lst_sec
+                }
+            }
+            return "none"
+        }
+
 
     }
     
@@ -3952,195 +3981,6 @@ async function get_cat_per(user) {
 }
 
 
-app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req, res) => {
-    const user = req.user;
-    if (!user) return res.status(400).json({ Status: "s_m", message: "Some Data Missing" });
-
-    try {
-
-
-        const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
-        
-
-        if (status?.Status === "off") {
-            return res.status(200).json({ Status: "Time", message: status.text });
-        }
-
-
-
-        const lang_data = await LanguageSelectModule.findOne({ user }).lean();
-        const balance = await Balancemodule.findOne({ user }); // ac balance
-        const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
-
-        if (!lang_data || !lang_data.lang) throw new Error("No language data found");
-
-        if (!balance) return res.status(200).json({ Status: "no_us" });
-
-        const balanceNum = parseInt(balance.balance);
-        const feesNum = parseInt(fees.rupee);
-
-        if (balanceNum < feesNum) {
-            return res.status(200).json({ Status: "Low-Bal" });
-        }
-
-        // const get_per = (won_data / (total_play || 1)) * 100;
-
-
-        
-        let create_data = await QuestionListmodule.findOne({ user });
-
-        
-
-        await QuestionModule.deleteMany({ user });
-
-        const dif_l = ["Singel"];
-
-        const qst_gen = [
-            One(), Two(), Three(), Four(), Five(), Six(),
-            Seven(), Eight(), Nine(), Ten(), Eleven(), Tweleve(), Thirteen(),
-            Fourteen(), Fifteen(), Sixteen()
-            // Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),
-        ];
-
-        const _dec_bal = await Balancemodule.findOne({ user });
-        const won_data = await Wonmodule.find({user})
-
-        const randomFunction =
-            qst_gen[Math.floor(Math.random() * qst_gen.length)];
-
-        //make continue from here work 4831
-
-        randomFunction(105, user, "1", "20", "0")
-
-        //105 = per
-        //user = user
-        //1 = question number
-        //20 = seconds
-        //0 = minus - 0
-
-
-
-        // shuffled.forEach((data, i) => {
-        //     const num = (i + 1).toString();
-        //     dif.push(num);
-        //     const lvl = dif_l[i]
-        //     //make easy before creating add some logics
-        //     data(lvl, user, num, "20", "1")
-        // });
-
-        
-
-
-        if (!create_data) {
-            create_data = await QuestionListmodule.create({
-                user,
-                Time,
-                lang: lang_data.lang[0],
-                list: ["1"],
-                oldlist: ["1"],
-            });
-        }
-
-
-        await Promise.all([
-
-            StartValidmodule.create({ Time, user, valid: "yes" }),
-            Totalusermodule.create({ Time, user }),
-            Historymodule.create({ Time, user, rupee: fees.rupee, type: "Debited", tp: "Rupee" }),
-            QuestionListmodule.updateOne(
-                { user: user },
-                {
-                    $set: { list: "1" },
-                    $push: { oldlist: "1" },
-                }
-            )
-        ]);
-
-
-        // const _to_str_up_rp = balanceNum - feesNum
-
-        
-
-        if (_dec_bal) {
-            const currentBal = parseInt(_dec_bal.balance);
-            const updatedBal = currentBal - feesNum;
-
-            _dec_bal.balance = updatedBal.toString(); // ✅ convert number to string
-            await _dec_bal.save();
-        }
-
-        const wal_cnt_mod = await Amount_walet_count_Module.findOne({ user: "kick" });
-
-        if (wal_cnt_mod) {
-            wal_cnt_mod.count = parseInt(wal_cnt_mod.count) + feesNum;
-
-            wal_cnt_mod.user_id.push({
-                Time,
-                user,
-                rupee: feesNum,
-            });
-
-            await wal_cnt_mod.save();
-        } else {
-            await Amount_walet_count_Module.create({
-                Time,
-                user: "kick",   // <-- ADD THIS
-                count: feesNum,
-                user_id: [{
-                    Time,
-                    user,
-                    rupee: feesNum
-                }]
-            });
-        }
-
-
-        // ✅ Convert updated balance back to string
-        const updatedBal = await Balancemodule.findOne({ user });
-
-        if (typeof updatedBal.balance === "number") {
-            await Balancemodule.updateOne(
-                { user },
-                { $set: { balance: updatedBal.balance.toString() } }
-            );
-        }
-
-        const balance_to_admin_account = await Amount_Count_Module.findOne({ user: "kick" });
-
-        if (balance_to_admin_account) {
-            balance_to_admin_account.count = parseInt(balance_to_admin_account.count) + parseInt(fees.rupee)
-            await balance_to_admin_account.save()
-        } else {
-            await Amount_Count_Module.create({ Time, user: "kick", count: fees.rupee })
-        }
-
-
-
-
-
-
-        const count = await QuestionModule.countDocuments({ user });
-        if (count === 1) {
-            console.log("✅ Finished successfully");
-            return res.status(200).json({ Status: "OK" });
-        }else{
-            console.log("amount credited")
-            const bal_dt = await Balancemodule.findOne({ user: user })
-            const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
-            await QuestionModule.deleteMany({ user })
-            bal_dt.balance = lat.toString()
-            await bal_dt.save()
-            console.log("BAD")
-            return res.status(200).json({ Status: "BAD_CR" })
-        }
-
-        
-
-    } catch (error) {
-        console.error("❌ Main Catch Error:", error);
-        return res.status(500).json({ message: "Internal Server Error", error: error.message });
-    }
-});
 
 
 
@@ -6153,19 +5993,41 @@ app.post('/verify/answer/question/number/xs', authMiddleware, async (req, res) =
 
 
 const sec_qst_20_Schema = new mongoose.Schema({
-    user : String,
-    cat : String,
-    ob : {
-        type : Object,
-        default : "hi"
-    },
-    yes : [],
-    no : [],
-    lst_sec : {
-        type : Number,
-        default : 100
-    },
-    lst_q_id : String,
+  user: {
+    type: String,
+    required: true
+  },
+
+  cat: {
+    type: String,
+    required: true
+  },
+
+  ob: {
+    type: String,   // good if this is a function name / label
+    default: ""
+  },
+
+  yes: {
+    type: [String], // array of strings (IDs, answers, etc.)
+    default: []
+  },
+
+  no: {
+    type: [String],
+    default: []
+  },
+
+  lst_sec: {
+    type: Number,
+    default: 0
+  },
+
+  lst_q_id: {
+    type: String,
+    default: ""
+  }
+
 }, { timestamps: true });
 
 const sng_qst_20_Module = mongoose.model('sng_cal_20', sec_qst_20_Schema);
@@ -9464,6 +9326,18 @@ async function get_iq(user, cat, level) {
     }
 }
 
+
+async function cat_fn(user, cat, fn) {
+    let data_fnd = await sng_qst_20_Module.findOne({user, cat, ob : fn})
+    if(!data_fnd){
+        data_fnd = await sng_qst_20_Module.create({
+            user, cat, ob : fn
+        })
+    }
+    return "ok"
+}
+
+
 function One() {
     return async function (level, user, qno, sec, sum) {
         try {
@@ -9523,6 +9397,8 @@ function One() {
                 yes: [],
                 no: []
             });
+
+            await cat_fn(user, "star_cir_tri", "One")
 
             await time_ans_Module.create({
                 Time: Time,
@@ -9607,6 +9483,8 @@ function Two() {
                     yes: [],
                     no: []
                 });
+
+                await cat_fn(user, "news_side", "Two" )
 
                 await time_ans_Module.create({
                 Time: Time,
@@ -9709,6 +9587,8 @@ function Three() {
                 no: []
             })
 
+            await cat_fn(user, "plus", "Three" )
+
             await time_ans_Module.create({
                 Time: Time,
                 user: user,
@@ -9766,6 +9646,8 @@ function Four() {
                 no: []
             })
 
+            await cat_fn(user, "two_leters_word", "Four" )
+
             await time_ans_Module.create({
                 Time: Time,
                 user: user,
@@ -9818,6 +9700,8 @@ function Five() {
                 yes: [],
                 no: []
             })
+
+            await cat_fn(user, "singel_word", "Five" )
 
             await time_ans_Module.create({
                 Time: Time,
@@ -9873,6 +9757,8 @@ function Six() {
                     no: []
                 })
 
+                await cat_fn(user, "ran_leters", "Six" )
+
                 await time_ans_Module.create({
                 Time: Time,
                 user: user,
@@ -9926,6 +9812,8 @@ function Seven() {
                 yes: [],
                 no: []
             })
+
+            await cat_fn(user,"less_grtr", "Seven" )
 
             await time_ans_Module.create({
                 Time: Time,
@@ -9981,6 +9869,8 @@ function Eight() {
                 no: []
             })
 
+            await cat_fn(user,"circle_pieces", "Eight" )
+
             await time_ans_Module.create({
                 Time: Time,
                 user: user,
@@ -10033,6 +9923,8 @@ function Nine() {
                 no: []
             })
 
+            await cat_fn(user, "emoji_01", "Nine" )
+
             await time_ans_Module.create({
                 Time: Time,
                 user: user,
@@ -10082,6 +9974,8 @@ function Ten() {
                 yes: [],
                 no: []
             })
+
+            await cat_fn(user, "maze", "Ten" )
 
             await time_ans_Module.create({
                 Time: Time,
@@ -10134,6 +10028,8 @@ function Eleven() {
                 no: []
             })
 
+            await cat_fn(user, "colours", "Eleven")
+
             await time_ans_Module.create({
                 Time: Time,
                 user: user,
@@ -10184,6 +10080,8 @@ function Tweleve() {
                 yes: [],
                 no: []
             })
+
+            await cat_fn(user, "code_int_char", "Tweleve")
 
             await time_ans_Module.create({
                 Time: Time,
@@ -10237,6 +10135,8 @@ function Thirteen() {
             no: []
         })
 
+        await cat_fn(user, "num_pairs", "Thirteen")
+
         await time_ans_Module.create({
                 Time: Time,
                 user: user,
@@ -10256,6 +10156,8 @@ function Thirteen() {
 function Fourteen() {
     return async function (level, user, qno, sec, sum) {
         // const per = await get_per("OMR_1", level);
+
+        console.log("Innnnnnnnnnnnnnnnnnnnnnnnnnnn sirrrrrrrrrrrrrrrrrrrr")
 
         const iq = await get_iq(user, "OMR_1", level);
         const iq_s = parseInt(iq) - parseInt(sum)
@@ -10290,6 +10192,8 @@ function Fourteen() {
             yes: [],
             no: []
         })
+
+        await cat_fn(user, "OMR_1", "Fourteen")
 
         await time_ans_Module.create({
                 Time: Time,
@@ -10349,6 +10253,8 @@ function Fifteen() {
             no: []
         })
 
+        await cat_fn(user, "OMR", "Fifteen")
+
         await time_ans_Module.create({
                 Time: Time,
                 user: user,
@@ -10405,6 +10311,8 @@ function Sixteen() {
             no: []
         })
 
+        await cat_fn(user, "Train", "Sixteen")
+
         await time_ans_Module.create({
                 Time: Time,
                 user: user,
@@ -10429,6 +10337,225 @@ function Sixteen() {
 }
 
 
+
+app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req, res) => {
+    const user = req.user;
+    if (!user) return res.status(400).json({ Status: "s_m", message: "Some Data Missing" });
+
+    try {
+
+
+        const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
+        
+
+        if (status?.Status === "off") {
+            return res.status(200).json({ Status: "Time", message: status.text });
+        }
+
+        const functions = {
+            One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Tweleve, Thirteen, Fourteen, Fifteen, Sixteen
+        }
+
+
+
+        const lang_data = await LanguageSelectModule.findOne({ user }).lean();
+        const balance = await Balancemodule.findOne({ user }); // ac balance
+        const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
+
+        if (!lang_data || !lang_data.lang) throw new Error("No language data found");
+
+        if (!balance) return res.status(200).json({ Status: "no_us" });
+
+        const balanceNum = parseInt(balance.balance);
+        const feesNum = parseInt(fees.rupee);
+
+        if (balanceNum < feesNum) {
+            return res.status(200).json({ Status: "Low-Bal" });
+        }
+
+        // const get_per = (won_data / (total_play || 1)) * 100;
+
+
+        
+        let create_data = await QuestionListmodule.findOne({ user });
+
+        
+
+        await QuestionModule.deleteMany({ user });
+
+        const dif_l = ["Singel"];
+
+        const qst_gen = [
+            One(), Two(), Three(), Four(), Five(), Six(),
+            Seven(), Eight(), Nine(), Ten(), Eleven(), Tweleve(), Thirteen(),
+            Fourteen(), Fifteen(), Sixteen()
+            // Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),
+        ];
+
+        const _dec_bal = await Balancemodule.findOne({ user });
+        const won_data = await Wonmodule.find({user})
+
+        const randomFunction =
+            qst_gen[Math.floor(Math.random() * qst_gen.length)];
+
+        //make continue from here work 4831
+        
+        const get_cat = await get_cat_per(user)
+
+        if(get_cat !== "none"){
+            // functions[get_cat.fun]?.(105, user, "20", `${get_cat.lst_sec}`)
+            console.log("Herre.........")
+
+            const fnName = get_cat.fun; // e.g. "addScore"
+            console.log("fnName:", fnName);
+            console.log("functions keys:", Object.keys(functions));
+
+            functions[fnName]?.(
+                105,
+                user,
+                "20",
+                "0"
+            );
+
+
+        }else{
+            randomFunction(105, user, "1", "20", "0")
+        }
+
+        
+
+        //105 = per
+        //user = user
+        //1 = question number
+        //20 = seconds
+        //0 = minus - 0
+
+
+
+        // shuffled.forEach((data, i) => {
+        //     const num = (i + 1).toString();
+        //     dif.push(num);
+        //     const lvl = dif_l[i]
+        //     //make easy before creating add some logics
+        //     data(lvl, user, num, "20", "1")
+        // });
+
+        
+
+
+        if (!create_data) {
+            create_data = await QuestionListmodule.create({
+                user,
+                Time,
+                lang: lang_data.lang[0],
+                list: ["1"],
+                oldlist: ["1"],
+            });
+        }
+
+
+        await Promise.all([
+
+            StartValidmodule.create({ Time, user, valid: "yes" }),
+            Totalusermodule.create({ Time, user }),
+            Historymodule.create({ Time, user, rupee: fees.rupee, type: "Debited", tp: "Rupee" }),
+            QuestionListmodule.updateOne(
+                { user: user },
+                {
+                    $set: { list: "1" },
+                    $push: { oldlist: "1" },
+                }
+            )
+        ]);
+
+
+        // const _to_str_up_rp = balanceNum - feesNum
+
+        
+
+        if (_dec_bal) {
+            const currentBal = parseInt(_dec_bal.balance);
+            const updatedBal = currentBal - feesNum;
+
+            _dec_bal.balance = updatedBal.toString(); // ✅ convert number to string
+            await _dec_bal.save();
+        }
+
+        const wal_cnt_mod = await Amount_walet_count_Module.findOne({ user: "kick" });
+
+        if (wal_cnt_mod) {
+            wal_cnt_mod.count = parseInt(wal_cnt_mod.count) + feesNum;
+
+            wal_cnt_mod.user_id.push({
+                Time,
+                user,
+                rupee: feesNum,
+            });
+
+            await wal_cnt_mod.save();
+        } else {
+            await Amount_walet_count_Module.create({
+                Time,
+                user: "kick",   // <-- ADD THIS
+                count: feesNum,
+                user_id: [{
+                    Time,
+                    user,
+                    rupee: feesNum
+                }]
+            });
+        }
+
+
+        // ✅ Convert updated balance back to string
+        const updatedBal = await Balancemodule.findOne({ user });
+
+        if (typeof updatedBal.balance === "number") {
+            await Balancemodule.updateOne(
+                { user },
+                { $set: { balance: updatedBal.balance.toString() } }
+            );
+        }
+
+        const balance_to_admin_account = await Amount_Count_Module.findOne({ user: "kick" });
+
+        if (balance_to_admin_account) {
+            balance_to_admin_account.count = parseInt(balance_to_admin_account.count) + parseInt(fees.rupee)
+            await balance_to_admin_account.save()
+        } else {
+            await Amount_Count_Module.create({ Time, user: "kick", count: fees.rupee })
+        }
+
+
+
+
+
+
+        const count = await QuestionModule.countDocuments({ user });
+        if (count === 1) {
+            console.log("✅ Finished successfully");
+            return res.status(200).json({ Status: "OK" });
+        }else{
+            console.log("amount credited")
+            const bal_dt = await Balancemodule.findOne({ user: user })
+            const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
+            await QuestionModule.deleteMany({ user })
+            bal_dt.balance = lat.toString()
+            await bal_dt.save()
+            console.log("BAD")
+            return res.status(200).json({ Status: "BAD_CR" })
+        }
+
+        
+
+    } catch (error) {
+        console.error("❌ Main Catch Error:", error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+});
+
+
+
 app.get("/admin/balance/played", adminMiddleware, async (req, res) => {
     try {
         const all_bal = await Amount_Count_Module.findOne({ user: "kick" });
@@ -10449,7 +10576,6 @@ app.get("/admin/balance/free/played", adminMiddleware, async (req, res) => {
         return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch balance" });
     }
 });
-
 
 const amount_walet_count_Schema = new mongoose.Schema({
     Time: String,
@@ -10847,3 +10973,19 @@ const PORT = 80;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+
+
+
+//make add cat this user : String,
+    // cat : String,
+    // ob : {
+    //     type : String,
+    //     default : ""
+    // },
+    // yes : [],
+    // no : [],
+    // lst_sec : {
+    //     type : Number,
+    //     default : 100
+    // },
+    // lst_q_id : String, in one(), two()
