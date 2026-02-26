@@ -3871,8 +3871,8 @@ const time_ansSchema = new mongoose.Schema({
     Qst_ans_tm : String,
     cl_sec : String,
     r_sec : {
-        default : "",
-        type : String
+        default : 0,
+        type : Number
     }
 
 }, { timestamps: true });
@@ -3892,6 +3892,39 @@ const Controle_Schema = new mongoose.Schema({
 
 const Controles_Module = mongoose.model('Controls', Controle_Schema);
 
+async function lest_answrd_cat_sec(user){
+    const data = await sng_qst_20_Module.findOne({
+        user: user,
+        lst_sec : { $lte: 2 }
+    });
+    if(data){
+        return {
+            cat : data.cat,
+            ob : data.ob,
+            lst_sec : data.lst_sec
+        }
+    }
+
+    return "none"
+}
+
+
+async function highest_answrd_cat_sec(user){
+    const data = await sng_qst_20_Module.findOne({
+        user: user,
+        lst_sec : { $gt: 3 }
+    });
+    if(data){
+        return {
+            cat : data.cat,
+            ob : data.ob,
+            lst_sec : data.lst_sec
+        }
+    }
+
+    return "none"
+}
+
 
 
 async function get_cat_per(user) {
@@ -3899,7 +3932,19 @@ async function get_cat_per(user) {
     const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
     const balanceNum = parseInt(bal_valid.balance);
     const feesNum = parseInt(fees.rupee);
+    if(balanceNum >= feesNum*2){
+        const data = await lest_answrd_cat_sec(user)
+        if(data !== "none"){
+            //make return object example Nine() and sec can be managed here work start 1948
+            return {
+                fun : data.ob,
+                lst_sec : data.lst_sec
+            }
+        }
+    }else{
+        
 
+    }
     
     
 
@@ -6110,9 +6155,16 @@ app.post('/verify/answer/question/number/xs', authMiddleware, async (req, res) =
 const sec_qst_20_Schema = new mongoose.Schema({
     user : String,
     cat : String,
+    ob : {
+        type : Object,
+        default : "hi"
+    },
     yes : [],
     no : [],
-    lst_sec : String,
+    lst_sec : {
+        type : Number,
+        default : 100
+    },
     lst_q_id : String,
 }, { timestamps: true });
 
@@ -6125,8 +6177,6 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
 
     try {
 
-        console.log(req.body)
-        console.log(answer, id, Ans, sec)
 
         const user = req.user
 
@@ -6138,13 +6188,18 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
             return res.status(400).json({ Status: "BAD" , success: false, message: "Invalid ObjectId format" });
         }
 
+        const check_sec_vrf = await time_ans_Module.findOne({user, Qno_ID : id})
+        check_sec_vrf.Qst_ans_tm = Time
+        await check_sec_vrf.save()
+
+
+
 
         function compareHash(plainText, hash) {
             const plainHash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
                 .update(plainText.toString())
                 .digest("hex");
-
             return plainHash === hash;
         }
 
@@ -6178,7 +6233,7 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
         if (check_ans) {
 
             console.log("verifyed Ans")
-            const check_sec_vrf = await time_ans_Module.findOne({user, Qno_ID : id})
+            
             // const exactSeconds = (check_sec_vrf.updatedAt - check_sec_vrf.createdAt) / 1000;
 
             const diffMs = Math.floor(
@@ -6187,8 +6242,7 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
 
 
 
-            if (check_sec_vrf.Qst_ans_tm === "") {
-                check_sec_vrf.Qst_ans_tm = Time
+            if (check_sec_vrf.r_sec === "") {
                 check_sec_vrf.cl_sec = diffMs
                 check_sec_vrf.r_sec = sec
                 await check_sec_vrf.save()
