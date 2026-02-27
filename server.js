@@ -10154,10 +10154,11 @@ function Thirteen() {
 
 
 function Fourteen() {
+    console.log("Innnnnnnnnnnnnnnnnnnnnnnnnnnn sirrrrrrrrrrrrrrrrrrrr")
     return async function (level, user, qno, sec, sum) {
         // const per = await get_per("OMR_1", level);
-
-        console.log("Innnnnnnnnnnnnnnnnnnnnnnnnnnn sirrrrrrrrrrrrrrrrrrrr")
+        console.log(level, user, qno, sec, sum)
+        
 
         const iq = await get_iq(user, "OMR_1", level);
         const iq_s = parseInt(iq) - parseInt(sum)
@@ -10336,7 +10337,9 @@ function Sixteen() {
     }
 }
 
-
+const functions = {
+    One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Tweleve, Thirteen, Fourteen, Fifteen, Sixteen
+}
 
 app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req, res) => {
     const user = req.user;
@@ -10352,9 +10355,7 @@ app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req
             return res.status(200).json({ Status: "Time", message: status.text });
         }
 
-        const functions = {
-            One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Tweleve, Thirteen, Fourteen, Fifteen, Sixteen
-        }
+        
 
 
 
@@ -10407,15 +10408,24 @@ app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req
             console.log("Herre.........")
 
             const fnName = get_cat.fun; // e.g. "addScore"
-            console.log("fnName:", fnName);
+            console.log("fnName:", get_cat.fun);
             console.log("functions keys:", Object.keys(functions));
 
-            functions[fnName]?.(
-                105,
-                user,
-                "20",
-                "0"
-            );
+            (async () => {
+                const fn = await functions[get_cat.fun](105, user, "1", "20", "0"); // outer runs
+ 
+                if (typeof fn === "function") {
+                    await fn(105, user, "1", "20", "0"); // inner runs
+                }
+            })();
+
+            // functions[get_cat.fun]?.(
+            //     105,
+            //     user,
+            //     "1",
+            //     "20",
+            //     "0"
+            // );
 
 
         }else{
@@ -10989,3 +10999,6 @@ app.listen(PORT, () => {
     //     default : 100
     // },
     // lst_q_id : String, in one(), two()
+
+    
+
