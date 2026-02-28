@@ -3951,6 +3951,7 @@ async function get_cat_per(user) {
         const count = await Wonmodule.countDocuments({ user });
         const tot_p = await Totalusermodule.countDocuments({user})
         if (count >= 3) {
+            console.log("Making Loose")
             const data = await lest_answrd_cat_sec(user)
             if (data !== "none") {
                 //make return object example Nine() and sec can be managed here work start 1948
@@ -3961,6 +3962,7 @@ async function get_cat_per(user) {
             }
             return "none"
         }else{
+            console.log("Making Win")
             const data = await highest_answrd_cat_sec(user)
             if (data !== "none") {
                 //make return object example Nine() and sec can be managed here work start 1948
