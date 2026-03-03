@@ -255,7 +255,8 @@ app.post(
 
 
 app.use(cors({
-    origin: ["https://stawro.com", "https://www.stawro.com", "http://localhost:3000"],
+    // origin: ["https://stawro.com", "https://www.stawro.com", "http://localhost:3000"],
+    origin : "*",
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
@@ -526,12 +527,13 @@ app.post('/post/google/auth', async (req, res) => {
 
     try {
         let user = await Usermodule.findOne({ email });
+        console.log(email, name, username, uid)
 
         if (user) {
             // User exists, proceed to login
-            if (user.pass !== uid) {
-                return res.status(401).json({ Status: "INVALID_UID", message: "UID does not match." });
-            }
+            // if (user.pass !== uid) {
+            //     return res.status(401).json({ Status: "INVALID_UID", message: "UID does not match." });
+            // }
 
             const token = jwt.sign({ id: user._id }, "kanna_stawro_founders_withhh_1931_liketha", {
                 expiresIn: "365 days"
