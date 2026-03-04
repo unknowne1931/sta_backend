@@ -1152,12 +1152,16 @@ app.get("/get/bank/account/data", authMiddleware, async (req, res) => {
     try {
         if (!user) return res.status(400).json({ Status: "NO", message: "Some Data Missing" })
 
+        const bal = await Balancemodule.findOne({user}).lean()
+
         const data = await UPImodule.findOne({ user: user }).lean()
+        
         if (data) {
-            return res.status(200).json({ data })
-        } else {
+            return res.status(200).json({ data, balance : bal.balance })
+        }else{
             return res.status(202).json({ Status: "No" })
         }
+
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Internal Server Error" });
