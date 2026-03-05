@@ -391,6 +391,17 @@ app.get('/ip', (req, res) => {
 });
 
 
+app.get("/verify", authMiddleware, async (req, res)=>{
+    try{
+        console.log("In", req.user)
+        res.status(200).json({Status : "OK"})
+    }catch(error){
+        console.log(error)
+        return res.status(400).json({ message : "Something went Wrong"})
+    }
+})
+
+
 export async function get_per(user) {
     try {
 
@@ -865,109 +876,6 @@ app.post('/login/data/app', async (req, res) => {
 
 
 
-
-
-
-// app.post('/login/data/app', async (req, res) => {
-//     const { data, pass, FCM } = req.body;
-
-//     try {
-//         // Find user by email or username
-//         const user = await Usermodule.findOne({
-//             $or: [{ username: data.trim() }, { email: data.trim() }]
-//         });
-
-//         if (!user) {
-//             return res.status(402).json({ Status: "NO" }); // User not found
-//         }
-
-//         if (user.valid !== "yes") {
-
-//             const existingOTP = await User_s_OTP_module.findOne({ username: user.username });
-
-//             if (existingOTP) {
-//                 await existingOTP.deleteOne();
-//             }
-
-
-//             const OTP = generateOTP();
-//             const Time = new Date(); // Ensure Time is defined
-
-
-//             const otpData = await User_s_OTP_module.create({
-//                 Time,
-//                 username: user.username,
-//                 otp: OTP
-//             });
-
-
-//             let mailOptions = {
-//                 from: "stawropuzzle@gmail.com",
-//                 to: user.email,
-//                 subject: "Resend OTP for Account Verification",
-//                 html: `
-//                 <html lang="en">
-//                     <head>
-//                         <meta charset="UTF-8">
-//                         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-//                         <title>stawro Account Verification</title>
-//                     </head>
-//                     <body>
-//                         <div>
-//                             <h2>Hello ${user.username},</h2>
-//                             <p>Your OTP for email verification is:</p>
-//                             <h3>${otpData.otp}</h3>
-//                             <p>Please use this OTP to complete your account verification.</p>
-//                             <p>Thank you for choosing stawro!</p>
-//                         </div>
-//                     </body>
-//                 </html>
-//                 `,
-//             };
-
-
-//             // Send email
-//             transporter.sendMail(mailOptions, (error, info) => {
-//                 if (error) {
-//                     console.error("Error sending email:", error);
-//                     return res.status(500).json({ Status: "EMAIL_ERR", message: "Failed to send email." });
-//                 }
-
-//                 return res.status(403).json({ Status: "NO-YES", user: user.username, email : user.email }); // User not verified
-
-//             });
-
-
-
-
-//         }
-
-//         // Compare password
-//         const isMatch = await bcrypt.compare(pass, user.pass);
-//         if (!isMatch) {
-//             return res.status(401).json({ Status: "BAD", message: "Invalid password" });
-//         }
-
-//         // Generate token
-//         const token = jwt.sign({ id: user._id }, "kanna_stawro_founders_withhh_1931_liketha", { expiresIn: "365 days" });
-
-//         // Update or create FCM token
-//         let data_fcm = await FCMModule.findOne({ user: user.username });
-//         if (data_fcm) {
-//             data_fcm.FCM = FCM;
-//             await data_fcm.save();
-//         } else {
-//             await FCMModule.create({ Time: new Date(), user: user.username, email: user.email, FCM, user_id : user._id });
-//         }
-
-//         // Successful response
-//         res.status(200).json({ Status: "OK", token, user: user._id, username: user.username });
-
-//     } catch (error) {
-//         console.error("Login Error:", error);
-//         return res.status(500).json({ message: "Internal Server Error" });
-//     }
-// });
 
 
 
