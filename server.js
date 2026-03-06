@@ -1173,8 +1173,10 @@ const Mycoinsmodule = mongoose.model('My_Coins', MyCoinsSchema);
 
 
 app.post('/get/my/conis/get', authMiddleware, async (req, res) => {
-    const { id, user } = req.body;
+    const { id } = req.body;
     try {
+
+        const user = req.user;
 
         if (!id && !user) return res.status(200).json({ Status: "BAD", message: "Some Data Missing" })
 
@@ -1333,8 +1335,10 @@ app.get("/get/coins/by/id/cupons/by/apps/:id", async (req, res) => {
 
 
 app.post('/claim/reqst/coins/admin', authMiddleware, async (req, res) => {
-    const { user, id } = req.body
+    const { id } = req.body
     try {
+        const user = req.user;
+        console.log(id, user)
         if (!user && !id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
 
         const bank = await UPImodule.findOne({ user }).lean();
@@ -6557,10 +6561,10 @@ app.get("/get/singel/user/won/data/:no", async (req, res) => {
 })
 
 
-app.get("/users/name/and/more/get/:id", authMiddleware, async (req, res) => {
-    const id = req.params.id;
+app.get("/users/name/and/more/get/id", authMiddleware, async (req, res) => {
 
     try {
+        const id = req.user;
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ success: false, message: "Invalid ObjectId format" });
         }
