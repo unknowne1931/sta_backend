@@ -41,11 +41,18 @@ import { generateOMRQuestion } from "./ai/fourteen.js";
 import { generateOMRQuestion15 } from "./ai/fifteen.js";
 import { generateTrainQuestionImage } from "./ai/sixteen.js";
 import { type } from 'os';
+import admin from "firebase-admin";
+import serviceAccount from "./config/firebase-key.json" with { type: "json" };
+
 
 
 const app = express();
 app.use(express.static('public'))
 // app.use(express.json());
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
 
 
 
@@ -314,28 +321,6 @@ const level_Up_Schema = new mongoose.Schema({
 const Level_up_Module = mongoose.model('Levels_data', level_Up_Schema);
 
 app.use(bodyParser.urlencoded({ extended: true }));
-
-// 🟡 RAW BODY middleware for webhook
-// app.use(
-//   "/razorpay/webhook",
-//   bodyParser.json({
-//     verify: (req, res, buf) => {
-//       req.rawBody = buf;
-//     },
-//   })
-// );
-
-
-
-
-// Initialize Firebase Admin SDK
-// const serviceAccount = require("./firebase-adminsdk.json"); // Ensure the correct path
-
-// admin.initializeApp({
-//   credential: admin.credential.cert(serviceAccount),
-// });
-
-
 
 
 
@@ -744,16 +729,6 @@ const my_money_Schema = new mongoose.Schema({
 
 const My_MoneyModule = mongoose.model('My_Money', my_money_Schema);
 
-const FCMSchema = new mongoose.Schema({
-    Time: String,
-    user: String,
-    email: String,
-    FCM: String,
-    user_id: String
-}, { timestamps: true });
-
-const FCMModule = mongoose.model('FCM_Users', FCMSchema);
-
 
 app.post("/logout/data/app", async (req, res) => {
     const { data } = req.body;
@@ -971,7 +946,7 @@ const HistorySchema = new mongoose.Schema({
     type: String,
     tp: String,
 
-});
+}, { timestamps: true });
 
 
 const Historymodule = mongoose.model('History', HistorySchema);
@@ -986,7 +961,7 @@ const To_Admin_HistorySchema = new mongoose.Schema({
     type: String,
     tp: String,
 
-});
+}, { timestamps: true });
 
 
 const To_Admin_Historymodule = mongoose.model('Admin_History', To_Admin_HistorySchema);
@@ -1194,6 +1169,7 @@ app.post('/get/my/conis/get', authMiddleware, async (req, res) => {
                 //coins to my coins
                 await Mycoinsmodule.create({ Time, title: data.title, img: data.img, valid: data.valid, body: data.body, stars: data.stars, type: "Stars", user })
                 await Historymodule.create({ Time, user, rupee: data.stars, type: "Debited", tp: "Stars" });
+                await sendNotification(user, "New Coin Purchased", `${data.title} coin successfully added to your wallet 🎉`);
                 return res.status(200).json({ Status: "OK" })
             }
             else {
@@ -1513,7 +1489,7 @@ app.get('/get/claimed/from/pending/coins', async (req, res) => {
 })
 
 
-app.get('/get/claimed/from/pending/coins', authMiddleware, async (req, res) => {
+app.get('/get/claimed/from/pending/coins/user', authMiddleware, async (req, res) => {
     const user = req.user;
     try {
         if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" });
@@ -10883,6 +10859,96 @@ app.get("/get/paid/user/list", async (req, res) => {
         return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch paid users" });
     }
 });
+
+
+const FCM_TokenSchema = new mongoose.Schema({
+  user: { type: String, unique: true },
+  token: String,
+}, { timestamps: true });
+
+const FCM_module = mongoose.model("FCM_Tokens", FCM_TokenSchema);
+
+
+app.post("/fm/token/new", authMiddleware, async (req, res) => {
+  try {
+    const user = req.user;  // convert to string
+    const { token } = req.body;
+
+    await FCM_module.findOneAndUpdate(
+      { user: user },
+      { token: token },
+      { upsert: true, new: true }
+    );
+
+    return res.status(200).json({ Status: "OK" });
+
+  } catch (error) {
+    console.error("Error saving FCM token:", error);
+    return res.status(500).json({
+      Status: "SERVER_ERR",
+      message: "Failed to save FCM token"
+    });
+  }
+});
+
+
+
+export const sendNotification = async (user, title, body) => {
+  try {
+
+    const user_data = await FCM_module.findOne({user})
+    if(user_data){
+        const message = {
+            notification: {
+                title: title,
+                body: body,
+            },
+            android: {
+                priority: "high",
+                notification: {
+                    sound: "default",
+                    channelId: "high_importance_channel",
+                },
+            },
+            token: user_data.token,
+        };
+
+        const response = await admin.messaging().send(message);    
+    }
+    
+  } catch (err) {
+    console.error("Notification error:", err);
+  }
+};
+
+
+// app.post("/send-notification/datatatata/l", async (req, res) => {
+
+//   const { title, body } = req.body;
+
+//   try {
+
+//     await sendNotification("eJRCRABVQy6Bmwl0KKpxn8:APA91bEzRgyogOCuH2FYdtDY9dGCkXKRSQL90RZR6tDRYd_2jmu2Rgr-Z419YetSsi2fZbNMpCqp1WWwA3WMM929z40-B7CAGVpEA0IyTQa5-RdR3NeXor8", title, body);
+
+//     res.json({ status: "sent" });
+
+//   } catch (err) {
+
+//     res.status(500).json({ error: err.message });
+
+//   }
+
+// });
+
+
+
+
+
+
+
+
+
+
 
 
 process.on('uncaughtException', (err) => {
