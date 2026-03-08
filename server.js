@@ -938,6 +938,25 @@ app.get("/get/acount/balence", authMiddleware, async (req, res) => {
 })
 
 
+app.get("/get/entry/fees" , async (req, res) => {
+
+    try {
+
+        const data = await Rupeemodule.findOne({ username: "admin" }).lean();
+        if (data) {
+            console.log(data)
+            return res.status(200).json({ data})
+        } else {
+            return res.status(202).json({ Status: "NO" })
+        }
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+})
+
+
 const HistorySchema = new mongoose.Schema({
 
     Time: String,
