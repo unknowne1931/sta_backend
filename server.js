@@ -3809,6 +3809,33 @@ const Controle_Schema = new mongoose.Schema({
 
 const Controles_Module = mongoose.model('Controls', Controle_Schema);
 
+
+
+
+const Profit_manage = new mongoose.Schema({
+    user: String,
+    from : String,
+    to : String
+}, { timestamps: true });
+
+const Profit_cal_Module = mongoose.model('Profit_cal', Profit_manage);
+
+async function profit_cal_data_update(user, from, to){
+    
+    const data_find = await Profit_cal_Module.findOne({user}).lean()
+
+    if(data_find){
+        tot_from = parseInt(data_find.from) + parseInt(from)
+        tot_to = parseInt(data_find.to) + parseInt(to)
+        data_find.from = tot_from;
+        data_find.to = tot_to;
+        await data_find.save();
+    }else{
+        await Profit_cal_Module.create({user, from, to})
+    }
+
+}
+
 async function lest_answrd_cat_sec(user){
     const data = await sng_qst_20_Module.findOne({
         user: user,
@@ -3896,6 +3923,33 @@ async function get_cat_per(user) {
 
 }
 
+
+
+async function get_cat_in_out(user, start_fees) {
+    const get_win_data = await Wonmodule.findOne({user}).lean()
+    const user_balance = await Balancemodule.findOne({user}).lean()
+    const get_profit = await Profit_cal_Module.findOne({user}).lean()
+
+    if(user_balance.balance <= start_fees){
+        if(parseInt(get_profit.in) < parseInt(get_profit.out)){ //decided to make win
+            profit_num = parseInt(get_profit.out) -  parseInt(get_profit.in) //loss calculating
+            profit_per = (profit_num / parseInt(get_profit.in) ) * 100//loss calculating in %
+            if(profit_per > 50){ //if loss is > 50 make him lose
+                //make lose
+            }else{ //loss is lesserthan 50 make him win
+                //make win
+            }
+        }else{
+
+        }
+    }
+
+
+
+
+
+
+}
 
 
 
