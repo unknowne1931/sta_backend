@@ -2635,7 +2635,7 @@ app.post("/verify/by/timed/out/data/v/fy", authMiddleware, async (req, res) => {
   try {
     const data = sng_qst_20_Module.findOne({user, cat, lst_q_id : q_id})
     if(data){
-        const lstsec = parseInt(data.lst_sec) - 1
+        const lstsec = parseInt(data.lst_sec) - 1 //if user lost by time out it will decrs -1 seonds to make puzzel solble
         data.update({$set : {lst_sec : lstsec, lst_q_id : "" }})
     }
     return res.status(200).json({Status : "OK"})
@@ -3844,7 +3844,7 @@ async function profit_cal_data_update(user, from, to){
 async function lest_answrd_cat_sec(user){
     const data = await sng_qst_20_Module.findOne({
         user: user,
-        lst_sec : { $lte: 2 }
+        lst_sec : { $lte: 3 } //it will get <= 3 to make them lose
     });
     if(data){
         return {
@@ -3861,7 +3861,7 @@ async function lest_answrd_cat_sec(user){
 async function highest_answrd_cat_sec(user){
     const data = await sng_qst_20_Module.findOne({
         user: user,
-        lst_sec : { $gt: 3 }
+        lst_sec : { $gt: 3 } //it will get > 3 to make them profit
     });
     if(data){
         return {
@@ -3882,7 +3882,7 @@ async function get_cat_per(user) {
     const balanceNum = parseInt(bal_valid.balance);
     const feesNum = parseInt(fees.rupee);
     if(balanceNum >= feesNum*2){
-        console.log("Making Loos")
+        console.log("Making Loss")
         const data = await lest_answrd_cat_sec(user)
         if(data !== "none"){
             //make return object example Nine() and sec can be managed here work start 1948
@@ -3929,11 +3929,39 @@ async function get_cat_per(user) {
 }
 
 
+//on going
+async function new_user(user) {
+    //make get random Question data and make it too easy , i mean that the user must get 50 rupees or he must answer before 5 seconds
+
+
+
+
+    
+    // const data = await sng_qst_20_Module.findOne({
+    //     lst_sec : { $gt: 3  } //lst_sec is a user answerd before lst_sec ends ex "a user answerd 3 seconds before time out"
+    // });
+    // if(data){
+    //     return {
+    //         cat : data.cat,
+    //         ob : data.ob,
+    //         lst_sec : data.lst_sec
+    //     }
+    // }else{
+
+    // }
+}
+
+
 
 async function get_cat_in_out(user, start_fees) {//Make run before Amount Debit from Account
     const get_win_data = await Wonmodule.findOne({ user }).lean()
     const user_balance = await Balancemodule.findOne({ user }).lean()
     const get_profit = await Profit_cal_Module.findOne({ user }).lean()
+
+    if(!get_profit){
+        //make him win because he was an new user make him win 50 rupees
+
+    }
 
     profit_num = parseInt(get_profit.out) - parseInt(get_profit.in) //loss calculating
     profit_per = (profit_num / parseInt(get_profit.in)) * 100//loss calculating in %
@@ -3942,6 +3970,7 @@ async function get_cat_in_out(user, start_fees) {//Make run before Amount Debit 
         if (parseInt(get_profit.in) < parseInt(get_profit.out)) { //user fees < Reward
 
             if (profit_per > 50) { //if loss is > 50 make him lose
+                const data = await lest_answrd_cat_sec(user)
                 //make lose
             } else { //loss is lesserthan 50 make him win
                 //make win
@@ -10326,6 +10355,8 @@ const functions = {
     One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Tweleve, Thirteen, Fourteen, Fifteen, Sixteen
 }
 
+
+//Main start API
 app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req, res) => {
     const user = req.user;
     if (!user) return res.status(400).json({ Status: "s_m", message: "Some Data Missing" });
@@ -10363,7 +10394,7 @@ app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req
 
 
         
-        let create_data = await QuestionListmodule.findOne({ user });
+        let create_data = await QuestionListmodule.findOne({ user }); //i this this was useless
 
         
 
@@ -10392,9 +10423,9 @@ app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req
             // functions[get_cat.fun]?.(105, user, "20", `${get_cat.lst_sec}`)
             console.log("Herre.........")
 
-            const fnName = get_cat.fun; // e.g. "addScore"
-            console.log("fnName:", get_cat.fun);
-            console.log("functions keys:", Object.keys(functions));
+            // const fnName = get_cat.fun; // e.g. "addScore"
+            // console.log("fnName:", get_cat.fun);
+            // console.log("functions keys:", Object.keys(functions));
 
             (async () => {
                 const fn = await functions[get_cat.fun](105, user, "1", "20", "0"); // outer runs
@@ -10474,6 +10505,7 @@ app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req
 
             _dec_bal.balance = updatedBal.toString(); // ✅ convert number to string
             await _dec_bal.save();
+            await profit_cal_data_update(user, feesNum, "0" )
         }
 
         const wal_cnt_mod = await Amount_walet_count_Module.findOne({ user: "kick" });
