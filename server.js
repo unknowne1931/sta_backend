@@ -2994,6 +2994,7 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
             });
 
             await wal_cnt_mod.save();
+            
         } else {
             await Amount_walet_count_Module.create({
                 Time,
@@ -3054,6 +3055,10 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
         return res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 });
+
+
+
+
 
 app.post('/start/playing/by/debit/amount/new/5x', authMiddleware, async (req, res) => {
     const user = req.user;
