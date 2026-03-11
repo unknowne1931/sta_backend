@@ -3925,29 +3925,39 @@ async function get_cat_per(user) {
 
 
 
-async function get_cat_in_out(user, start_fees) {
-    const get_win_data = await Wonmodule.findOne({user}).lean()
-    const user_balance = await Balancemodule.findOne({user}).lean()
-    const get_profit = await Profit_cal_Module.findOne({user}).lean()
+async function get_cat_in_out(user, start_fees) {//Make run before Amount Debit from Account
+    const get_win_data = await Wonmodule.findOne({ user }).lean()
+    const user_balance = await Balancemodule.findOne({ user }).lean()
+    const get_profit = await Profit_cal_Module.findOne({ user }).lean()
 
-    if(user_balance.balance <= start_fees){
-        if(parseInt(get_profit.in) < parseInt(get_profit.out)){ //decided to make win
-            profit_num = parseInt(get_profit.out) -  parseInt(get_profit.in) //loss calculating
-            profit_per = (profit_num / parseInt(get_profit.in) ) * 100//loss calculating in %
-            if(profit_per > 50){ //if loss is > 50 make him lose
+    profit_num = parseInt(get_profit.out) - parseInt(get_profit.in) //loss calculating
+    profit_per = (profit_num / parseInt(get_profit.in)) * 100//loss calculating in %
+
+    if (user_balance.balance <= start_fees) { //balance is low
+        if (parseInt(get_profit.in) < parseInt(get_profit.out)) { //user fees < Reward
+
+            if (profit_per > 50) { //if loss is > 50 make him lose
                 //make lose
-            }else{ //loss is lesserthan 50 make him win
+            } else { //loss is lesserthan 50 make him win
                 //make win
             }
-        }else{
-
+        } else { //user fees > Reward  user not yet get Profit
+            //Make him Win
         }
+    } else { //balance is high
+        if (parseInt(get_profit.in) < parseInt(get_profit.out)) { //user fees < Reward
+            if(profit_per > 50){
+                //make him loose {make increase puzzel}
+            }else{
+                //Make him check his Talent [Dont make change anything just keep parent created puzzel constant]
+                //{make leave alone dont make anything change increse or decreas puzzel}
+            }
+
+        } else {
+            //Make him win at last second {1, 2 seconds}
+        }
+
     }
-
-
-
-
-
 
 }
 
