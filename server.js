@@ -2889,11 +2889,7 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
 
         // const get_per = (won_data / (total_play || 1)) * 100;
 
-
-        
         let create_data = await QuestionListmodule.findOne({ user });
-
-        
 
         await QuestionModule.deleteMany({ user });
 
