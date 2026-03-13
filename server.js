@@ -6179,6 +6179,7 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
                         await To_Admin_Historymodule.create({ Time, user, rupee: `${starrrs}`, type: "Credited", tp: "Stars" });
                         const rank = toString(won.length + 1)
                         await Answer_Verify.updateOne({ $push: { yes: user } })
+                        await profit_cal_data_update(user, "0", starrrs)
                         return res.status(200).json({ Status: "STARS", stars: `${starrrs}`, rank: rank });
 
                     } else {
@@ -6187,6 +6188,7 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
                         await To_Admin_Historymodule.create({ Time, user, rupee: `${starrrs}`, type: "Credited", tp: "Stars" });
                         const rank = toString(won.length + 1)
                         await Answer_Verify.updateOne({ $push: { yes: user } })
+                        await profit_cal_data_update(user, "0", starrrs)
                         return res.status(200).json({ Status: "STARS", stars: `${starrrs}`, rank: rank });
 
                         // await StarBalmodule.create({Time, user : user, balance : get_count_data.stars});
@@ -6337,6 +6339,19 @@ app.post('/verify/answer/question/number/xss', authMiddleware, async (req, res) 
 
 
                     // const sum = parseInt(get_user_balanc.balance) + parseInt(get_count_data.stars)
+
+                    if(get_user_balanc){
+                        await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 10 })
+                        await Historymodule.create({ Time, user, rupee: "10", type: "Credited", tp: "Stars" });
+                        await To_Admin_Historymodule.create({ Time, user, rupee: "10", type: "Credited", tp: "Stars" });
+                        const rank = toString(won.length + 1)
+                        await Answer_Verify.updateOne({ $push: { yes: user } })
+                        return res.status(200).json({ Status: "STARS", stars: "10", rank: rank });
+                    }
+
+
+
+
 
                     if (get_user_balanc) {
                         if(Answer_Verify?.tough === "Easy"){
