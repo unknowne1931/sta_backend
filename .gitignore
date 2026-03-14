@@ -6,6 +6,7 @@ dist/
 build/
 firebase-adminsdk.json
 firebase-adminsdk3.json
+config/firebase-key.json
 
 # Logs
 logs/
