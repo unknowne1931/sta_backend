@@ -15,34 +15,21 @@ import Razorpay from 'razorpay';
 import users_admin_Middle from './module/admin_users_Midle.js';
 import crypto from 'crypto';
 import { MongoClient } from "mongodb";
-import {
-    getDifficultiesByPer,
-    generateBoxesData,
-    generateOptions,
-    drawImage,
-    uploadImage,
-    pickValidShape
-} from './ai/one.js';
 
-import { generateArrows, drawArrowsImage, uploadImage1, generateMCQOptions, DIRECTIONS } from "./ai/two.js";
+
 import { fromJSON } from 'postcss';
-import { generatePlusQuestionImage } from "./ai/three.js";
-import { generateData, renderImageBase64 } from "./ai/four.js";
-import { generateData1, renderImageBase641 } from "./ai/five.js";
-import { createChallenge, uploadBase64 } from "./ai/six.js";
-import { createAdvancedNumberMCQ } from "./ai/seven.js";
-import { generatePuzzle, drawCircles } from "./ai/eight.js";
-import { generateEmojiPuzzle } from "./ai/nine.js";
-import { generateMazeQuestion } from "./ai/ten.js";
-import { generateColorMatchQuestion } from "./ai/eleven.js";
-import { createStringCountImage } from "./ai/tweleve.js";
-import { generateNumberPairMCQ } from "./ai/thirteen.js";
-import { generateOMRQuestion } from "./ai/fourteen.js";
-import { generateOMRQuestion15 } from "./ai/fifteen.js";
-import { generateTrainQuestionImage } from "./ai/sixteen.js";
-import { type } from 'os';
 import admin from "firebase-admin";
 import serviceAccount from "./config/firebase-key.json" with { type: "json" };
+import { generateBoxesData, generateOptions, getDifficultiesByPer } from './new_modules/one.js';
+import { drawImage_two, generateBoxesData_two, generateOptions_two, getDifficultiesByPer_two, uploadImage_two } from './new_modules/two.js';
+import { generatePuzzle_three } from './new_modules/three.js';
+import { generatePuzzle_four } from './new_modules/four.js';
+import { generatePuzzle_five } from './new_modules/five.js';
+import { generatePuzzle_six } from './new_modules/six.js';
+import { generatePuzzle_seven } from './new_modules/seven.js';
+import { generatePuzzle_eight } from './new_modules/eight.js';
+import { generatePuzzle_complete_nine } from './new_modules/nine.js';
+import { generatePuzzle_broken_ten } from './new_modules/ten.js';
 
 
 
@@ -3823,11 +3810,11 @@ const Profit_cal_Module = mongoose.model('Profit_cal', Profit_manage);
 
 async function profit_cal_data_update(user, from, to){
     
-    const data_find = await Profit_cal_Module.findOne({user}).lean()
+    const data_find = await Profit_cal_Module.findOne({user})
 
     if(data_find){
-        tot_from = parseInt(data_find.from) + parseInt(from)
-        tot_to = parseInt(data_find.to) + parseInt(to)
+        const tot_from = parseInt(data_find.from) + parseInt(from)
+        const tot_to = parseInt(data_find.to) + parseInt(to)
         data_find.from = tot_from;
         data_find.to = tot_to;
         await data_find.save();
@@ -6090,8 +6077,14 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
 
         console.log(`Answer is ${check_ans}`)
 
+        const data_clt = await monitor_cal_data_Module.findOne({cat : Answer_Verify.sub_lang})
+
 
         if (check_ans) {
+
+            await data_clt.updateOne({$push : {yes : user}})
+
+
 
             console.log("verifyed Ans")
             
@@ -6209,6 +6202,7 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
             }
 
         } else {
+            await data_clt.updateOne({$push : {no : user}})
             await up_sec_lst.updateOne({ $set : {lst_q_id : Answer_Verify._id} ,$push : {no : user}})
             await Answer_Verify.updateOne({ $push: { no: user } })
             //make this if answer is false make verified is fale or no to throught the user out from playing
@@ -9351,45 +9345,55 @@ async function cat_fn(user, cat, fn) {
 }
 
 
+const Calc_perr = new mongoose.Schema({
+    Time: String,
+    cat: { type: String, unique: true }, // Unique constraint
+    count : String,
+    yes : [],
+    no : [],
+}, { timestamps: true });
+
+const monitor_cal_data_Module = mongoose.model('Monitor_cal_per_data', Calc_perr);
+
+
+
+async function calcccc_cc(cat, count) {
+    const cat_find = await monitor_cal_data_Module.findOne({cat})
+    if(cat){
+        return parseInt(cat_find.count)
+    }else{
+        await monitor_cal_data_Module.create({Time, cat, count, yes : [], no : []})
+        return count
+    }
+}
+
+
 function One() {
-    return async function (level, user, qno, sec, sum) {
+    return async function (level, user, qno, sec, sum, x) {
         try {
 
-            const iq = await get_iq(user, "star_cir_tri", level);
 
-            const iq_s = parseInt(iq) - parseInt(sum)
+            const cat_count = await calcccc_cc("Total Boxes [Comp]", 40)
 
-            const DIFFICULTIES = getDifficultiesByPer(iq_s);
 
-            const difficulty = DIFFICULTIES[level];
+
+
+            const difficulty = getDifficultiesByPer(cat_count); //fix 40 1931
             const boxes = generateBoxesData(difficulty);
-            let question, correct;
 
-            // 30% chance to ask total boxes
-            if (Math.random() < 0.3) {
-                const completeBoxes = boxes.filter(b => b.complete);
-                question = "How many boxes are there in total?";
-                correct = completeBoxes.length;
-            } else {
-                const target = pickValidShape(boxes);
+            // ✅ REAL ANSWER (NOT CONFIG)
+            const correct = boxes.filter(b => b.complete).length;
 
-                // ✅ FIX: res removed, safe exit instead
-                if (!target) {
-                    return null;
-                }
+            const buffer = drawImage(boxes);
+            const image = buffer.toString("base64");
 
-                correct = boxes.filter(
-                    b => b.shape === target && b.complete
-                ).length;
-
-                question = `How many boxes have ${target}s?`;
-            }
-
-            const options = generateOptions(correct);
-            const imageBuf = drawImage(boxes);
-            const upload = await uploadImage(imageBuf);
-
-            // const sec = await get_lel_dif(level, "star_cir_tri")
+            // res.json({
+            //     title: "Total Boxes [Comp]",
+            //     question: "How many boxes are unbroken in total?",
+            //     options: generateOptions(correct),
+            //     answer: correct,
+            //     image
+            // });
 
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
@@ -9399,19 +9403,18 @@ function One() {
             const dt_post = await QuestionModule.create({
                 Time: Time,
                 user: user,
-                img: upload.image,
-                Questio: question,
-                options: options,
+                img: image,
+                Questio: "How many boxes are unbroken in total?",
+                options: generateOptions(correct),
                 Ans: hash,
-                tough: level,
+                tough: "none",
                 Qno: qno,
                 seconds: sec,
-                sub_lang: "star_cir_tri",
+                sub_lang: "Total Boxes [Comp]",
                 yes: [],
-                no: []
+                no: [],
+                x : x
             });
-
-            await cat_fn(user, "star_cir_tri", "One")
 
             await time_ans_Module.create({
                 Time: Time,
@@ -9432,401 +9435,48 @@ function One() {
     };
 }
 
-
-
 function Two() {
-    return async function (level, user, qno, sec, sum) {
+    return async function (level, user, qno, sec, sum, x) {
         try {
-            // const per = await get_per("news_side", level, user);
 
-            // 1) Generate arrows
-            const iq = await get_iq(user, "news_side", level);
-            const iq_s = parseInt(iq) - parseInt(sum)
-            const angles = generateArrows(iq_s, level);
+            const cat_count = await calcccc_cc("Total Boxes [Broken]", 40)
+            const difficulty = getDifficultiesByPer_two(cat_count); //fix 40 1931
+            const { boxes, brokenCount } = generateBoxesData_two(difficulty);
 
-            // 2) Draw & upload image
-            const buffer = drawArrowsImage(angles);
-            const imageURL = await uploadImage1(buffer);
-            if (!imageURL) return;
+            const imageBuffer = drawImage_two(boxes);
+            const image = await uploadImage_two(imageBuffer);
 
-            const totalArrows = angles.length;
+            const options = generateOptions_two(brokenCount);
 
-            const directionCounts = DIRECTIONS
-                .map(dir => ({
-                    dir,
-                    count: angles.filter(a => a === dir.angle).length
-                }))
-                .filter(d => d.count > 0);
+            // res.json({
+            //     title: "Total Boxes [Broken]",
+            //     question: "How many broken boxes are there?",
+            //     options,
+            //     answer: brokenCount,
+            //     image: image.image
+            // })
 
-            if (directionCounts.length === 0) return;
-
-            const askDouble = Math.random() < 0.4 && directionCounts.length >= 2;
-
-            // const sec = await get_lel_dif(level, "news_side")
-
-            // =========================
-            // SINGLE QUESTION
-            // =========================
-            if (!askDouble) {
-                const picked = directionCounts[
-                    Math.floor(Math.random() * directionCounts.length)
-                ];
-
-                const correct = picked.count;
-                const options = generateMCQOptions(correct, totalArrows);
-
-
-
-                const hash = crypto
-                    .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                    .update(correct.toString())
-                    .digest("hex");
-
-                const dt_post = await QuestionModule.create({
-                    Time,
-                    user,
-                    img: imageURL,
-                    Questio: `How many arrows are facing ${picked.dir.name}?`,
-                    options,
-                    Ans: hash,
-                    tough: level,
-                    Qno: qno,
-                    seconds: sec,
-                    sub_lang: "news_side",
-                    yes: [],
-                    no: []
-                });
-
-                await cat_fn(user, "news_side", "Two" )
-
-                await time_ans_Module.create({
-                Time: Time,
-                user: user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: Time,
-                Qst_get_tm: "",
-                Qst_ans_tm: "",
-                cl_sec : ""
-            })
-
-                return; // ✅ STOP HERE
-            }
-
-            // =========================
-            // DOUBLE QUESTION
-            // =========================
-            const shuffled = [...directionCounts].sort(() => Math.random() - 0.5);
-            const dir1 = shuffled[0];
-            const dir2 = shuffled[1];
-
-            const correctDouble = dir1.count + dir2.count;
-            const optionsDouble = generateMCQOptions(correctDouble, totalArrows);
 
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(correctDouble.toString())
-                .digest("hex");
-
-            await QuestionModule.create({
-                Time,
-                user,
-                img: imageURL,
-                Questio: `How many arrows are facing ${dir1.dir.name} and ${dir2.dir.name}?`,
-                options: optionsDouble,
-                Ans: hash,
-                tough: level,
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "news_side",
-                yes: [],
-                no: []
-            });
-
-            await time_ans_Module.create({
-                Time: Time,
-                user: user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: Time,
-                Qst_get_tm: "",
-                Qst_ans_tm: "",
-                cl_sec : ""
-            })
-
-            return; // optional but explicit
-
-        } catch (err) {
-            console.error(err);
-        }
-    }
-
-}
-
-
-
-
-function Three() {
-    return async function (level, user, qno, sec, sum) {
-
-        try {
-            // const per = await get_per("plus", level, user);
-            const iq = await get_iq(user, "plus", level);
-            const iq_s = parseInt(iq) - parseInt(sum)
-            const data = await generatePlusQuestionImage(iq_s, level);
-
-            // const hash = crypto
-            //     .createHash('sha256')
-            //     .update(data.question.correct)
-            //     .digest('hex')
-
-            // const sec = await get_lel_dif(level, "plus")
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(data.question.correct.toString())
+                .update(brokenCount.toString())
                 .digest("hex");
 
             const dt_post = await QuestionModule.create({
                 Time: Time,
                 user: user,
-                img: data.imageUrl,
-                Questio: "How many “+” are formed?",
-                options: data.question.options,
-                Ans: hash,
-                tough: level,
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "plus",
-                yes: [],
-                no: []
-            })
-
-            await cat_fn(user, "plus", "Three" )
-
-            await time_ans_Module.create({
-                Time: Time,
-                user: user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: Time,
-                Qst_get_tm: "",
-                Qst_ans_tm: "",
-                cl_sec : ""
-            })
-
-
-
-
-        } catch (error) {
-            console.log(error)
-        }
-
-    }
-}
-
-
-
-function Four() {
-    return async function (level, user, qno, sec, sum) {
-        try {
-            // const level = req.query.level || "Easy";
-            // const per = await get_per("two_leters_word", level, user);
-            const iq = await get_iq(user, "two_leters_word", level);
-            const iq_s = parseInt(iq) - parseInt(sum)
-
-
-            const { words, question, correctAnswer, options } = generateData(level, iq_s);
-            const base64Image = await renderImageBase64(words);
-
-            // const sec = await get_lel_dif(level, "two_leters_word")
-
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(correctAnswer.toString())
-                .digest("hex");
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: base64Image,
-                Questio: question,
+                img: image.image,
+                Questio: "How many broken boxes are there?",
                 options: options,
                 Ans: hash,
-                tough: level,
+                tough: "none",
                 Qno: qno,
                 seconds: sec,
-                sub_lang: "two_leters_word",
+                sub_lang: "Total Boxes [Broken]",
                 yes: [],
-                no: []
-            })
-
-            await cat_fn(user, "two_leters_word", "Four" )
-
-            await time_ans_Module.create({
-                Time: Time,
-                user: user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: Time,
-                Qst_get_tm: "",
-                Qst_ans_tm: "",
-                cl_sec : ""
-            })
-
-        } catch (error) {
-            console.log(error)
-        }
-    }
-}
-
-
-function Five() {
-    return async function (level, user, qno, sec, sum) {
-        try {
-            // const level = req.query.level || "Easy";
-            // const per = await get_per("singel_word", level, user);
-            const iq = await get_iq(user, "singel_word", level);
-            const iq_s = parseInt(iq) - parseInt(sum)
-            const data = generateData1(level, iq_s);
-
-            console.log(data);
-
-            const base64Image = await renderImageBase641(data.text);
-
-            // const sec = await get_lel_dif(level, "singel_word")
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(data.correctAnswer.toString())
-                .digest("hex");
-
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: base64Image,
-                Questio: data.question,
-                options: data.options,
-                Ans: hash,
-                tough: level,
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "singel_word",
-                yes: [],
-                no: []
-            })
-
-            await cat_fn(user, "singel_word", "Five" )
-
-            await time_ans_Module.create({
-                Time: Time,
-                user: user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: Time,
-                Qst_get_tm: "",
-                Qst_ans_tm: "",
-                cl_sec : ""
-            })
-
-        } catch (error) {
-            console.log(error)
-        }
-
-    }
-}
-
-
-function Six() {
-    return async function (level, user, qno, sec, sum) {
-
-        try {
-            // const per = await get_per("ran_leters", level, user);
-            const iq = await get_iq(user, "ran_leters", level);
-            const iq_s = parseInt(iq) - parseInt(sum)
-            createChallenge(level, iq_s).then(async out => {
-                // console.log("Correct:", out.correct);
-                // console.log("Options:", out.options);
-                // console.log("Base64 length:", out.base64img.length);
-
-                const img = await uploadBase64(out.base64img);
-
-                // const sec = await get_lel_dif(level, "ran_leters")
-
-                const hash = crypto
-                    .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                    .update(out.correct.toString())
-                    .digest("hex");
-
-                const dt_post = await QuestionModule.create({
-                    Time: Time,
-                    user: user,
-                    img: img,
-                    Questio: out.qst,
-                    options: out.options,
-                    Ans: hash,
-                    tough: level,
-                    Qno: qno,
-                    seconds: sec,
-                    sub_lang: "ran_leters",
-                    yes: [],
-                    no: []
-                })
-
-                await cat_fn(user, "ran_leters", "Six" )
-
-                await time_ans_Module.create({
-                Time: Time,
-                user: user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: Time,
-                Qst_get_tm: "",
-                Qst_ans_tm: "",
-                cl_sec : ""
-            })
-
-
-
+                no: [],
+                x : x
             });
-        } catch (error) {
-            console.log(error)
-        }
-
-
-    }
-}
-
-
-function Seven() {
-    return async function (level, user, qno, sec, sum) {
-        try {
-            // const per = await get_per("less_grtr", level, user);
-
-            const iq = await get_iq(user, "less_grtr", level);
-            const iq_s = parseInt(iq) - parseInt(sum)
-            const data = await createAdvancedNumberMCQ(level, iq_s);
-
-            // const sec = await get_lel_dif(level, "less_grtr")
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(data.correct.toString())
-                .digest("hex");
-
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: data.image,
-                Questio: data.question,
-                options: data.options,
-                Ans: hash,
-                tough: level,
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "less_grtr",
-                yes: [],
-                no: []
-            })
-
-            await cat_fn(user,"less_grtr", "Seven" )
 
             await time_ans_Module.create({
                 Time: Time,
@@ -9839,6 +9489,294 @@ function Seven() {
             })
 
 
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+function Three(){
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+
+
+            const cat_count = await calcccc_cc("Stars [Broken]", 60)
+            const puzzle = generatePuzzle_three(cat_count); //fix 60 1931
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "Stars [Broken]",
+            //     question: "How many Broken boxes contain stars?",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.correct;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: "How many Broken boxes contain stars?",
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "Stars [Broken]",
+                yes: [],
+                no: [],
+                x : x
+            });
+
+            await time_ans_Module.create({
+                Time: Time,
+                user: user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: Time,
+                Qst_get_tm: "",
+                Qst_ans_tm: "",
+                cl_sec : ""
+            })
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+function Four(){
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+
+            const cat_count = await calcccc_cc("Stars [Comp]", 50)
+            const puzzle = generatePuzzle_four(cat_count); //fix 50 1931
+
+            // res.json({
+            //     title: "Stars [Comp]",
+            //     question: "How many Unbroken boxes contain stars?",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+
+            const ans = puzzle.correct;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: "How many Unbroken boxes contain stars?",
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "Stars [Comp]",
+                yes: [],
+                no: [],
+                x : x
+            });
+
+            await time_ans_Module.create({
+                Time: Time,
+                user: user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: Time,
+                Qst_get_tm: "",
+                Qst_ans_tm: "",
+                cl_sec : ""
+            })
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+function Five(){
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+
+            const cat_count = await calcccc_cc("Triangle [Broken]", 50)
+            const puzzle = generatePuzzle_five(cat_count); //50 fix 1931-1
+
+            // convert base64 → image
+            // const buffer = Buffer.from(puzzle.image, "base64");
+
+            // res.json({
+            //     title: "Triangle [Broken]",
+            //     question: "How many Broken boxes contain Triangle?",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+
+            const ans = puzzle.correct;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: "How many Broken boxes contain Triangle?",
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "Triangle [Broken]",
+                yes: [],
+                no: [],
+                x : x
+            });
+
+            await time_ans_Module.create({
+                Time: Time,
+                user: user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: Time,
+                Qst_get_tm: "",
+                Qst_ans_tm: "",
+                cl_sec : ""
+            })
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+
+function Six(){
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+
+            const cat_count = await calcccc_cc("Triangle [Comp]", 50)
+            const puzzle = generatePuzzle_six(cat_count); //50 fix 1931
+
+            // convert base64 → image
+            // const buffer = Buffer.from(puzzle.image, "base64");
+
+            // res.json({
+            //     title: "Triangle [Comp]",
+            //     question: "How many Unbroken boxes contain Triangle?",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+
+            const ans = puzzle.correct;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: "How many Unbroken boxes contain Triangle?",
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "Triangle [Comp]",
+                yes: [],
+                no: [],
+                x : x
+            });
+
+            await time_ans_Module.create({
+                Time: Time,
+                user: user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: Time,
+                Qst_get_tm: "",
+                Qst_ans_tm: "",
+                cl_sec : ""
+            })
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+function Seven(){
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+
+            const cat_count = await calcccc_cc("Circels [Comp]", 55)
+            const puzzle = generatePuzzle_seven(cat_count); //fix 55 1931
+
+            // res.json({
+            //     title: "Circels [Comp]",
+            //     question: "How many complete boxes contain circles",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+
+            const ans = puzzle.correct;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: "How many complete boxes contain circles",
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "Circels [Comp]",
+                yes: [],
+                no: [],
+                x : x
+            });
+
+            await time_ans_Module.create({
+                Time: Time,
+                user: user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: Time,
+                Qst_get_tm: "",
+                Qst_ans_tm: "",
+                cl_sec : ""
+            })
 
         } catch (error) {
             console.log(error)
@@ -9848,95 +9786,44 @@ function Seven() {
 
 
 function Eight() {
-    return async function (level, user, qno, sec, sum) {
+    return async function (level, user, qno, sec, sum, x) {
         try {
-            // const per = await get_per("circle_pieces", level, user);
 
-            const iq = await get_iq(user, "circle_pieces", level);
-            const iq_s = parseInt(iq) - parseInt(sum)
-            const puzzle = generatePuzzle(level, iq_s);
-            const canvas = drawCircles(puzzle.circles);
-            const base64Image = canvas.toBuffer('image/png').toString('base64');
+            const cat_count = await calcccc_cc("Circels [Broken]", 50)
+            const puzzle = generatePuzzle_eight(cat_count); //fix 50
 
-            // const sec = await get_lel_dif(level, "circle_pieces")
+            // convert base64 → image
 
+            // res.json({
+            //     title: "Circels [Broken]",
+            //     question: "How many uncomplete boxes contain circles",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.correct;
 
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(puzzle.correct.toString())
+                .update(ans.toString())
                 .digest("hex");
-
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: base64Image,
-                Questio: puzzle.question,
-                options: puzzle.options,
-                Ans: hash,
-                tough: level,
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "circle_pieces",
-                yes: [],
-                no: []
-            })
-
-            await cat_fn(user,"circle_pieces", "Eight" )
-
-            await time_ans_Module.create({
-                Time: Time,
-                user: user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: Time,
-                Qst_get_tm: "",
-                Qst_ans_tm: "",
-                cl_sec : ""
-            })
-        } catch (error) {
-            console.log(error)
-        }
-
-
-    }
-}
-
-
-function Nine() {
-    return async function (level, user, qno, sec, sum) {
-
-        try {
-
-            // const per = await get_per("emoji_01", level, user);
-            const iq = await get_iq(user, "emoji_01", level);
-            const iq_s = parseInt(iq) - parseInt(sum)
-            const puzzle = generateEmojiPuzzle(level, iq_s);
-            // console.log(puzzle);
-
-            // const sec = await get_lel_dif(level, "emoji_01")
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(puzzle.correct.toString())
-                .digest("hex");
-
 
             const dt_post = await QuestionModule.create({
                 Time: Time,
                 user: user,
                 img: puzzle.image,
-                Questio: puzzle.question,
+                Questio: "How many uncomplete boxes contain circles",
                 options: puzzle.options,
                 Ans: hash,
-                tough: level,
+                tough: "none",
                 Qno: qno,
                 seconds: sec,
-                sub_lang: "emoji_01",
+                sub_lang: "Circels [Broken]",
                 yes: [],
-                no: []
-            })
-
-            await cat_fn(user, "emoji_01", "Nine" )
+                no: [],
+                x : x
+            });
 
             await time_ans_Module.create({
                 Time: Time,
@@ -9945,7 +9832,7 @@ function Nine() {
                 Qst_crt_tm: Time,
                 Qst_get_tm: "",
                 Qst_ans_tm: "",
-                cl_sec : ""
+                cl_sec: ""
             })
 
         } catch (error) {
@@ -9953,96 +9840,104 @@ function Nine() {
         }
     }
 }
+
+
+function Nine() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("[Circels and Triangles] Comp", 40)
+            const puzzle = generatePuzzle_complete_nine(cat_count); //40 fix 1931
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Comp",
+            //     question: "How many complete boxes contain circles and triangles (in different boxes)?",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.correct;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: "How many complete boxes contain circles and triangles (in different boxes)?",
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "[Circels and Triangles] Comp",
+                yes: [],
+                no: [],
+                x : x
+            });
+
+            await time_ans_Module.create({
+                Time: Time,
+                user: user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: Time,
+                Qst_get_tm: "",
+                Qst_ans_tm: "",
+                cl_sec: ""
+            })
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
 
 
 function Ten() {
-    return async function (level, user, qno, sec, sum) {
+    return async function (level, user, qno, sec, sum, x) {
         try {
-            // const per = await get_per("maze", level, user);
-            // const per = 100
+            const cat_count = await calcccc_cc("[Circels and Triangles] Broken", 40)
+            const puzzle = generatePuzzle_broken_ten(cat_count);
 
-            const iq = await get_iq(user, "maze", level);
-            const iq_s = parseInt(iq) - parseInt(sum)
-            const mazeQuestion = generateMazeQuestion(level, iq_s);
+            // convert base64 → image
 
-            // const sec = await get_lel_dif(level, "maze")
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.correct;
 
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(mazeQuestion.answer.toString())
+                .update(ans.toString()) 
                 .digest("hex");
-
 
             const dt_post = await QuestionModule.create({
                 Time: Time,
                 user: user,
-                img: mazeQuestion.image,
-                Questio: mazeQuestion.question,
-                options: mazeQuestion.options,
+                img: puzzle.image,
+                Questio: "Count the broken boxes that contain circles and triangles.",
+                options: puzzle.options,
                 Ans: hash,
-                tough: level,
+                tough: "none",
                 Qno: qno,
                 seconds: sec,
-                sub_lang: "maze",
+                sub_lang: "[Circels and Triangles] Broken",
                 yes: [],
-                no: []
-            })
-
-            await cat_fn(user, "maze", "Ten" )
-
-            await time_ans_Module.create({
-                Time: Time,
-                user: user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: Time,
-                Qst_get_tm: "",
-                Qst_ans_tm: "",
-                cl_sec : ""
-            })
-        } catch (error) {
-            console.log(error)
-        }
-
-    }
-}
-
-
-function Eleven() {
-    return async function (level, user, qno, sec, sum) {
-        try {
-            // const per = await get_per("colours", level, user);
-
-            const iq = await get_iq(user, "colours", level);
-            const iq_s = parseInt(iq) - parseInt(sum)
-            const result = generateColorMatchQuestion({
-                level, iq_s
+                no: [],
+                x : x
             });
 
-            // const sec = await get_lel_dif(level, "colours")
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(result.answer.toString())
-                .digest("hex");
-
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: result.image,
-                Questio: result.question,
-                options: result.options,
-                Ans: hash,
-                tough: level,
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "colours",
-                yes: [],
-                no: []
-            })
-
-            await cat_fn(user, "colours", "Eleven")
-
             await time_ans_Module.create({
                 Time: Time,
                 user: user,
@@ -10050,308 +9945,27 @@ function Eleven() {
                 Qst_crt_tm: Time,
                 Qst_get_tm: "",
                 Qst_ans_tm: "",
-                cl_sec : ""
+                cl_sec: ""
             })
+
         } catch (error) {
             console.log(error)
         }
-
-
     }
 }
 
 
-function Tweleve() {
-    return async function (level, user, qno, sec, sum) {
-
-        try {
-            // const per = await get_per("code_int_char", level, user);
-
-            const iq = await get_iq(user, "code_int_char", level);
-            const iq_s = parseInt(iq) - parseInt(sum)
-            const test = createStringCountImage(level, iq_s);
-
-            // const sec = await get_lel_dif(level, "code_int_char")
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(test.data.correct.toString())
-                .digest("hex");
-
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: test.imageBase64,
-                Questio: test.data.question,
-                options: test.data.options,
-                Ans: hash,
-                tough: level,
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "code_int_char",
-                yes: [],
-                no: []
-            })
-
-            await cat_fn(user, "code_int_char", "Tweleve")
-
-            await time_ans_Module.create({
-                Time: Time,
-                user: user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: Time,
-                Qst_get_tm: "",
-                Qst_ans_tm: "",
-                cl_sec : ""
-            })
-        } catch (error) {
-            console.log(error)
-        }
-
-    }
-}
-
-
-function Thirteen() {
-    return async function (level, user, qno, sec, sum) {
-
-        // const per = await get_per("num_pairs", level, user);
-
-        const iq = await get_iq(user, "num_pairs", level);
-        const iq_s = parseInt(iq) - parseInt(sum)
-        const puzzle = await generateNumberPairMCQ(level, iq_s)
-
-        // const sec = await get_lel_dif(level, "num_pairs")
-        // console.log(puzzle.question);
-        // console.log("Answer:", puzzle.correctAnswer);
-        // console.log(puzzle.base64Image);
-
-        const hash = crypto
-            .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-            .update(puzzle.correctAnswer.toString())
-            .digest("hex");
-
-
-        const dt_post = await QuestionModule.create({
-            Time: Time,
-            user: user,
-            img: puzzle.base64Image,
-            Questio: puzzle.question,
-            options: puzzle.options,
-            Ans: hash,
-            tough: level,
-            Qno: qno,
-            seconds: sec,
-            sub_lang: "num_pairs",
-            yes: [],
-            no: []
-        })
-
-        await cat_fn(user, "num_pairs", "Thirteen")
-
-        await time_ans_Module.create({
-                Time: Time,
-                user: user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: Time,
-                Qst_get_tm: "",
-                Qst_ans_tm: "",
-                cl_sec : ""
-            })
-
-
-
-    }
-}
-
-
-function Fourteen() {
-    console.log("Innnnnnnnnnnnnnnnnnnnnnnnnnnn sirrrrrrrrrrrrrrrrrrrr")
-    return async function (level, user, qno, sec, sum) {
-        // const per = await get_per("OMR_1", level);
-        console.log(level, user, qno, sec, sum)
-        
-
-        const iq = await get_iq(user, "OMR_1", level);
-        const iq_s = parseInt(iq) - parseInt(sum)
-        const puzzle = generateOMRQuestion(level, iq_s);
-        // console.log(puzzle.question);
-        // console.log("Answer:", puzzle.correctAnswer);
-        // console.log(puzzle.base64Image);
-
-
-        // const sec = await get_lel_dif(level, "OMR_1")
 
 
 
 
-        const hash = crypto
-            .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-            .update(puzzle.answerValue.toString())
-            .digest("hex");
-
-
-        const dt_post = await QuestionModule.create({
-            Time: Time,
-            user: user,
-            img: puzzle.base64Image,
-            Questio: puzzle.question,
-            options: puzzle.options,
-            Ans: hash,
-            tough: level,
-            Qno: qno,
-            seconds: sec,
-            sub_lang: "OMR_1",
-            yes: [],
-            no: []
-        })
-
-        await cat_fn(user, "OMR_1", "Fourteen")
-
-        await time_ans_Module.create({
-                Time: Time,
-                user: user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: Time,
-                Qst_get_tm: "",
-                Qst_ans_tm: "",
-                cl_sec : ""
-            })
-
-        // res.json({
-        //     Questio : puzzle.question,
-        //     options : puzzle.options,
-        //     Ans : puzzle.answerValue,
-        //     img : puzzle.base64Image,
-        //     sub_lang : "OMR_1",
-        //     tough : level
-        // })
-
-    }
-}
-
-
-function Fifteen() {
-    return async function (level, user, qno, sec, sum) {
-        // const per = await get_per("OMR", level);
-
-        const iq = await get_iq(user, "OMR", level);
-        const iq_s = parseInt(iq) - parseInt(sum)
-        const puzzle = generateOMRQuestion15(level, iq_s);
-        // console.log(puzzle.question);
-        // console.log("Answer:", puzzle.correctAnswer);
-        // console.log(puzzle.base64Image);
-
-        // const sec = await get_lel_dif(level, "OMR")
-
-
-        const hash = crypto
-            .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-            .update(puzzle.answerValue.toString())
-            .digest("hex");
-
-
-        const dt_post = await QuestionModule.create({
-            Time: Time,
-            user: user,
-            img: puzzle.base64Image,
-            Questio: puzzle.question,
-            options: puzzle.options,
-            Ans: hash,
-            tough: level,
-            Qno: qno,
-            seconds: sec,
-            sub_lang: "OMR",
-            yes: [],
-            no: []
-        })
-
-        await cat_fn(user, "OMR", "Fifteen")
-
-        await time_ans_Module.create({
-                Time: Time,
-                user: user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: Time,
-                Qst_get_tm: "",
-                Qst_ans_tm: "",
-                cl_sec : ""
-            })
-
-        // res.json({
-        //     Questio: puzzle.question,
-        //     options: puzzle.options,
-        //     Ans: puzzle.answerValue,
-        //     img: puzzle.base64Image,
-        //     sub_lang: "OMR",
-        //     tough: level
-        // })
-    }
-}
-
-
-function Sixteen() {
-    return async function (level, user, qno, sec, sum) {
-        // const per = await get_per("Train", level);
-
-        const iq = await get_iq(user, "Train", level);
-        const iq_s = parseInt(iq) - parseInt(sum)
-        const puzzle = generateTrainQuestionImage(level, iq_s);
-        // console.log(puzzle.question);
-        // console.log("Answer:", puzzle.correctAnswer);
-        // console.log(puzzle.base64Image);
-
-        // const sec = await get_lel_dif(level, "Train")
-
-        const hash = crypto
-            .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-            .update((await puzzle).answer.toString())
-            .digest("hex");
-
-
-        const dt_post = await QuestionModule.create({
-            Time: Time,
-            user: user,
-            img: (await puzzle).base64Image,
-            Questio: (await puzzle).question,
-            options: (await puzzle).options,
-            Ans: hash,
-            tough: level,
-            Qno: qno,
-            seconds: sec,
-            sub_lang: "Train",
-            yes: [],
-            no: []
-        })
-
-        await cat_fn(user, "Train", "Sixteen")
-
-        await time_ans_Module.create({
-                Time: Time,
-                user: user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: Time,
-                Qst_get_tm: "",
-                Qst_ans_tm: "",
-                cl_sec : ""
-            })
 
 
 
-        // res.json({
-        //     Questio : (await puzzle).question || "No Q",
-        //     options : (await puzzle).options || ["kick"],
-        //     Ans : (await puzzle).answer || "No A",
-        //     img : (await puzzle).base64Image,
-        //     sub_lang : "OMR",
-        //     tough : level
-        // })
-    }
-}
 
 const functions = {
-    One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Tweleve, Thirteen, Fourteen, Fifteen, Sixteen
+    One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, 
+    // Eleven, Tweleve, Thirteen, Fourteen, Fifteen, Sixteen
 }
 
 
@@ -10410,15 +10024,14 @@ app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req
 
         const _dec_bal = await Balancemodule.findOne({ user });
         const won_data = await Wonmodule.find({user})
-
-        const randomFunction =
-            qst_gen[Math.floor(Math.random() * qst_gen.length)];
+        const randomFunction = qst_gen[Math.floor(Math.random() * qst_gen.length)];
 
         //make continue from here work 4831
 
         const get_profit = await Profit_cal_Module.findOne({ user }).lean()
 
         if(!get_profit){
+
             //make him win because he was an new user make him win 50 rupees
             randomFunction(105, user, "1", "20", "3")
 
@@ -10642,8 +10255,9 @@ app.post('/start/playing/by/debit/amount/new/all/xx/main', authMiddleware, async
 
         const qst_gen = [
             One(), Two(), Three(), Four(), Five(), Six(),
-            Seven(), Eight(), Nine(), Ten(), Eleven(), Tweleve(), Thirteen(),
-            Fourteen(), Fifteen(), Sixteen()
+            Seven(), Eight(), Nine(), Ten(), 
+            // Eleven(), Tweleve(), Thirteen(),
+            // Fourteen(), Fifteen(), Sixteen()
             // Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),
         ];
 
@@ -10657,7 +10271,7 @@ app.post('/start/playing/by/debit/amount/new/all/xx/main', authMiddleware, async
 
         
 
-        randomFunction(105, user, "1", "20", "0")
+        randomFunction(105, user, "1", "20", "0", "10")
         
         
 
