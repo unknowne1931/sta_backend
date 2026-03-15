@@ -20,7 +20,7 @@ import { MongoClient } from "mongodb";
 import { fromJSON } from 'postcss';
 import admin from "firebase-admin";
 import serviceAccount from "./config/firebase-key.json" with { type: "json" };
-import { generateBoxesData, generateOptions, getDifficultiesByPer } from './new_modules/one.js';
+import { drawImage, generateBoxesData, generateOptions, getDifficultiesByPer } from './new_modules/one.js';
 import { drawImage_two, generateBoxesData_two, generateOptions_two, getDifficultiesByPer_two, uploadImage_two } from './new_modules/two.js';
 import { generatePuzzle_three } from './new_modules/three.js';
 import { generatePuzzle_four } from './new_modules/four.js';
@@ -250,7 +250,7 @@ app.post(
 
 
 app.use(cors({
-    // origin: ["https://stawro.com", "https://www.stawro.com", "http://localhost:3000"],
+    // origin: ["https://stawro.com", "https://www.stawro.com", "https://kalanirdhari.in:3000"],
     origin : "*",
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
@@ -354,7 +354,7 @@ const generateOTP = () => {
 //https end
 
 app.get('/', (req, res) => {
-    res.send('Hello, world Vs : 15.0.0 ; Last Updated : 30-01-2026 ; Type : Live');
+    res.send('Hello, world Vs : 15.0.0 ; Last Updated : 15-03-2026 ; Type : Live');
 });
 
 
@@ -9359,7 +9359,7 @@ const monitor_cal_data_Module = mongoose.model('Monitor_cal_per_data', Calc_perr
 
 async function calcccc_cc(cat, count) {
     const cat_find = await monitor_cal_data_Module.findOne({cat})
-    if(cat){
+    if(cat_find){
         return parseInt(cat_find.count)
     }else{
         await monitor_cal_data_Module.create({Time, cat, count, yes : [], no : []})

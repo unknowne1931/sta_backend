@@ -17,7 +17,7 @@ logs/
 
 # VS Code settings
 .vscode/
-
+ssh.txt
 # OS files
 .DS_Store
 Thumbs.db
