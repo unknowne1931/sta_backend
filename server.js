@@ -250,7 +250,7 @@ app.post(
 
 
 app.use(cors({
-    // origin: ["https://stawro.com", "https://www.stawro.com", "https://kalanirdhari.in:3000"],
+    // origin: ["https://stawro.com", "https://www.stawro.com", "http://192.168.31.133:3000"],
     origin : "*",
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
@@ -547,6 +547,8 @@ app.post('/post/google/auth', async (req, res) => {
                 expiresIn: "365 days"
             });
 
+            await new_user(user)
+
             return res.status(200).json({
                 Status: "OK",
                 message: "User created and logged in successfully",
@@ -599,6 +601,21 @@ app.post('/post/new/google/user', async (req, res) => {
 });
 
 
+async function fisrt_time_user(user) {
+    const check_balance = await Balancemodule.findOne({user}).lean()
+    if(!check_balance){
+        await Balancemodule.create({user, balance : "10", Time, last_tr_id : "Free Credit"})
+    }
+
+    const check_lang = await LanguageSelectModule.findOne({user}).lean()
+
+    if(!check_lang){
+        await LanguageSelectModule.create({lang : ["English"], Time, user})
+    }
+}
+
+
+
 app.post('/post/google/login', async (req, res) => {
     const { email, uid } = req.body;
 
@@ -613,6 +630,7 @@ app.post('/post/google/login', async (req, res) => {
         if (!user) {
             return res.status(202).json({ Status: "NO" }); // Not found
         }
+
 
         // Generate JWT
         const token = jwt.sign({ id: user._id }, "kanna_stawro_founders_withhh_1931_liketha", { expiresIn: "365 days" });
@@ -4916,6 +4934,8 @@ app.get("/get/question/no/by/user/name/bf/all/xx", authMiddleware, async (req, r
                         await get_fetch_data.save()
                     }
 
+                    console.log(data);
+
                     return res.status(200).json({ data });
 
                 } else {
@@ -6028,12 +6048,19 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
 
         const user = req.user
 
+        console.log(req.body, user)
+
         if (!answer && !user && !id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
 
             const STARS = sec
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ Status: "BAD" , success: false, message: "Invalid ObjectId format" });
+        }
+
+        const data = await StartValidmodule.findOne({ user });
+        if(data.valid === "no"){
+            return res.status(200).json({ Status: "Ok" , success: false, message: "Ok" });
         }
 
         const check_sec_vrf = await time_ans_Module.findOne({user, Qno_ID : id})
@@ -6057,6 +6084,8 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
         const check_ans = compareHash(answer, Ans)
 
         const Answer_Verify = await QuestionModule.findById({ _id: id })
+
+        console.log(Answer_Verify)
         let up_sec_lst = await sng_qst_20_Module.findOne({
             user,
             cat: Answer_Verify.sub_lang
@@ -6207,7 +6236,7 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
             await Answer_Verify.updateOne({ $push: { no: user } })
             //make this if answer is false make verified is fale or no to throught the user out from playing
 
-            const data = await StartValidmodule.findOne({ user });
+            
 
             if (data) {
                 data.valid = "no";
@@ -10222,6 +10251,8 @@ app.post('/start/playing/by/debit/amount/new/all/xx/main', authMiddleware, async
             return res.status(200).json({ Status: "Time", message: status.text });
         }
 
+        await StartValidmodule.findOneAndDelete({user : user})
+
         
 
 
@@ -10397,6 +10428,13 @@ app.post('/start/playing/by/debit/amount/new/all/xx/main', authMiddleware, async
             bal_dt.balance = lat.toString()
             await bal_dt.save()
             console.log("BAD")
+            await Historymodule.create({
+                Time,
+                user,
+                rupee: feesNum,
+                type: "Credited",
+                tp: "Rupee",
+            });
             return res.status(200).json({ Status: "BAD_CR" })
         }
 
