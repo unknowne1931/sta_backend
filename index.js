@@ -37,7 +37,7 @@ app.use(bodyParser.json());
 
 
 // Initialize Firebase Admin SDK
-const serviceAccount = require("./firebase-adminsdk.json"); // Ensure the correct path
+const serviceAccount = require("./firebase-adminsdk3.json"); // Ensure the correct path
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
