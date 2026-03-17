@@ -10929,7 +10929,13 @@ export const sendNotification = async (user, title, body) => {
 
 
 
-
+app.post("/rig/new/users/uniq/id", async (req, res)=>{
+    try{
+        
+    }catch (error){
+        console.log(error)
+    }
+})
 
 
 
