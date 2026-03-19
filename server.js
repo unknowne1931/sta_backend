@@ -502,8 +502,22 @@ const User_s_OTP_module = mongoose.model('Users_OTP', user_s_otpSchema);
 // const GoogleUser = require('./models/GoogleUser'); // already required
 
 
+//call this after account create because we need user var
+async function add_stars_to_new_loged_in_users(u_id, user) { 
+    const data_find = await Uniq_new_user_module.findOne({user : u_id})
+    if(data_find){
+        const fetch_star_bal = await StarBalmodule.findOne({user}).lean()
+        if(!fetch_star_bal){
+            await StarBalSchema.create({Time, user, balance : data_find.star})
+            await History_star(user, data_find.star)
+            await QuestionModule.findOneAndDelete({user : u_id})
+        }
+    }
+}
+
+
 app.post('/post/google/auth', async (req, res) => {
-    const { email, name, username, uid } = req.body;
+    const { email, name, username, uid, u_id } = req.body;
 
     if (!email || !uid) {
         return res.status(400).json({ Status: "INVALID_DATA", message: "Missing required fields." });
@@ -542,6 +556,8 @@ app.post('/post/google/auth', async (req, res) => {
                 Time,
                 valid: "yes"
             });
+
+            await add_stars_to_new_loged_in_users(u_id, user._id)
 
             const token = jwt.sign({ id: user._id }, "kanna_stawro_founders_withhh_1931_liketha", {
                 expiresIn: "365 days"
@@ -4751,6 +4767,12 @@ async function get_level_seconds(level) {
 async function History(user, rupee) {
     await Historymodule.create({ Time, user, rupee: rupee, type: "Credited", tp: "Rupee" });
 }
+
+async function History_star(user, star) {
+    await Historymodule.create({ Time, user, rupee: star, type: "Credited", tp: "Stars" });
+}
+
+
 
 async function refund(user){
     try{
@@ -10928,18 +10950,113 @@ export const sendNotification = async (user, title, body) => {
 // });
 
 
+const uniq_new_user_Schema = new mongoose.Schema({
+  user: { type: String, unique: true },
+  star : {
+    default : "0",
+    type : String
+  },
 
-app.post("/rig/new/users/uniq/id", async (req, res)=>{
+}, { timestamps: true });
+
+const Uniq_new_user_module = mongoose.model("New_user_uniq", uniq_new_user_Schema);
+
+
+
+//try
+
+app.get("/doc/betwween/time/cal", async (req, res)=>{
+    const data = await sng_qst_20_Module.find({})
+    res.status(200).json({data})
+})
+
+
+//19-03-2026
+app.post("/get/question/for/new/users/signed/out/users/qstion", async (req, res) =>{
+    const {u_id} = req.body;
     try{
-        
+        const data_find = await Uniq_new_user_module.findOne({user : u_id}).lean()
+        if(!data_find){
+            const data = await QuestionModule.findOne({user : u_id})
+            console.log(data)
+            if(data){
+                return res.status(200).json({Status : "OK" , data})
+            }
+            return res.status(200).json({Status : "NO_EXI"})
+        }
+    }catch (error){
+        console.log(error)
+    }
+})
+
+app.post("/get/question/for/new/users/signed/out/users/verify/qst", async (req, res)=>{
+    const {u_id, sec, ans} = req.body;
+
+    try{
+        const find_user_doc = await Uniq_new_user_module.findOne({user : u_id})
+
+        if(find_user_doc) return res.status(200).json({Status : "IN"})
+
+        const find_qst_data = await QuestionModule.findOne({user : u_id})
+
+        function compareHash(plainText, hash) {
+            const plainHash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(plainText.toString())
+                .digest("hex");
+            return plainHash === hash;
+        }
+
+        const check_ans = compareHash(ans, find_qst_data.Ans)
+
+        if(check_ans){
+            await Uniq_new_user_module.create({user : u_id, star : parseInt(sec)*10})
+            // const add_stars = await Uniq_new_user_module.findOne({user : u_id})
+            return res.status(200).json({Status : "OK"})
+        }else{
+            return res.status(200).json({Status : "Ok"})
+        }
+
     }catch (error){
         console.log(error)
     }
 })
 
 
+app.post("/get/question/for/new/users/signed/out/users", async (req, res)=>{
+    const {u_id} = req.body;
+    try{
+        console.log(req.body)
+        const data_find = await Uniq_new_user_module.findOne({user : u_id}).lean()
+        if(!data_find){
+            const qst_gen = [
+                One(), Two(), Three(), Four(), Five(), Six(),
+                Seven(), Eight(), 
+                // Nine(), Ten(),
+                // Eleven(), Tweleve(), Thirteen(),
+                // Fourteen(), Fifteen(), Sixteen()
+                // Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),
+            ];
 
+            const randomFunction =
+                qst_gen[Math.floor(Math.random() * qst_gen.length)];
 
+            //make continue from here work 4831
+
+            await QuestionModule.findOneAndDelete({user : u_id})
+
+            randomFunction(105, u_id, "1", "20", "0", "10")
+
+            return res.status(200).json({Status : "OK"})
+
+        }else{
+            console.log(data_find)
+            return res.status(200).json({Status : "IN"})
+        }
+    }catch (error){
+        console.log(error)
+    }
+})
 
 
 
@@ -10982,3 +11099,4 @@ app.listen(PORT, () => {
 
     
 
+ 
