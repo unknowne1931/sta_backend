@@ -10977,7 +10977,7 @@ app.post("/get/question/for/new/users/signed/out/users/qstion", async (req, res)
     try{
         const data_find = await Uniq_new_user_module.findOne({user : u_id}).lean()
         if(!data_find){
-            const data = await QuestionModule.findOne({user : u_id})
+            const data = await QuestionModule.findOne({u_id})
             console.log(data)
             if(data){
                 return res.status(200).json({Status : "OK" , data})
