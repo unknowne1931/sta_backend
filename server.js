@@ -250,7 +250,7 @@ app.post(
 
 
 app.use(cors({
-    // origin: ["https://stawro.com", "https://www.stawro.com", "http://192.168.31.133:3000"],
+    // origin: ["https://stawro.com", "https://www.stawro.com", "http://localhost:3000"],
     origin : "*",
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
@@ -9417,6 +9417,21 @@ async function calcccc_cc(cat, count) {
         return count
     }
 }
+
+
+app.get("/get/calculate/data/monitor/main", async (req, res)=>{
+    try{
+        const data = await monitor_cal_data_Module.find({})
+        if(data){
+            res.status(200).json({data})
+        }else{
+            res.status(200).json({message : "No Data Found"})
+        }
+    }catch (error) {
+        console.error("Error fetching IQ data:", error);
+        return 1; // default IQ on error
+    }
+})
 
 
 function One() {
