@@ -6133,11 +6133,16 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
 
         if (check_ans) {
 
-            await data_clt.updateOne({$push : {yes : user}})
+            await data_clt.updateOne(
+                { cat: someCategory }, // ⚠️ always include filter
+                {
+                    $push: {
+                        yes: user,
+                        seconds: STARS
+                    }
+                }
+            )
 
-
-
-            console.log("verifyed Ans")
             
             // const exactSeconds = (check_sec_vrf.updatedAt - check_sec_vrf.createdAt) / 1000;
 
@@ -9402,6 +9407,7 @@ const Calc_perr = new mongoose.Schema({
     count : String,
     yes : [],
     no : [],
+    seconds : []
 }, { timestamps: true });
 
 const monitor_cal_data_Module = mongoose.model('Monitor_cal_per_data', Calc_perr);
@@ -9413,7 +9419,7 @@ async function calcccc_cc(cat, count) {
     if(cat_find){
         return parseInt(cat_find.count)
     }else{
-        await monitor_cal_data_Module.create({Time, cat, count, yes : [], no : []})
+        await monitor_cal_data_Module.create({Time, cat, count, yes : [], no : [], seconds : []})
         return count
     }
 }
@@ -9429,7 +9435,6 @@ app.get("/get/calculate/data/monitor/main", async (req, res)=>{
         }
     }catch (error) {
         console.error("Error fetching IQ data:", error);
-        return 1; // default IQ on error
     }
 })
 
@@ -10496,6 +10501,8 @@ app.get("/admin/balance/played", adminMiddleware, async (req, res) => {
         return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch balance" });
     }
 });
+
+
 
 app.get("/admin/balance/free/played", adminMiddleware, async (req, res) => {
     try {
