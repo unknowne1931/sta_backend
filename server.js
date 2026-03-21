@@ -354,7 +354,7 @@ const generateOTP = () => {
 //https end
 
 app.get('/', (req, res) => {
-    res.send('Hello, world Vs : 16.0.0 ; Last Updated : 20-03-2026 ; Type : Live');
+    res.send('Hello, world Vs : 17.0.0 ; Last Updated : 20-03-2026 ; Type : Live');
 });
 
 
@@ -6134,11 +6134,13 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
         if (check_ans) {
 
             await data_clt.updateOne(
-                { cat: someCategory }, // ⚠️ always include filter
+                {}, // since only one document exists
                 {
                     $push: {
-                        yes: user,
-                        seconds: STARS
+                        data: {
+                            user: user,
+                            seconds: STARS
+                        }
                     }
                 }
             )
@@ -10839,11 +10841,12 @@ app.get("/get/latest/won/stars/data", adminMiddleware, async (req, res)=>{
 app.get("/add/balance/to/all/user", async (req, res) => {
     try {
         const fetch_all = await Balancemodule.find({});
+        const amount_to_add = 10
 
         for (let element of fetch_all) {
             let currentBalance = Number(element.balance) || 0; // convert string to number safely
-            element.balance = currentBalance + 9;
-            // await History(element.user, "9")
+            element.balance = currentBalance + amount_to_add;
+            await History(element.user, `${amount_to_add}`)
             await element.save();
         }
 
@@ -11048,7 +11051,11 @@ app.post("/get/question/for/new/users/signed/out/users/verify/qst", async (req, 
 app.post("/get/question/for/new/users/signed/out/users", async (req, res)=>{
     const {u_id} = req.body;
     try{
-        console.log(req.body)
+
+        if(!u_id || u_id === undefined || u_id === null) return res.status(200).json({message : "Some Data Missing"})
+
+
+        console.log(u_id)
         const data_find = await Uniq_new_user_module.findOne({user : u_id}).lean()
         if(!data_find){
             const qst_gen = [
