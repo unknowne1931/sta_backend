@@ -1647,6 +1647,8 @@ const OTPmodule = mongoose.model('OTP_Data', OTPSchema);
 app.post('/login/to/admin/account', async (req, res) => {
     const { username } = req.body;
     try {
+
+        console.log(req.body)
         if (!username) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" });
 
         const otp = generateOTP()
@@ -1859,7 +1861,7 @@ app.post('/verify/otp/and/pass/by/admin', async (req, res) => {
         const user = await AdminUsermodule.findOne({ username }).lean();
 
         if (!user) {
-            return res.status(200).json({ Status: "BAD" });
+            return res.status(200).json({ Status: "BAD", message : "User not Found" });
         }
 
         // const isPasswordCorrect = await bcrypt.compare(pass, user.pass);
@@ -1869,13 +1871,13 @@ app.post('/verify/otp/and/pass/by/admin', async (req, res) => {
                 const token = jwt.sign(
                     { username },
                     "kanna_stawro_founders_withhh_1931_psycho_keeerthiii_01_", // Use environment variable for secret key
-                    { expiresIn: "24h" }
+                    { expiresIn: "360d" }
                 );
 
                 return res.status(200).json({ Status: "OK", token });
             } else {
                 console.log(err)
-                return res.status(200).json({ Status: "BAD" });
+                return res.status(200).json({ Status: "BAD", message : "Wrong Password" });
             }
         })
 
@@ -4951,8 +4953,8 @@ app.get("/get/question/no/by/user/name/bf/all/xx", authMiddleware, async (req, r
 
                     const get_fetch_data = await time_ans_Module.findOne({user, Qno_ID : Qno._id})
 
-                    if(get_fetch_data.Qst_get_tm === ""){
-                        get_fetch_data.Qst_get_tm = Time
+                    if (get_fetch_data.Qst_get_tm === "n") {
+                        get_fetch_data.Qst_get_tm = new Date()
                         await get_fetch_data.save()
                     }
 
@@ -6068,9 +6070,15 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
     try {
 
 
+
+
         const user = req.user
 
-        console.log(req.body, user)
+        const check_sec_vrf = await time_ans_Module.findOne({user, Qno_ID : id})
+        check_sec_vrf.updatedAt = new Date();
+        check_sec_vrf.Qst_ans_tm = new Date();
+        check_sec_vrf.r_sec = parseInt(sec);
+        await check_sec_vrf.save()
 
         if (!answer && !user && !id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
 
@@ -6085,10 +6093,8 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
             return res.status(200).json({ Status: "Ok" , success: false, message: "Ok" });
         }
 
-        const check_sec_vrf = await time_ans_Module.findOne({user, Qno_ID : id})
-        check_sec_vrf.Qst_ans_tm = Time
-        await check_sec_vrf.save()
-
+        
+        
 
 
 
@@ -6130,8 +6136,15 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
 
         const data_clt = await monitor_cal_data_Module.findOne({cat : Answer_Verify.sub_lang})
 
+        const time = check_sec_vrf.updatedAt - check_sec_vrf.createdAt
+        const timeDiffSeconds = Math.floor(time / 1000);
+        check_sec_vrf.cl_sec = timeDiffSeconds
+        await check_sec_vrf.save()
 
-        if (check_ans) {
+        if(timeDiffSeconds > 25) res.status(200).json({Status : "Cheated"})
+
+
+        if (check_ans ) {
 
             await data_clt.updateOne(
                 {}, // since only one document exists
@@ -6154,7 +6167,7 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
 
 
 
-            if (check_sec_vrf.r_sec === "") {
+            if (check_sec_vrf.r_sec === -1) {
                 check_sec_vrf.cl_sec = diffMs
                 check_sec_vrf.r_sec = sec
                 await check_sec_vrf.save()
@@ -7360,9 +7373,9 @@ app.post('/get/and/login/users/admin/pages/auth', async (req, res) => {
                     subject: `stawro, Admin Login OTP`, // Subject line
                     text: '', // Plain text body
                     html: `
-                    
                     <html lang="en">
                         <head>
+
                             <meta charset="UTF-8">
                             <meta name="viewport" content="width=device-width, initial-scale=1.0">
                             <meta http-equiv="refresh" content="30" />
@@ -9490,15 +9503,17 @@ function One() {
             });
 
             await time_ans_Module.create({
-                Time: Time,
-                user: user,
+                Time,
+                user,
                 Qno_ID: dt_post._id,
-                Qst_crt_tm: Time,
-                Qst_get_tm: "",
-                Qst_ans_tm: "",
-                cl_sec : ""
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
             })
-            
+
             
 
         } catch (err) {
@@ -9552,13 +9567,15 @@ function Two() {
             });
 
             await time_ans_Module.create({
-                Time: Time,
-                user: user,
+                Time,
+                user,
                 Qno_ID: dt_post._id,
-                Qst_crt_tm: Time,
-                Qst_get_tm: "",
-                Qst_ans_tm: "",
-                cl_sec : ""
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
             })
 
 
@@ -9611,14 +9628,17 @@ function Three(){
             });
 
             await time_ans_Module.create({
-                Time: Time,
-                user: user,
+                Time,
+                user,
                 Qno_ID: dt_post._id,
-                Qst_crt_tm: Time,
-                Qst_get_tm: "",
-                Qst_ans_tm: "",
-                cl_sec : ""
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
             })
+
 
         } catch (error) {
             console.log(error)
@@ -9667,14 +9687,17 @@ function Four(){
             });
 
             await time_ans_Module.create({
-                Time: Time,
-                user: user,
+                Time,
+                user,
                 Qno_ID: dt_post._id,
-                Qst_crt_tm: Time,
-                Qst_get_tm: "",
-                Qst_ans_tm: "",
-                cl_sec : ""
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
             })
+
 
         } catch (error) {
             console.log(error)
@@ -9726,14 +9749,18 @@ function Five(){
             });
 
             await time_ans_Module.create({
-                Time: Time,
-                user: user,
+                Time,
+                user,
                 Qno_ID: dt_post._id,
-                Qst_crt_tm: Time,
-                Qst_get_tm: "",
-                Qst_ans_tm: "",
-                cl_sec : ""
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
             })
+
+
 
         } catch (error) {
             console.log(error)
@@ -9786,14 +9813,18 @@ function Six(){
             });
 
             await time_ans_Module.create({
-                Time: Time,
-                user: user,
+                Time,
+                user,
                 Qno_ID: dt_post._id,
-                Qst_crt_tm: Time,
-                Qst_get_tm: "",
-                Qst_ans_tm: "",
-                cl_sec : ""
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
             })
+
+            
 
         } catch (error) {
             console.log(error)
@@ -9842,14 +9873,18 @@ function Seven(){
             });
 
             await time_ans_Module.create({
-                Time: Time,
-                user: user,
+                Time,
+                user,
                 Qno_ID: dt_post._id,
-                Qst_crt_tm: Time,
-                Qst_get_tm: "",
-                Qst_ans_tm: "",
-                cl_sec : ""
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
             })
+
+            
 
         } catch (error) {
             console.log(error)
@@ -9899,14 +9934,17 @@ function Eight() {
             });
 
             await time_ans_Module.create({
-                Time: Time,
-                user: user,
+                Time,
+                user,
                 Qno_ID: dt_post._id,
-                Qst_crt_tm: Time,
-                Qst_get_tm: "",
-                Qst_ans_tm: "",
-                cl_sec: ""
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
             })
+
 
         } catch (error) {
             console.log(error)
@@ -9955,14 +9993,17 @@ function Nine() {
             });
 
             await time_ans_Module.create({
-                Time: Time,
-                user: user,
+                Time,
+                user,
                 Qno_ID: dt_post._id,
-                Qst_crt_tm: Time,
-                Qst_get_tm: "",
-                Qst_ans_tm: "",
-                cl_sec: ""
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
             })
+
 
         } catch (error) {
             console.log(error)
@@ -10011,15 +10052,19 @@ function Ten() {
                 x : x
             });
 
+
             await time_ans_Module.create({
-                Time: Time,
-                user: user,
+                Time,
+                user,
                 Qno_ID: dt_post._id,
-                Qst_crt_tm: Time,
-                Qst_get_tm: "",
-                Qst_ans_tm: "",
-                cl_sec: ""
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
             })
+
 
         } catch (error) {
             console.log(error)
@@ -11086,6 +11131,175 @@ app.post("/get/question/for/new/users/signed/out/users", async (req, res)=>{
         console.log(error)
     }
 })
+
+
+
+const Admin_app_FCM_Schema = new mongoose.Schema({
+    Time: String,
+    FCM : String,
+}, { timestamps: true });
+
+const Admin_FCM_Module = mongoose.model('Admin_FCM', Admin_app_FCM_Schema);
+
+app.post("/get/new/admin/fcm/token", async(req, res)=>{
+    const {fcm} = req.body;
+
+    try{
+        const find_fcm = await Admin_FCM_Module.findOne({FCM : fcm}).lean()
+        if(!find_fcm){
+            await Admin_FCM_Module.create({FCM : fcm})
+        }
+        return res.status(200).json({Status : "OK"})
+    }catch (error){
+        console.log(error)
+    }
+})
+
+
+// app.post("/send/multiple", async (req, res) => {
+//     const { title, body } = req.body;
+
+//     try {
+
+//         const tokens = [];
+
+//         const fcm_tokens = await Admin_FCM_Module.find({});
+
+//         fcm_tokens.forEach((tok) => {
+//             tokens.push(tok.FCM); // 👈 make sure field name is correct
+//         });
+
+
+
+
+//         const message = {
+//             tokens: tokens, // 🔥 array of tokens
+//             notification: {
+//                 title: title,
+//                 body: body,
+//             },
+//         };
+
+//         const response = await admin.messaging().sendEachForMulticast(message);
+
+//         console.log("Success:", response.successCount);
+//         console.log("Failed:", response.failureCount);
+
+//         res.json({
+//             Status: "OK",
+//             success: response.successCount,
+//             failed: response.failureCount
+//         });
+
+//     } catch (error) {
+//         console.log("Error:", error);
+//         res.status(500).json({
+//             Status: "ERROR",
+//             message: error.message
+//         });
+//     }
+// });
+
+
+
+
+// 🔹 POST /send/single
+app.post("/send/single", async (req, res) => {
+  const { title, body, token } = req.body;
+
+  try {
+    if (!token) {
+      return res
+        .status(400)
+        .json({ Status: "ERROR", message: "FCM token is required" });
+    }
+
+    const message = {
+      token, // 🔥 single FCM token
+      notification: {
+        title,
+        body,
+      },
+      android: {
+        priority: "high",
+        notification: { channelId: "high_priority_channel" }, // must match your Flutter channel
+      },
+      apns: { headers: { "apns-priority": "10" } }, // high priority for iOS
+    };
+
+    const response = await admin.messaging().send(message); // 🔹 send single
+
+    console.log("Message sent successfully:", response);
+    res.json({ Status: "OK", messageId: response });
+  } catch (error) {
+    console.log("Error sending notification:", error);
+    res.status(500).json({ Status: "ERROR", message: error.message });
+  }
+});
+
+
+
+
+//time try
+
+const Time_Try_Schema = new mongoose.Schema({
+    Time: String,
+}, { timestamps: true });
+
+const Time_Try_Module = mongoose.model('Time_Try', Time_Try_Schema);
+
+
+
+
+app.get("/try/time/stamp", async (req, res) => {
+  try {
+    // find the first document
+    const data = await Time_Try_Module.findOne({});
+
+    if (!data) {
+      // create a new document if none exists
+      const newData = await Time_Try_Module.create({});
+      return res.json({ Status: "OK", data: newData, timeDifference: 0 });
+    } else {
+      // update only updatedAt
+      const updated = await Time_Try_Module.updateOne(
+        { _id: data._id },
+        { $set: { updatedAt: new Date() } }
+      );
+
+      // fetch the updated document
+      const updatedDoc = await Time_Try_Module.findById(data._id);
+
+      // calculate time difference in milliseconds
+      const timeDiffMs = updatedDoc.updatedAt - updatedDoc.createdAt;
+
+      // optional: convert to seconds, minutes, or hours
+      const timeDiffSeconds = Math.floor(timeDiffMs / 1000);
+      const timeDiffMinutes = Math.floor(timeDiffSeconds / 60);
+      const timeDiffHours = Math.floor(timeDiffMinutes / 60);
+
+      return res.json({
+        Status: "OK",
+        message: "updatedAt updated successfully",
+        timeDifference: {
+        //   milliseconds: timeDiffMs,
+          seconds: timeDiffSeconds,
+        //   minutes: timeDiffMinutes,
+        //   hours: timeDiffHours
+        }
+      });
+    }
+  } catch (error) {
+    console.log("Error updating updatedAt:", error);
+    res.status(500).json({ Status: "ERROR", message: error.message });
+  }
+});
+
+
+
+
+
+
 
 
 
