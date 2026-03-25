@@ -250,7 +250,7 @@ app.post(
 
 
 app.use(cors({
-    // origin: ["https://stawro.com", "https://www.stawro.com", "http://localhost:3000"],
+    // origin: ["https://stawro.com", "https://www.stawro.com", "http://192.168.31.133:3000"],
     origin : "*",
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
@@ -4894,7 +4894,7 @@ const Error_Catch_Module = mongoose.model('Errors', Error_Catch_Schema);
 
 
 
-
+//24-03-2026
 app.get("/get/question/no/by/user/name/bf/all/xx", authMiddleware, async (req, res) => {
     const user = req.user;
     try {
@@ -4955,6 +4955,7 @@ app.get("/get/question/no/by/user/name/bf/all/xx", authMiddleware, async (req, r
 
                     if (get_fetch_data.Qst_get_tm === "n") {
                         get_fetch_data.Qst_get_tm = new Date()
+                        get_fetch_data.createdAt = new Date()
                         await get_fetch_data.save()
                     }
 
@@ -11047,9 +11048,14 @@ app.post("/get/question/for/new/users/signed/out/users/qstion", async (req, res)
     try{
         const data_find = await Uniq_new_user_module.findOne({user : u_id}).lean()
         if(!data_find){
-            const data = await QuestionModule.findOne({u_id})
-            console.log(data)
+            const data = await QuestionModule.findOne({ user : u_id})
             if(data){
+                const get_fetch_data = await time_ans_Module.findOne({user : u_id, Qno_ID : data._id})
+
+                if (get_fetch_data.Qst_get_tm === "n") {
+                    get_fetch_data.Qst_get_tm = new Date()
+                    await get_fetch_data.save()
+                }
                 return res.status(200).json({Status : "OK" , data})
             }
             return res.status(200).json({Status : "NO_EXI"})
@@ -11059,39 +11065,81 @@ app.post("/get/question/for/new/users/signed/out/users/qstion", async (req, res)
     }
 })
 
-app.post("/get/question/for/new/users/signed/out/users/verify/qst", async (req, res)=>{
-    const {u_id, sec, ans} = req.body;
 
-    try{
-        const find_user_doc = await Uniq_new_user_module.findOne({user : u_id})
+app.post("/get/question/for/new/users/signed/out/users/verify/qst", async (req, res) => {
+  const { u_id, sec, ans, q_id } = req.body;
 
-        if(find_user_doc) return res.status(200).json({Status : "IN"})
+  try {
+    // 🔍 Find data
+    const find_user_doc = await Uniq_new_user_module.findOne({ user: u_id });
+    const fetch_cal = await time_ans_Module.findOne({ Qno_ID: q_id });
 
-        const find_qst_data = await QuestionModule.findOne({user : u_id})
-
-        function compareHash(plainText, hash) {
-            const plainHash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(plainText.toString())
-                .digest("hex");
-            return plainHash === hash;
-        }
-
-        const check_ans = compareHash(ans, find_qst_data.Ans)
-
-        if(check_ans){
-            await Uniq_new_user_module.create({user : u_id, star : parseInt(sec)*10})
-            // const add_stars = await Uniq_new_user_module.findOne({user : u_id})
-            return res.status(200).json({Status : "OK"})
-        }else{
-            return res.status(200).json({Status : "Ok"})
-        }
-
-    }catch (error){
-        console.log(error)
+    if (!fetch_cal) {
+      return res.status(404).json({ Status: "Timer Data Not Found" });
     }
-})
 
+    // ⏱ Update timing
+    const now = new Date();
+    fetch_cal.Qst_ans_tm = now;
+    fetch_cal.updatedAt = now;
+
+    const timeDiffSeconds = Math.floor((now - fetch_cal.createdAt) / 1000);
+    fetch_cal.r_sec = timeDiffSeconds;
+    fetch_cal.cl_sec = sec;
+
+    await fetch_cal.save();
+
+    // 🚨 Cheating check
+    if (timeDiffSeconds > 25) {
+      return res.status(200).json({ Status: "Cheated" });
+    }
+
+    // 📦 Get question data
+    const find_qst_data = await QuestionModule.findOne({ user: u_id });
+
+    if (!find_qst_data) {
+      return res.status(404).json({ Status: "Question Not Found" });
+    }
+
+    // 🔐 Compare hash
+    function compareHash(plainText, hash) {
+      const plainHash = crypto
+        .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+        .update(plainText.toString())
+        .digest("hex");
+
+      return plainHash === hash;
+    }
+
+    const check_ans = compareHash(ans, find_qst_data.Ans);
+
+    // ✅ If correct
+    if (check_ans) {
+      const reward = parseInt(sec) * 10;
+
+      await Uniq_new_user_module.create({
+        user: u_id,
+        star: reward
+      });
+
+      return res.status(200).json({
+        Status: "OKK",
+        rupee: reward
+      });
+    }
+
+    // ❌ If wrong
+    await Uniq_new_user_module.create({
+      user: u_id,
+      star: 0
+    });
+    return res.status(200).json({ Status: "OK" });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ Status: "Server Error" });
+  }
+});
 
 app.post("/get/question/for/new/users/signed/out/users", async (req, res)=>{
     const {u_id} = req.body;
@@ -11124,7 +11172,6 @@ app.post("/get/question/for/new/users/signed/out/users", async (req, res)=>{
             return res.status(200).json({Status : "OK"})
 
         }else{
-            console.log(data_find)
             return res.status(200).json({Status : "IN"})
         }
     }catch (error){
