@@ -82,6 +82,16 @@ const Time_2 = Time.toLocaleString("en-US", {
 
 
 
+const qst_gen = [
+            One(), Two(), Three(), Four(), Five(), Six(),
+            Seven(), Eight(), Nine(), Ten(), 
+            // Eleven(), Tweleve(), Thirteen(),
+            // Fourteen(), Fifteen(), Sixteen()
+            // Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),
+        ];
+
+
+
 app.post(
     "/razorpay/webhook",
     express.raw({ type: "application/json" }),
@@ -250,7 +260,7 @@ app.post(
 
 
 app.use(cors({
-    // origin: ["https://stawro.com", "https://www.stawro.com", "http://192.168.31.133:3000"],
+    // origin: ["https://stawro.com", "https://www.stawro.com", "https://kalanirdhari.in:3000"],
     origin : "*",
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
@@ -354,7 +364,7 @@ const generateOTP = () => {
 //https end
 
 app.get('/', (req, res) => {
-    res.send('Hello, world Vs : 17.0.0 ; Last Updated : 20-03-2026 ; Type : Live');
+    res.send('Hello, world Vs : 19.0.0 ; Last Updated : 26-03-2026 ; Type : Live');
 });
 
 
@@ -511,6 +521,8 @@ async function add_stars_to_new_loged_in_users(u_id, user) {
             await StarBalSchema.create({Time, user, balance : data_find.star})
             await History_star(user, data_find.star)
             await QuestionModule.findOneAndDelete({user : u_id})
+            data_find.star = "0"
+            await data_find.save()
         }
     }
 }
@@ -3860,40 +3872,8 @@ async function profit_cal_data_update(user, from, to){
 
 }
 
-async function lest_answrd_cat_sec(user){
-    const data = await sng_qst_20_Module.findOne({
-        user: user,
-        lst_sec : { $lte: 3 } //it will get <= 3 to make them lose
-    });
-    if(data){
-        return {
-            cat : data.cat,
-            ob : data.ob,
-            lst_sec : data.lst_sec
-        }
-    }
-
-    return "none"
-
-}
 
 
-async function highest_answrd_cat_sec(user){
-    const data = await sng_qst_20_Module.findOne({
-        user: user,
-        lst_sec : { $gt: 3 } //it will get > 3 to make them profit
-    });
-    if(data){
-        return {
-            cat : data.cat,
-            ob : data.ob,
-            lst_sec : data.lst_sec
-        }
-    }
-
-    return "none"
-
-}
 
 
 
@@ -3976,41 +3956,54 @@ async function new_user(user) {
 
 
 
-async function get_cat_in_out(user, start_fees) {//Make run before Amount Debit from Account
-    const get_win_data = await Wonmodule.findOne({ user }).lean()
+async function get_cat_in_out(user, start_fees, sec, x ) {//Make run before Amount Debit from Account
     const user_balance = await Balancemodule.findOne({ user }).lean()
     const get_profit = await Profit_cal_Module.findOne({ user }).lean()
+    const randomFunction = qst_gen[Math.floor(Math.random() * qst_gen.length)];
 
     if(!get_profit){
         //make him win because he was an new user make him win 50 rupees
-
+        console.log("5 sec")
+        randomFunction(105, user, "1", sec, "5", x)
+s
     }
 
-    profit_num = parseInt(get_profit.out) - parseInt(get_profit.in) //loss calculating
-    profit_per = (profit_num / parseInt(get_profit.in)) * 100//loss calculating in %
+    const profit_num = parseInt(get_profit.out) - parseInt(get_profit.in) //loss calculating
+    const profit_per = (profit_num / parseInt(get_profit.in)) * 100//loss calculating in %
 
     if (user_balance.balance <= start_fees) { //balance is low
         if (parseInt(get_profit.in) < parseInt(get_profit.out)) { //user fees < Reward
 
             if (profit_per > 50) { //if loss is > 50 make him lose
-                const data = await lest_answrd_cat_sec(user)
+                console.log("0 sec")
+                randomFunction(105, user, "1", sec, "0", x)
                 //make lose
             } else { //loss is lesserthan 50 make him win
                 //make win
+                console.log("3 sec")
+                randomFunction(105, user, "1", sec, "3", x)
             }
         } else { //user fees > Reward  user not yet get Profit
+            console.log("5 sec")
+            randomFunction(105, user, "1", sec, "5", x)
             //Make him Win
         }
     } else { //balance is high
         if (parseInt(get_profit.in) < parseInt(get_profit.out)) { //user fees < Reward
             if(profit_per > 50){
                 //make him loose {make increase puzzel}
+                console.log("0 sec")
+                randomFunction(105, user, "1", sec, "0", x)
             }else{
+                console.log("0 sec")
+                randomFunction(105, user, "1", sec, "0", x)
                 //Make him check his Talent [Dont make change anything just keep parent created puzzel constant]
                 //{make leave alone dont make anything change increse or decreas puzzel}
             }
 
         } else {
+            console.log("2 sec")
+            randomFunction(105, user, "1", sec, "2", x)
             //Make him win at last second {1, 2 seconds}
         }
 
@@ -4894,8 +4887,97 @@ const Error_Catch_Module = mongoose.model('Errors', Error_Catch_Schema);
 
 
 
-//24-03-2026
+//24-03-2026 v 0.0.0
 app.get("/get/question/no/by/user/name/bf/all/xx", authMiddleware, async (req, res) => {
+    const user = req.user;
+    try {
+
+
+        if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
+
+
+        // Fetch the user's validity status from StartValidmodule
+        const Data = await StartValidmodule.findOne({ user });
+        // Fetch the user's question list from QuestionListmodule
+        const Get_Qno_info = await QuestionListmodule.findOne({ user }).lean();
+
+        // Check if the user is valid and has a question list
+        if (Data && Data.valid === "yes") {
+            if (Get_Qno_info && Get_Qno_info.list.length >= 0) {
+                // Get the first question number from the list
+                const QNO = Get_Qno_info.list[0];
+
+                if(!QNO || QNO === undefined || QNO === "" || QNO === null){
+                    Data.valid = "No"
+                    await Data.save()
+                    await refund()
+                    await Error_Catch_Module.create({Time, user, Type : QNO, Text : "Error may be occurs due to QNO Undefined are some data Missing", api : "/get/question/no/by/user/name/bf/xx", Where : "On Finding Question Number" })
+                    return res.status(200).json({Status : "EXIT"})
+                }
+
+                const Qno = await QuestionModule.findOne({ Qno: QNO.toString(), user: user }).lean();
+
+                if(!Qno || Qno === undefined || Qno === "" || Qno === null){
+                    Data.valid = "No"
+                    await Data.save()
+                    await refund()
+                    await Error_Catch_Module.create({Time, user, Type : QNO, Text : "Error may be occurs due to QNO Undefined are some data Missing", api : "/get/question/no/by/user/name/bf/xx", Where : "On Finding Question Number" })
+                    return res.status(200).json({Status : "EXIT"})
+                }
+
+                // if(parseInt(sec_cal) > 50){
+                //     return res.status(200).json({Status : "BAD"})
+                // }
+
+
+                if (Qno) {
+                    // Construct the response data
+                    const data = {
+                        _id: Qno._id,
+                        img: Qno.img,
+                        Qno: Qno.Qno,
+                        Question: Qno.Questio,
+                        options: Qno.options,
+                        seconds: Qno.seconds,
+                        Ans: Qno.Ans,
+                        cat: Qno.sub_lang,
+                        tough: Qno.tough
+                    };
+
+                    const get_fetch_data = await time_ans_Module.findOne({user, Qno_ID : Qno._id})
+
+                    if (get_fetch_data.Qst_get_tm === "n") {
+                        get_fetch_data.Qst_get_tm = new Date()
+                        get_fetch_data.createdAt = new Date()
+                        await get_fetch_data.save()
+                    }
+
+                    console.log(data);
+
+                    return res.status(200).json({ data });
+
+                } else {
+                    await Error_Catch_Module.create({Time, user, Type : QNO, Text : "No Qno Data Found then this will occurs", api : "/get/question/no/by/user/name/bf/xx", Where : "at [No Question Found.] " })
+                    return res.status(404).json({ Status: "BAD", message: "No Question Found."});
+                }
+            } else {
+                return res.status(202).json({ Status: "BAD", message: "No Question Found.."});
+            }
+        } else {
+            return res.status(202).json({ Status: "BAD", message: "Not Valid to Yes"});
+        }
+    } 
+    catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message, id: "Some Erorr" });
+    }
+});
+
+
+
+
+//24-03-2026 v 0.0.1
+app.get("/get/question/no/by/user/name/bf/all/xx/1", authMiddleware, async (req, res) => {
     const user = req.user;
     try {
 
@@ -6114,26 +6196,26 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
 
         const Answer_Verify = await QuestionModule.findById({ _id: id })
 
-        console.log(Answer_Verify)
         let up_sec_lst = await sng_qst_20_Module.findOne({
-            user,
-            cat: Answer_Verify.sub_lang
-        });
-
-        if (!up_sec_lst) {
-            up_sec_lst = await sng_qst_20_Module.create({
                 user,
-                cat: Answer_Verify.sub_lang,
-                yes: [],
-                no: [],
-                lst_sec: "0",
-                lst_q_id : Answer_Verify._id
+                cat: Answer_Verify.sub_lang
             });
-        }
+
+            if (!up_sec_lst) {
+                up_sec_lst = await sng_qst_20_Module.create({
+                    user,
+                    cat: Answer_Verify.sub_lang,
+                    yes: [],
+                    no: [],
+                    lst_sec: timeDiffSeconds,
+                    lst_q_id: Answer_Verify._id
+                });
+            }
+
+        
 
         const User_List = await QuestionListmodule.findOne({ user })
 
-        console.log(`Answer is ${check_ans}`)
 
         const data_clt = await monitor_cal_data_Module.findOne({cat : Answer_Verify.sub_lang})
 
@@ -6144,8 +6226,12 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
 
         if(timeDiffSeconds > 25) res.status(200).json({Status : "Cheated"})
 
+        
+
 
         if (check_ans ) {
+
+            
 
             await data_clt.updateOne(
                 {}, // since only one document exists
@@ -9461,11 +9547,8 @@ function One() {
 
 
             const cat_count = await calcccc_cc("Total Boxes [Comp]", 40)
-
-
-
-
-            const difficulty = getDifficultiesByPer(cat_count); //fix 40 1931
+            const na = parseInt(cat_count) - (parseInt(sum)*3) //3 means it takes 1 seconds to make check the 3 boxes
+            const difficulty = getDifficultiesByPer(na); //fix 40 1931
             const boxes = generateBoxesData(difficulty);
 
             // ✅ REAL ANSWER (NOT CONFIG)
@@ -9529,7 +9612,8 @@ function Two() {
         try {
 
             const cat_count = await calcccc_cc("Total Boxes [Broken]", 40)
-            const difficulty = getDifficultiesByPer_two(cat_count); //fix 40 1931
+            const na = parseInt(cat_count) - (parseInt(sum)*3)
+            const difficulty = getDifficultiesByPer_two(na); //fix 40 1931
             const { boxes, brokenCount } = generateBoxesData_two(difficulty);
 
             const imageBuffer = drawImage_two(boxes);
@@ -9593,7 +9677,8 @@ function Three(){
 
 
             const cat_count = await calcccc_cc("Stars [Broken]", 60)
-            const puzzle = generatePuzzle_three(cat_count); //fix 60 1931
+            const na = parseInt(cat_count) - (parseInt(sum)*3)
+            const puzzle = generatePuzzle_three(na); //fix 60 1931
 
             // convert base64 → image
 
@@ -9653,7 +9738,8 @@ function Four(){
         try {
 
             const cat_count = await calcccc_cc("Stars [Comp]", 50)
-            const puzzle = generatePuzzle_four(cat_count); //fix 50 1931
+            const na = parseInt(cat_count) - (parseInt(sum)*3)
+            const puzzle = generatePuzzle_four(na); //fix 50 1931
 
             // res.json({
             //     title: "Stars [Comp]",
@@ -9712,7 +9798,8 @@ function Five(){
         try {
 
             const cat_count = await calcccc_cc("Triangle [Broken]", 50)
-            const puzzle = generatePuzzle_five(cat_count); //50 fix 1931-1
+            const na = parseInt(cat_count) - (parseInt(sum)*3)
+            const puzzle = generatePuzzle_five(na); //50 fix 1931-1
 
             // convert base64 → image
             // const buffer = Buffer.from(puzzle.image, "base64");
@@ -9776,7 +9863,8 @@ function Six(){
         try {
 
             const cat_count = await calcccc_cc("Triangle [Comp]", 50)
-            const puzzle = generatePuzzle_six(cat_count); //50 fix 1931
+            const na = parseInt(cat_count) - (parseInt(sum)*3) //3 means it takes 1 seconds to make check the 3 boxes
+            const puzzle = generatePuzzle_six(na); //50 fix 1931
 
             // convert base64 → image
             // const buffer = Buffer.from(puzzle.image, "base64");
@@ -9839,7 +9927,8 @@ function Seven(){
         try {
 
             const cat_count = await calcccc_cc("Circels [Comp]", 55)
-            const puzzle = generatePuzzle_seven(cat_count); //fix 55 1931
+            const na = parseInt(cat_count) - (parseInt(sum)*3) //3 means it takes 1 seconds to make check the 3 boxes
+            const puzzle = generatePuzzle_seven(na); //fix 55 1931
 
             // res.json({
             //     title: "Circels [Comp]",
@@ -9899,7 +9988,8 @@ function Eight() {
         try {
 
             const cat_count = await calcccc_cc("Circels [Broken]", 50)
-            const puzzle = generatePuzzle_eight(cat_count); //fix 50
+            const na = parseInt(cat_count) - (parseInt(sum)*3) //3 means it takes 1 seconds to make check the 3 boxes
+            const puzzle = generatePuzzle_eight(na); //fix 50
 
             // convert base64 → image
 
@@ -9958,7 +10048,8 @@ function Nine() {
     return async function (level, user, qno, sec, sum, x) {
         try {
             const cat_count = await calcccc_cc("[Circels and Triangles] Comp", 40)
-            const puzzle = generatePuzzle_complete_nine(cat_count); //40 fix 1931
+            const na = parseInt(cat_count) - (parseInt(sum)*3) //3 means it takes 1 seconds to make check the 3 boxes
+            const puzzle = generatePuzzle_complete_nine(na); //40 fix 1931
 
             // convert base64 → image
 
@@ -10018,7 +10109,8 @@ function Ten() {
     return async function (level, user, qno, sec, sum, x) {
         try {
             const cat_count = await calcccc_cc("[Circels and Triangles] Broken", 40)
-            const puzzle = generatePuzzle_broken_ten(cat_count);
+            const na = parseInt(cat_count) - (parseInt(sum)*3) //3 means it takes 1 seconds to make check the 3 boxes
+            const puzzle = generatePuzzle_broken_ten(na);
 
             // convert base64 → image
 
@@ -10327,7 +10419,8 @@ app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req
 
 
 
-app.post('/start/playing/by/debit/amount/new/all/xx/main', authMiddleware, async (req, res) => {
+//25-03-2026 1948 main v 0.0.0
+app.post('/start/playing/by/debit/amount/new/all/xx/main/1', authMiddleware, async (req, res) => {
     const user = req.user;
     if (!user) return res.status(400).json({ Status: "s_m", message: "Some Data Missing" });
 
@@ -10535,6 +10628,211 @@ app.post('/start/playing/by/debit/amount/new/all/xx/main', authMiddleware, async
         return res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 });
+
+//v 0.0.1
+app.post('/start/playing/by/debit/amount/new/all/xx/main', authMiddleware, async (req, res) => {
+    const user = req.user;
+    if (!user) return res.status(400).json({ Status: "s_m", message: "Some Data Missing" });
+
+    try {
+
+
+        const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
+        
+
+        if (status?.Status === "off") {
+            return res.status(200).json({ Status: "Time", message: status.text });
+        }
+
+        await StartValidmodule.findOneAndDelete({user : user})
+
+        
+
+
+
+        const lang_data = await LanguageSelectModule.findOne({ user }).lean();
+        const balance = await Balancemodule.findOne({ user }); // ac balance
+        const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
+
+        if (!lang_data || !lang_data.lang) throw new Error("No language data found");
+
+        if (!balance) return res.status(200).json({ Status: "no_us" });
+
+        const balanceNum = parseInt(balance.balance);
+        const feesNum = parseInt(10);
+
+        if (balanceNum < feesNum) {
+            return res.status(200).json({ Status: "Low-Bal" });
+        }
+
+        // const get_per = (won_data / (total_play || 1)) * 100;
+
+
+        
+        let create_data = await QuestionListmodule.findOne({ user }); //i this this was useless
+
+        
+
+        await QuestionModule.deleteMany({ user }); //make add this in logics remove this from here
+
+        const _dec_bal = await Balancemodule.findOne({ user });
+
+        
+
+        
+
+        get_cat_in_out(user, "10", "20", "10")
+        // const randomFunction = qst_gen[Math.floor(Math.random() * qst_gen.length)];
+
+        //make continue from here work 4831
+
+
+        
+
+        // randomFunction(105, user, "1", "20", "0", "10")
+        
+        
+
+        
+
+        //105 = per
+        //user = user
+        //1 = question number
+        //20 = seconds
+        //0 = minus - 0
+
+
+
+        // shuffled.forEach((data, i) => {
+        //     const num = (i + 1).toString();
+        //     dif.push(num);
+        //     const lvl = dif_l[i]
+        //     //make easy before creating add some logics
+        //     data(lvl, user, num, "20", "1")
+        // });
+
+        
+
+
+        if (!create_data) {
+            create_data = await QuestionListmodule.create({
+                user,
+                Time,
+                lang: lang_data.lang[0],
+                list: ["1"],
+                oldlist: ["1"],
+            });
+        }
+
+
+        await Promise.all([
+
+            StartValidmodule.create({ Time, user, valid: "yes" }),
+            Totalusermodule.create({ Time, user }),
+            Historymodule.create({ Time, user, rupee: feesNum, type: "Debited", tp: "Rupee" }),
+            QuestionListmodule.updateOne(
+                { user: user },
+                {
+                    $set: { list: "1" },
+                    $push: { oldlist: "1" },
+                }
+            )
+        ]);
+
+
+        // const _to_str_up_rp = balanceNum - feesNum
+
+        
+
+        if (_dec_bal) {
+            const currentBal = parseInt(_dec_bal.balance);
+            const updatedBal = currentBal - feesNum;
+
+            _dec_bal.balance = updatedBal.toString(); // ✅ convert number to string
+            await _dec_bal.save();
+            await profit_cal_data_update(user, feesNum, "0" )
+        }
+
+        const wal_cnt_mod = await Amount_walet_count_Module.findOne({ user: "kick" });
+
+        if (wal_cnt_mod) {
+            wal_cnt_mod.count = parseInt(wal_cnt_mod.count) + feesNum;
+
+            wal_cnt_mod.user_id.push({
+                Time,
+                user,
+                rupee: feesNum,
+            });
+
+            await wal_cnt_mod.save();
+        } else {
+            await Amount_walet_count_Module.create({
+                Time,
+                user: "kick",   // <-- ADD THIS
+                count: feesNum,
+                user_id: [{
+                    Time,
+                    user,
+                    rupee: feesNum
+                }]
+            });
+        }
+
+
+        // ✅ Convert updated balance back to string
+        const updatedBal = await Balancemodule.findOne({ user });
+
+        if (typeof updatedBal.balance === "number") {
+            await Balancemodule.updateOne(
+                { user },
+                { $set: { balance: updatedBal.balance.toString() } }
+            );
+        }
+
+        const balance_to_admin_account = await Amount_Count_Module.findOne({ user: "kick" });
+
+        if (balance_to_admin_account) {
+            balance_to_admin_account.count = parseInt(balance_to_admin_account.count) + parseInt(feesNum)
+            await balance_to_admin_account.save()
+        } else {
+            await Amount_Count_Module.create({ Time, user: "kick", count: feesNum })
+        }
+
+
+
+
+
+
+        const count = await QuestionModule.countDocuments({ user });
+        if (count === 1) {
+            console.log("✅ Finished successfully");
+            return res.status(200).json({ Status: "OK" });
+        }else{
+            console.log("amount credited")
+            const bal_dt = await Balancemodule.findOne({ user: user })
+            const lat = parseInt(bal_dt.balance) + parseInt(feesNum)
+            await QuestionModule.deleteMany({ user })
+            bal_dt.balance = lat.toString()
+            await bal_dt.save()
+            console.log("BAD")
+            await Historymodule.create({
+                Time,
+                user,
+                rupee: feesNum,
+                type: "Credited",
+                tp: "Rupee",
+            });
+            return res.status(200).json({ Status: "BAD_CR" })
+        }
+
+        
+
+    } catch (error) {
+        console.error("❌ Main Catch Error:", error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+});
+
 
 
 
@@ -10884,32 +11182,32 @@ app.get("/get/latest/won/stars/data", adminMiddleware, async (req, res)=>{
 
 
 
-app.get("/add/balance/to/all/user", async (req, res) => {
-    try {
-        const fetch_all = await Balancemodule.find({});
-        const amount_to_add = 10
+// app.get("/add/balance/to/all/user", async (req, res) => {
+//     try {
+//         const fetch_all = await Balancemodule.find({});
+//         const amount_to_add = 10
 
-        for (let element of fetch_all) {
-            let currentBalance = Number(element.balance) || 0; // convert string to number safely
-            element.balance = currentBalance + amount_to_add;
-            await History(element.user, `${amount_to_add}`)
-            await element.save();
-        }
+//         for (let element of fetch_all) {
+//             let currentBalance = Number(element.balance) || 0; // convert string to number safely
+//             element.balance = currentBalance + amount_to_add;
+//             await History(element.user, `${amount_to_add}`)
+//             await element.save();
+//         }
 
-        const updated = await Balancemodule.find({});
-        const Data = updated.map(el => ({
-            User: el.user,
-            Balance: el.balance
-        }));
+//         const updated = await Balancemodule.find({});
+//         const Data = updated.map(el => ({
+//             User: el.user,
+//             Balance: el.balance
+//         }));
 
-        return res.status(200).json({ Status: "SUCCESS", Data });
-    } catch (error) {
-        console.error("Update route error:", error);
-        return res
-            .status(500)
-            .json({ Status: "SERVER_ERR", message: "Failed to process request" });
-    }
-});
+//         return res.status(200).json({ Status: "SUCCESS", Data });
+//     } catch (error) {
+//         console.error("Update route error:", error);
+//         return res
+//             .status(500)
+//             .json({ Status: "SERVER_ERR", message: "Failed to process request" });
+//     }
+// });
 
 
 app.post("/verify/answer/question/number/m", async (req, res)=>{
@@ -11148,7 +11446,6 @@ app.post("/get/question/for/new/users/signed/out/users", async (req, res)=>{
         if(!u_id || u_id === undefined || u_id === null) return res.status(200).json({message : "Some Data Missing"})
 
 
-        console.log(u_id)
         const data_find = await Uniq_new_user_module.findOne({user : u_id}).lean()
         if(!data_find){
             const qst_gen = [
