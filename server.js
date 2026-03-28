@@ -38,25 +38,25 @@ app.use(express.static('public'))
 // app.use(express.json());
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+    credential: admin.credential.cert(serviceAccount),
 });
 
 
 
 function getNow() {
-  return {
-    ts: Date.now(), // milliseconds (for calculation)
-    readable: new Date().toLocaleString("en-US", {
-      timeZone: "Asia/Kolkata",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: true
-    })
-  };
+    return {
+        ts: Date.now(), // milliseconds (for calculation)
+        readable: new Date().toLocaleString("en-US", {
+            timeZone: "Asia/Kolkata",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: true
+        })
+    };
 }
 
 
@@ -70,25 +70,25 @@ const Time = new Date().toLocaleString("en-US", {
 
 
 const Time_2 = Time.toLocaleString("en-US", {
-  timeZone: "Asia/Kolkata",
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  second: "2-digit",
-  hour12: true
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true
 });
 
 
 
 const qst_gen = [
-            One(), Two(), Three(), Four(), Five(), Six(),
-            Seven(), Eight(), Nine(), Ten(), 
-            // Eleven(), Tweleve(), Thirteen(),
-            // Fourteen(), Fifteen(), Sixteen()
-            // Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),
-        ];
+    One(), Two(), Three(), Four(), Five(), Six(),
+    Seven(), Eight(), Nine(), Ten(),
+    // Eleven(), Tweleve(), Thirteen(),
+    // Fourteen(), Fifteen(), Sixteen()
+    // Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),
+];
 
 
 
@@ -247,6 +247,7 @@ app.post(
                 cred_to.ac_deb = "Yes";
                 await cred_to.save();
             }
+            await admin_noti(`₹${rp_i} credited to Razorpay`, `User Added ₹${rp_i} to Wallet`)
 
 
             console.log(`✅ ₹${rp_i} credited to user: ${user}`);
@@ -261,7 +262,7 @@ app.post(
 
 app.use(cors({
     // origin: ["https://stawro.com", "https://www.stawro.com", "https://kalanirdhari.in:3000"],
-    origin : "*",
+    origin: "*",
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
@@ -364,7 +365,7 @@ const generateOTP = () => {
 //https end
 
 app.get('/', (req, res) => {
-    res.send('Hello, world Vs : 19.0.0 ; Last Updated : 26-03-2026 ; Type : Live');
+    res.send('Hello, world Vs : 23.0.0 ; Last Updated : 26-03-2026 ; Type : Live');
 });
 
 
@@ -374,13 +375,13 @@ app.get('/ip', (req, res) => {
 });
 
 
-app.get("/verify", authMiddleware, async (req, res)=>{
-    try{
+app.get("/verify", authMiddleware, async (req, res) => {
+    try {
         console.log("In", req.user)
-        res.status(200).json({Status : "OK"})
-    }catch(error){
+        res.status(200).json({ Status: "OK" })
+    } catch (error) {
         console.log(error)
-        return res.status(400).json({ message : "Something went Wrong"})
+        return res.status(400).json({ message: "Something went Wrong" })
     }
 })
 
@@ -513,19 +514,20 @@ const User_s_OTP_module = mongoose.model('Users_OTP', user_s_otpSchema);
 
 
 //call this after account create because we need user var
-async function add_stars_to_new_loged_in_users(u_id, user) { 
-    const data_find = await Uniq_new_user_module.findOne({user : u_id})
-    if(data_find){
-        const fetch_star_bal = await StarBalmodule.findOne({user}).lean()
-        if(!fetch_star_bal){
-            await StarBalSchema.create({Time, user, balance : data_find.star})
+async function add_stars_to_new_loged_in_users(u_id, user) {
+    const data_find = await Uniq_new_user_module.findOne({ user: u_id })
+    if (data_find) {
+        const fetch_star_bal = await StarBalmodule.findOne({ user }).lean()
+        if (!fetch_star_bal) {
+            await StarBalmodule.create({ Time, user, balance: data_find.star })
             await History_star(user, data_find.star)
-            await QuestionModule.findOneAndDelete({user : u_id})
+            await QuestionModule.findOneAndDelete({ user: u_id })
             data_find.star = "0"
             await data_find.save()
         }
     }
 }
+
 
 
 app.post('/post/google/auth', async (req, res) => {
@@ -576,6 +578,8 @@ app.post('/post/google/auth', async (req, res) => {
             });
 
             await new_user(user)
+
+            await admin_noti("New Account Created", `${username} , Created New Account`)
 
             return res.status(200).json({
                 Status: "OK",
@@ -630,15 +634,15 @@ app.post('/post/new/google/user', async (req, res) => {
 
 
 async function fisrt_time_user(user) {
-    const check_balance = await Balancemodule.findOne({user}).lean()
-    if(!check_balance){
-        await Balancemodule.create({user, balance : "10", Time, last_tr_id : "Free Credit"})
+    const check_balance = await Balancemodule.findOne({ user }).lean()
+    if (!check_balance) {
+        await Balancemodule.create({ user, balance: "10", Time, last_tr_id: "Free Credit" })
     }
 
-    const check_lang = await LanguageSelectModule.findOne({user}).lean()
+    const check_lang = await LanguageSelectModule.findOne({ user }).lean()
 
-    if(!check_lang){
-        await LanguageSelectModule.create({lang : ["English"], Time, user})
+    if (!check_lang) {
+        await LanguageSelectModule.create({ lang: ["English"], Time, user })
     }
 }
 
@@ -680,65 +684,6 @@ app.post('/post/google/login', async (req, res) => {
 
 
 
-app.post('/get/new/otp/to/verify', async (req, res) => {
-    const { data } = req.body;
-    try {
-
-        if (!data) return res.status(400).json({ message: "Some Data Missing" })
-        const user = await Usermodule.findOne({
-            $or: [{ username: data.trim() }, { email: data.trim() }]
-        }).lean();
-        const OTP = generateOTP();
-        if (user.valid === "no") {
-            const otp_get = await User_s_OTP_module.findOne({ username: user.username })
-            if (otp_get) {
-                await otp_get.deleteOne();
-            } else {
-                const otpData = await User_s_OTP_module.create({ Time, username: user.username, otp: OTP });
-
-                let mailOptions = {
-                    from: "stawropuzzle@gmail.com",
-                    to: user.email,
-                    subject: "Congratulations, your account has been successfully created on stawro.",
-                    html: `
-                    <html lang="en">
-                        <head>
-                            <meta charset="UTF-8">
-                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                            <title>stawro Account Verification</title>
-                        </head>
-                        <body>
-                            <div>
-                                <h2>Welcome to stawro, ${user.username}!</h2>
-                                <p>Your account has been successfully created. Please verify your email using the OTP below:</p>
-                                <h3>OTP: ${otpData.otp}</h3>
-                                <p>After verification, you can access the login page by clicking the link below:</p>
-                                <a href="https://www.stawro.com/login" target="_blank">Login</a>
-                                <p>Thank you for joining us!</p>
-                            </div>
-                        </body>
-                    </html>
-                    `,
-                };
-
-                // Send email
-                transporter.sendMail(mailOptions, (error, info) => {
-                    if (error) {
-                        console.error("Error sending email:", error);
-                        return res.status(200).json({ Status: "EMAIL_ERR", message: "Failed to send email." });
-                    }
-
-                    return res.status(200).json({ Status: "OK", message: "User registered successfully. OTP sent via email." });
-                });
-
-            }
-        }
-    } catch (error) {
-        console.error("Error during OTP verification:", error);
-        return res.status(500).json({ message: "Internal Server Error." });
-    }
-})
-
 const BalanceSchema = new mongoose.Schema({
     Time: String,
     user: { type: String, required: true },
@@ -761,125 +706,6 @@ const my_money_Schema = new mongoose.Schema({
 }, { timestamps: true });
 
 const My_MoneyModule = mongoose.model('My_Money', my_money_Schema);
-
-
-app.post("/logout/data/app", async (req, res) => {
-    const { data } = req.body;
-    try {
-        if (!data) return res.status(400).json({ message: "Some Data Missing" })
-
-        const get_data = await FCMModule.findOne({ user_id: data })
-        if (get_data) {
-            get_data.FCM = "";
-            await get_data.save();
-            return res.status(200).json({ Status: "OK" })
-        } else {
-            const user = await Usermodule.findOne({ _id: data }).lean()
-            if (user) {
-                await FCMModule.create({ Time: new Date(), user: user.username, email: user.email, FCM: "", user_id: user._id });
-                return res.status(200).json({ Status: "OK" })
-            }
-            return res.status(200).json({ message: "No User Exist From This" })
-        }
-
-
-    } catch (error) {
-        console.error("Login Error:", error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
-})
-
-
-
-
-app.post('/login/data/app', async (req, res) => {
-    const { data, pass, FCM } = req.body;
-
-    try {
-
-        if (!data && !pass && !FCM) return res.status(400).json({ message: "Some Data Missing" })
-
-        // Find user by email or username
-
-        const user = await Usermodule.findOne({
-            $or: [{ username: data.trim() }, { email: data.trim() }]
-        }).lean();
-
-        if (!user) {
-            return res.status(402).json({ Status: "NO", message: "User not found" });
-        }
-
-        // Compare password
-        const isMatch = await bcrypt.compare(pass, user.pass);
-        if (!isMatch) {
-            return res.status(401).json({ Status: "BAD", message: "Invalid password" });
-        }
-
-        if (user.valid !== "yes") {
-            await User_s_OTP_module.deleteOne({ username: user.username });
-
-            const OTP = generateOTP();
-
-
-            const otpData = await User_s_OTP_module.create({
-                Time,
-                username: user.username,
-                otp: OTP
-            });
-
-            const mailOptions = {
-                from: "stawropuzzle@gmail.com",
-                to: user.email,
-                subject: "Resend OTP for Account Verification",
-                html: `
-                <html lang="en">
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>stawro Account Verification</title>
-                    </head>
-                    <body>
-                        <div>
-                            <h2>Hello ${user.username},</h2>
-                            <p>Your OTP for email verification is:</p>
-                            <h3>${otpData.otp}</h3>
-                            <p>Please use this OTP to complete your account verification.</p>
-                            <p>Thank you for choosing stawro!</p>
-                        </div>
-                    </body>
-                </html>`
-            };
-
-            try {
-                await transporter.sendMail(mailOptions);
-                return res.status(403).json({ Status: "NO-YES", user: user.username, email: user.email });
-            } catch (emailError) {
-                console.error("Error sending email:", emailError);
-                return res.status(500).json({ Status: "EMAIL_ERR", message: "Failed to send email." });
-            }
-        }
-
-        // Generate token
-        const token = jwt.sign({ id: user._id }, "kanna_stawro_founders_withhh_1931_liketha", { expiresIn: "365 days" });
-
-        // Update or create FCM token
-        await FCMModule.findOneAndUpdate(
-            { user: user.username },
-            { Time, user: user.username, email: user.email, FCM, user_id: user._id },
-            { upsert: true, new: true }
-        );
-
-        // Successful response
-        return res.status(200).json({ Status: "OK", token, user: user._id, username: user.username });
-    } catch (error) {
-        console.error("Login Error:", error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
-});
-
-
-
-
 
 
 
@@ -971,14 +797,14 @@ app.get("/get/acount/balence", authMiddleware, async (req, res) => {
 })
 
 
-app.get("/get/entry/fees" , async (req, res) => {
+app.get("/get/entry/fees", async (req, res) => {
 
     try {
 
         const data = await Rupeemodule.findOne({ username: "admin" }).lean();
         if (data) {
             console.log(data)
-            return res.status(200).json({ data})
+            return res.status(200).json({ data })
         } else {
             return res.status(202).json({ Status: "NO" })
         }
@@ -1088,13 +914,13 @@ app.get("/get/bank/account/data", authMiddleware, async (req, res) => {
     try {
         if (!user) return res.status(400).json({ Status: "NO", message: "Some Data Missing" })
 
-        const bal = await Balancemodule.findOne({user}).lean()
+        const bal = await Balancemodule.findOne({ user }).lean()
 
         const data = await UPImodule.findOne({ user: user }).lean()
-        
+
         if (data) {
-            return res.status(200).json({ data, balance : bal.balance })
-        }else{
+            return res.status(200).json({ data, balance: bal.balance })
+        } else {
             return res.status(202).json({ Status: "No" })
         }
 
@@ -1360,8 +1186,6 @@ app.get("/get/coins/by/id/cupons/by/apps/:id", async (req, res) => {
 
 
 
-
-
 app.post('/claim/reqst/coins/admin', authMiddleware, async (req, res) => {
     const { id } = req.body
     try {
@@ -1391,6 +1215,7 @@ app.post('/claim/reqst/coins/admin', authMiddleware, async (req, res) => {
             })
             await PendingNotimodule.create({ Time, user, idd: Bougt_Coin._id, type: "Coin", title: Bougt_Coin.title, sub: "pending" })
             await Bougt_Coin.deleteOne();
+            await admin_noti("Payment Pending", `${Bougt_Coin.title} to ${user}`)
             return res.status(200).json({ Status: "OK" })
 
         } else {
@@ -1873,7 +1698,7 @@ app.post('/verify/otp/and/pass/by/admin', async (req, res) => {
         const user = await AdminUsermodule.findOne({ username }).lean();
 
         if (!user) {
-            return res.status(200).json({ Status: "BAD", message : "User not Found" });
+            return res.status(200).json({ Status: "BAD", message: "User not Found" });
         }
 
         // const isPasswordCorrect = await bcrypt.compare(pass, user.pass);
@@ -1889,7 +1714,7 @@ app.post('/verify/otp/and/pass/by/admin', async (req, res) => {
                 return res.status(200).json({ Status: "OK", token });
             } else {
                 console.log(err)
-                return res.status(200).json({ Status: "BAD", message : "Wrong Password" });
+                return res.status(200).json({ Status: "BAD", message: "Wrong Password" });
             }
         })
 
@@ -2664,24 +2489,24 @@ const Amount_Count_Module = mongoose.model('Amount_admin', Amount_count_Schema);
 
 
 app.post("/verify/by/timed/out/data/v/fy", authMiddleware, async (req, res) => {
-  const {cat, q_id,  } = req.body;
-  const user = req.user; // assuming authMiddleware sets req.user
+    const { cat, q_id, } = req.body;
+    const user = req.user; // assuming authMiddleware sets req.user
 
-  try {
-    const data = sng_qst_20_Module.findOne({user, cat, lst_q_id : q_id})
-    if(data){
-        const lstsec = parseInt(data.lst_sec) - 1 //if user lost by time out it will decrs -1 seonds to make puzzel solble
-        data.update({$set : {lst_sec : lstsec, lst_q_id : "" }})
+    try {
+        const data = sng_qst_20_Module.findOne({ user, cat, lst_q_id: q_id })
+        if (data) {
+            const lstsec = parseInt(data.lst_sec) - 1 //if user lost by time out it will decrs -1 seonds to make puzzel solble
+            data.update({ $set: { lst_sec: lstsec, lst_q_id: "" } })
+        }
+        return res.status(200).json({ Status: "OK" })
+
+    } catch (error) {
+        console.error("❌ Main Catch Error:", error);
+        return res.status(500).json({
+            message: "Internal Server Error",
+            error: error.message
+        });
     }
-    return res.status(200).json({Status : "OK"})
-
-  } catch (error) {
-    console.error("❌ Main Catch Error:", error);
-    return res.status(500).json({
-      message: "Internal Server Error",
-      error: error.message
-    });
-  }
 });
 
 
@@ -2897,15 +2722,15 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
 
 
         const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
-        
+
 
         if (status?.Status === "off") {
             return res.status(200).json({ Status: "Time", message: status.text });
         }
 
-        await Check_y_n_t_Module.deleteMany({user})
+        await Check_y_n_t_Module.deleteMany({ user })
 
-        await Check_y_n_t_Module.create({Time, user, Qno : "No Still", x : "2x"})
+        await Check_y_n_t_Module.create({ Time, user, Qno: "No Still", x: "2x" })
 
         const lang_data = await LanguageSelectModule.findOne({ user }).lean();
         const balance = await Balancemodule.findOne({ user }); // ac balance
@@ -2944,7 +2769,7 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
         const dif = [];
 
         const _dec_bal = await Balancemodule.findOne({ user });
-        const won_data = await Wonmodule.find({user})
+        const won_data = await Wonmodule.find({ user })
 
 
         if (won_data.length < 1) {
@@ -2955,7 +2780,7 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
                 //make easy before creating add some logics
                 data(lvl, user, num, "20", "1")
             });
-        } else if( parseInt(_dec_bal.balance) <= 10 ) {
+        } else if (parseInt(_dec_bal.balance) <= 10) {
             shuffled.forEach((data, i) => {
                 const num = (i + 1).toString();
                 dif.push(num);
@@ -2963,7 +2788,7 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
                 data(lvl, user, num, "20", "2")
             });
         }
-        else{
+        else {
             shuffled.forEach((data, i) => {
                 const num = (i + 1).toString();
                 dif.push(num);
@@ -2972,7 +2797,7 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
             });
         }
 
-        
+
 
 
         if (!create_data) {
@@ -3003,7 +2828,7 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
 
         // const _to_str_up_rp = balanceNum - feesNum
 
-        
+
 
         if (_dec_bal) {
             const currentBal = parseInt(_dec_bal.balance);
@@ -3025,7 +2850,7 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
             });
 
             await wal_cnt_mod.save();
-            
+
         } else {
             await Amount_walet_count_Module.create({
                 Time,
@@ -3068,7 +2893,7 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
         if (count === 10) {
             console.log("✅ Finished successfully");
             return res.status(200).json({ Status: "OK" });
-        }else{
+        } else {
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
@@ -3079,7 +2904,7 @@ app.post('/start/playing/by/debit/amount/new/2x', authMiddleware, async (req, re
             return res.status(200).json({ Status: "BAD_CR" })
         }
 
-        
+
 
     } catch (error) {
         console.error("❌ Main Catch Error:", error);
@@ -3105,7 +2930,7 @@ app.post('/start/playing/by/debit/amount/new/5x', authMiddleware, async (req, re
 
         await QuestionModule.deleteMany({ user });
 
-        await Check_y_n_t_Module.create({Time, user, Qno : "No Still", x : "5x"})
+        await Check_y_n_t_Module.create({ Time, user, Qno: "No Still", x: "5x" })
 
         const lang_data = await LanguageSelectModule.findOne({ user }).lean();
         const balance = await Balancemodule.findOne({ user }); // ac balance
@@ -3145,7 +2970,7 @@ app.post('/start/playing/by/debit/amount/new/5x', authMiddleware, async (req, re
 
 
         const _dec_bal = await Balancemodule.findOne({ user });
-        const won_data = await Wonmodule.find({user})
+        const won_data = await Wonmodule.find({ user })
 
         if (won_data.length < 1) {
             shuffled.forEach((data, i) => {
@@ -3155,7 +2980,7 @@ app.post('/start/playing/by/debit/amount/new/5x', authMiddleware, async (req, re
                 //make easy before creating add some logics
                 data(lvl, user, num, "20", "1")
             });
-        } else if( parseInt(_dec_bal.balance) <= 10 ) {
+        } else if (parseInt(_dec_bal.balance) <= 10) {
             shuffled.forEach((data, i) => {
                 const num = (i + 1).toString();
                 dif.push(num);
@@ -3163,7 +2988,7 @@ app.post('/start/playing/by/debit/amount/new/5x', authMiddleware, async (req, re
                 data(lvl, user, num, "20", "2")
             });
         }
-        else{
+        else {
             shuffled.forEach((data, i) => {
                 const num = (i + 1).toString();
                 dif.push(num);
@@ -3171,7 +2996,7 @@ app.post('/start/playing/by/debit/amount/new/5x', authMiddleware, async (req, re
                 data(lvl, user, num, "20", "0")
             });
         }
-        
+
 
 
         if (!create_data) {
@@ -3265,7 +3090,7 @@ app.post('/start/playing/by/debit/amount/new/5x', authMiddleware, async (req, re
         if (count === 10) {
             console.log("✅ Finished successfully");
             return res.status(200).json({ Status: "OK" });
-        }else{
+        } else {
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
@@ -3297,7 +3122,7 @@ app.post('/start/playing/by/debit/amount/new/7x', authMiddleware, async (req, re
 
         await QuestionModule.deleteMany({ user });
 
-        await Check_y_n_t_Module.create({Time, user, Qno : "No Still", x : "7x"})
+        await Check_y_n_t_Module.create({ Time, user, Qno: "No Still", x: "7x" })
 
         const lang_data = await LanguageSelectModule.findOne({ user }).lean();
         const balance = await Balancemodule.findOne({ user }); // ac balance
@@ -3337,17 +3162,17 @@ app.post('/start/playing/by/debit/amount/new/7x', authMiddleware, async (req, re
 
 
         const _dec_bal = await Balancemodule.findOne({ user });
-        const won_data = await Wonmodule.find({user})
+        const won_data = await Wonmodule.find({ user })
 
 
-        if( won_data.length < 1 ) {
+        if (won_data.length < 1) {
             shuffled.forEach((data, i) => {
                 const num = (i + 1).toString();
                 dif.push(num);
                 const lvl = dif_l[i]
                 data(lvl, user, num, "20", "0")
             });
-        }else{
+        } else {
             shuffled.forEach((data, i) => {
                 const num = (i + 1).toString();
                 dif.push(num);
@@ -3448,7 +3273,7 @@ app.post('/start/playing/by/debit/amount/new/7x', authMiddleware, async (req, re
         if (count === 10) {
             console.log("✅ Finished successfully");
             return res.status(200).json({ Status: "OK" });
-        }else{
+        } else {
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
@@ -3481,7 +3306,7 @@ app.post('/start/playing/by/debit/amount/new/10x', authMiddleware, async (req, r
 
         await QuestionModule.deleteMany({ user });
 
-        await Check_y_n_t_Module.create({Time, user, Qno : "No Still", x : "10x"})
+        await Check_y_n_t_Module.create({ Time, user, Qno: "No Still", x: "10x" })
 
         const lang_data = await LanguageSelectModule.findOne({ user }).lean();
         const balance = await Balancemodule.findOne({ user }); // ac balance
@@ -3621,7 +3446,7 @@ app.post('/start/playing/by/debit/amount/new/10x', authMiddleware, async (req, r
         if (count === 10) {
             console.log("✅ Finished successfully");
             return res.status(200).json({ Status: "OK" });
-        }else{
+        } else {
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
@@ -3654,7 +3479,7 @@ app.post('/start/playing/by/debit/amount/new/15x', authMiddleware, async (req, r
 
         await QuestionModule.deleteMany({ user });
 
-        await Check_y_n_t_Module.create({Time, user, Qno : "No Still", x : "15x"})
+        await Check_y_n_t_Module.create({ Time, user, Qno: "No Still", x: "15x" })
 
         const lang_data = await LanguageSelectModule.findOne({ user }).lean();
         const balance = await Balancemodule.findOne({ user }); // ac balance
@@ -3794,7 +3619,7 @@ app.post('/start/playing/by/debit/amount/new/15x', authMiddleware, async (req, r
         if (count === 10) {
             console.log("✅ Finished successfully");
             return res.status(200).json({ Status: "OK" });
-        }else{
+        } else {
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
@@ -3818,14 +3643,14 @@ app.post('/start/playing/by/debit/amount/new/15x', authMiddleware, async (req, r
 const time_ansSchema = new mongoose.Schema({
     Time: String,
     user: String,
-    Qno_ID : String,
-    Qst_crt_tm : String,
-    Qst_get_tm : String,
-    Qst_ans_tm : String,
-    cl_sec : String,
-    r_sec : {
-        default : 0,
-        type : Number
+    Qno_ID: String,
+    Qst_crt_tm: String,
+    Qst_get_tm: String,
+    Qst_ans_tm: String,
+    cl_sec: String,
+    r_sec: {
+        default: 0,
+        type: Number
     }
 
 }, { timestamps: true });
@@ -3837,8 +3662,8 @@ const time_ans_Module = mongoose.model('time_ans', time_ansSchema);
 const Controle_Schema = new mongoose.Schema({
     Time: String,
     user: String,
-    make_win_fees_low : String,
-    make_add_unsolved_during_low_bal : String,
+    make_win_fees_low: String,
+    make_add_unsolved_during_low_bal: String,
 
 
 }, { timestamps: true });
@@ -3850,24 +3675,24 @@ const Controles_Module = mongoose.model('Controls', Controle_Schema);
 
 const Profit_manage = new mongoose.Schema({
     user: String,
-    from : String,
-    to : String
+    from: String,
+    to: String
 }, { timestamps: true });
 
 const Profit_cal_Module = mongoose.model('Profit_cal', Profit_manage);
 
-async function profit_cal_data_update(user, from, to){
-    
-    const data_find = await Profit_cal_Module.findOne({user})
+async function profit_cal_data_update(user, from, to) {
 
-    if(data_find){
+    const data_find = await Profit_cal_Module.findOne({ user })
+
+    if (data_find) {
         const tot_from = parseInt(data_find.from) + parseInt(from)
         const tot_to = parseInt(data_find.to) + parseInt(to)
         data_find.from = tot_from;
         data_find.to = tot_to;
         await data_find.save();
-    }else{
-        await Profit_cal_Module.create({user, from, to})
+    } else {
+        await Profit_cal_Module.create({ user, from, to })
     }
 
 }
@@ -3878,25 +3703,25 @@ async function profit_cal_data_update(user, from, to){
 
 
 async function get_cat_per(user) {
-    const bal_valid = await Balancemodule.findOne({user})
+    const bal_valid = await Balancemodule.findOne({ user })
     const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
     const balanceNum = parseInt(bal_valid.balance);
     const feesNum = parseInt(fees.rupee);
-    if(balanceNum >= feesNum*2){
+    if (balanceNum >= feesNum * 2) {
         console.log("Making Loss")
         const data = await lest_answrd_cat_sec(user)
-        if(data !== "none"){
+        if (data !== "none") {
             //make return object example Nine() and sec can be managed here work start 1948
             return {
-                fun : data.ob,
-                lst_sec : data.lst_sec
+                fun: data.ob,
+                lst_sec: data.lst_sec
             }
         }
         return "none"
-    }else{
+    } else {
         console.log("Making win")
         const count = await Wonmodule.countDocuments({ user });
-        const tot_p = await Totalusermodule.countDocuments({user})
+        const tot_p = await Totalusermodule.countDocuments({ user })
         if (count >= 3) {
             console.log("Making Loose")
             const data = await lest_answrd_cat_sec(user)
@@ -3908,7 +3733,7 @@ async function get_cat_per(user) {
                 }
             }
             return "none"
-        }else{
+        } else {
             console.log("Making Win")
             const data = await highest_answrd_cat_sec(user)
             if (data !== "none") {
@@ -3923,8 +3748,8 @@ async function get_cat_per(user) {
 
 
     }
-    
-    
+
+
 
 
 }
@@ -3932,40 +3757,38 @@ async function get_cat_per(user) {
 
 //on going
 async function new_user(user) {
-    //make get random Question data and make it too easy , i mean that the user must get 50 rupees or he must answer before 5 seconds
+    const create_balance_for_new_user = await Balancemodule.findOne({ user }).lean()
+    const find_lang_mod = await LanguageSelectModule.findOne({ user }).lean()
+    if (!create_balance_for_new_user) {
+        await Balancemodule.create({
+            Time,
+            user: user,
+            balance: "10",
+            last_tr_id: "new"
+        })
+    }
 
-    
-
-
-
-
-    
-    // const data = await sng_qst_20_Module.findOne({
-    //     lst_sec : { $gt: 3  } //lst_sec is a user answerd before lst_sec ends ex "a user answerd 3 seconds before time out"
-    // });
-    // if(data){
-    //     return {
-    //         cat : data.cat,
-    //         ob : data.ob,
-    //         lst_sec : data.lst_sec
-    //     }
-    // }else{
-
-    // }
+    if (!find_lang_mod) {
+        await LanguageSelectModule.create({
+            Time,
+            lang: ["English"],
+            user
+        })
+    }
 }
 
 
 
-async function get_cat_in_out(user, start_fees, sec, x ) {//Make run before Amount Debit from Account
+async function get_cat_in_out(user, start_fees, sec, x) {//Make run before Amount Debit from Account
     const user_balance = await Balancemodule.findOne({ user }).lean()
     const get_profit = await Profit_cal_Module.findOne({ user }).lean()
     const randomFunction = qst_gen[Math.floor(Math.random() * qst_gen.length)];
 
-    if(!get_profit){
+    if (!get_profit) {
         //make him win because he was an new user make him win 50 rupees
         console.log("5 sec")
         randomFunction(105, user, "1", sec, "5", x)
-s
+        return "Win"
     }
 
     const profit_num = parseInt(get_profit.out) - parseInt(get_profit.in) //loss calculating
@@ -3977,33 +3800,39 @@ s
             if (profit_per > 50) { //if loss is > 50 make him lose
                 console.log("0 sec")
                 randomFunction(105, user, "1", sec, "0", x)
+                return "Lose"
                 //make lose
             } else { //loss is lesserthan 50 make him win
                 //make win
                 console.log("3 sec")
                 randomFunction(105, user, "1", sec, "3", x)
+                return "Win"
             }
         } else { //user fees > Reward  user not yet get Profit
             console.log("5 sec")
             randomFunction(105, user, "1", sec, "5", x)
             //Make him Win
+            return "Win"
         }
     } else { //balance is high
         if (parseInt(get_profit.in) < parseInt(get_profit.out)) { //user fees < Reward
-            if(profit_per > 50){
+            if (profit_per > 50) {
                 //make him loose {make increase puzzel}
                 console.log("0 sec")
                 randomFunction(105, user, "1", sec, "0", x)
-            }else{
+                return "Lose"
+            } else {
                 console.log("0 sec")
                 randomFunction(105, user, "1", sec, "0", x)
                 //Make him check his Talent [Dont make change anything just keep parent created puzzel constant]
                 //{make leave alone dont make anything change increse or decreas puzzel}
+                return "IQ"
             }
 
         } else {
             console.log("2 sec")
             randomFunction(105, user, "1", sec, "2", x)
+            return "IQ"
             //Make him win at last second {1, 2 seconds}
         }
 
@@ -4474,7 +4303,7 @@ const QnoSchema = new mongoose.Schema({
     Qno: String,
     seconds: String,
     sub_lang: String,
-    x : String,
+    x: String,
     yes: [],
     no: []
 
@@ -4632,52 +4461,52 @@ const level_controle_Schema = new mongoose.Schema({
 const level_controle_Module = mongoose.model('level_controle_schema', level_controle_Schema);
 
 app.post(
-  "/get/and/update/data/from/lelel/seconds/data",
-  adminMiddleware,
-  async (req, res) => {
+    "/get/and/update/data/from/lelel/seconds/data",
+    adminMiddleware,
+    async (req, res) => {
 
-    const {
-      t_5, t_10, t_15, t_20, t_25,
-      t_30, t_35, t_40, t_45, t_50,
-      t_55, t_60, t_65, t_70, t_75,
-      t_80, t_85, t_90, t_95, t_100
-    } = req.body;
+        const {
+            t_5, t_10, t_15, t_20, t_25,
+            t_30, t_35, t_40, t_45, t_50,
+            t_55, t_60, t_65, t_70, t_75,
+            t_80, t_85, t_90, t_95, t_100
+        } = req.body;
 
-    try {
-      const updatedData = await level_controle_Module.findOneAndUpdate(
-        { user: "Kick" },
-        {
-          t_5, t_10, t_15, t_20, t_25,
-          t_30, t_35, t_40, t_45, t_50,
-          t_55, t_60, t_65, t_70, t_75,
-          t_80, t_85, t_90, t_95, t_100, Time
-        },
-        { new: true } // returns updated document
-      );
+        try {
+            const updatedData = await level_controle_Module.findOneAndUpdate(
+                { user: "Kick" },
+                {
+                    t_5, t_10, t_15, t_20, t_25,
+                    t_30, t_35, t_40, t_45, t_50,
+                    t_55, t_60, t_65, t_70, t_75,
+                    t_80, t_85, t_90, t_95, t_100, Time
+                },
+                { new: true } // returns updated document
+            );
 
-      return res.status(200).json({
-        message: "Level seconds updated successfully",
-        data: updatedData
-      });
+            return res.status(200).json({
+                message: "Level seconds updated successfully",
+                data: updatedData
+            });
 
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: "Internal Server Error" });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ message: "Internal Server Error" });
+        }
     }
-  }
 );
 
-app.get("/get/data/of/level/controle/data", adminMiddleware, async(req, res) =>{
-    try{
-        const data = await level_controle_Module.findOne({user : "Kick"})
-        if(data){
-            return res.status(200).json({data})
-        }else{
-            return res.status(200).json({message : "No Data Found"})
+app.get("/get/data/of/level/controle/data", adminMiddleware, async (req, res) => {
+    try {
+        const data = await level_controle_Module.findOne({ user: "Kick" })
+        if (data) {
+            return res.status(200).json({ data })
+        } else {
+            return res.status(200).json({ message: "No Data Found" })
         }
-    }catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: "Internal Server Error" });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Internal Server Error" });
     }
 })
 
@@ -4710,7 +4539,7 @@ async function get_level_seconds(level) {
             t_95: 38,
             t_100: 40
         })
-        
+
         get_level_seconds(level)
 
     } else {
@@ -4769,15 +4598,15 @@ async function History_star(user, star) {
 
 
 
-async function refund(user){
-    try{
-        const data_bala = await Balancemodule.findOne({user})
+async function refund(user) {
+    try {
+        const data_bala = await Balancemodule.findOne({ user })
         const fees = await Rupeemodule.findOne({ username: "admin" });
         const tot = parseInt(data_bala.balance) + parseInt(fees.rupee);
         data_bala.balance = tot
         await data_bala.save()
         await History(user, fees)
-    }catch(error){
+    } catch (error) {
         console.log(error)
     }
 }
@@ -4801,20 +4630,20 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                 // Get the first question number from the list
                 const QNO = Get_Qno_info.list[0];
 
-                if(!QNO || QNO === undefined || QNO === "" || QNO === null){
+                if (!QNO || QNO === undefined || QNO === "" || QNO === null) {
                     Data.valid = "No"
                     await Data.save()
                     await refund()
-                    return res.status(200).json({Status : "EXIT"})
+                    return res.status(200).json({ Status: "EXIT" })
                 }
 
                 const Qno = await QuestionModule.findOne({ Qno: QNO.toString(), user: user }).lean();
 
-                if(!Qno || Qno === undefined || Qno === "" || Qno === null){
+                if (!Qno || Qno === undefined || Qno === "" || Qno === null) {
                     Data.valid = "No"
                     await Data.save()
                     await refund()
-                    return res.status(200).json({Status : "EXIT"})
+                    return res.status(200).json({ Status: "EXIT" })
                 }
 
                 const lel_fnd = await Level_up_Module.findOne({ user })
@@ -4822,11 +4651,11 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                 const ll_sec = await get_level_seconds(lel_fnd?.rank)
 
                 const sec = parseInt(Qno.seconds) + ll_sec
-                if(!sec || sec === undefined || sec === "" || sec === null){
+                if (!sec || sec === undefined || sec === "" || sec === null) {
                     Data.valid = "No"
                     await Data.save()
                     await refund()
-                    return res.status(200).json({Status : "EXIT"})
+                    return res.status(200).json({ Status: "EXIT" })
                 }
 
 
@@ -4852,15 +4681,15 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                     return res.status(200).json({ data });
 
                 } else {
-                    return res.status(404).json({ Status: "BAD", message: "No Question Found."});
+                    return res.status(404).json({ Status: "BAD", message: "No Question Found." });
                 }
             } else {
-                return res.status(202).json({ Status: "BAD", message: "No Question Found.."});
+                return res.status(202).json({ Status: "BAD", message: "No Question Found.." });
             }
         } else {
-            return res.status(202).json({ Status: "BAD", message: "Not Valid to Yes"});
+            return res.status(202).json({ Status: "BAD", message: "Not Valid to Yes" });
         }
-    } 
+    }
     catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Internal Server Error", error: error.message, id: "Some Erorr" });
@@ -4871,10 +4700,10 @@ const Error_Catch_Schema = new mongoose.Schema({
 
     Time: String,
     user: String,
-    Type : String,
-    Text : String,
-    api : String,
-    Where : String,
+    Type: String,
+    Text: String,
+    api: String,
+    Where: String,
 
 
 });
@@ -4907,22 +4736,22 @@ app.get("/get/question/no/by/user/name/bf/all/xx", authMiddleware, async (req, r
                 // Get the first question number from the list
                 const QNO = Get_Qno_info.list[0];
 
-                if(!QNO || QNO === undefined || QNO === "" || QNO === null){
+                if (!QNO || QNO === undefined || QNO === "" || QNO === null) {
                     Data.valid = "No"
                     await Data.save()
                     await refund()
-                    await Error_Catch_Module.create({Time, user, Type : QNO, Text : "Error may be occurs due to QNO Undefined are some data Missing", api : "/get/question/no/by/user/name/bf/xx", Where : "On Finding Question Number" })
-                    return res.status(200).json({Status : "EXIT"})
+                    await Error_Catch_Module.create({ Time, user, Type: QNO, Text: "Error may be occurs due to QNO Undefined are some data Missing", api: "/get/question/no/by/user/name/bf/xx", Where: "On Finding Question Number" })
+                    return res.status(200).json({ Status: "EXIT" })
                 }
 
                 const Qno = await QuestionModule.findOne({ Qno: QNO.toString(), user: user }).lean();
 
-                if(!Qno || Qno === undefined || Qno === "" || Qno === null){
+                if (!Qno || Qno === undefined || Qno === "" || Qno === null) {
                     Data.valid = "No"
                     await Data.save()
                     await refund()
-                    await Error_Catch_Module.create({Time, user, Type : QNO, Text : "Error may be occurs due to QNO Undefined are some data Missing", api : "/get/question/no/by/user/name/bf/xx", Where : "On Finding Question Number" })
-                    return res.status(200).json({Status : "EXIT"})
+                    await Error_Catch_Module.create({ Time, user, Type: QNO, Text: "Error may be occurs due to QNO Undefined are some data Missing", api: "/get/question/no/by/user/name/bf/xx", Where: "On Finding Question Number" })
+                    return res.status(200).json({ Status: "EXIT" })
                 }
 
                 // if(parseInt(sec_cal) > 50){
@@ -4944,7 +4773,7 @@ app.get("/get/question/no/by/user/name/bf/all/xx", authMiddleware, async (req, r
                         tough: Qno.tough
                     };
 
-                    const get_fetch_data = await time_ans_Module.findOne({user, Qno_ID : Qno._id})
+                    const get_fetch_data = await time_ans_Module.findOne({ user, Qno_ID: Qno._id })
 
                     if (get_fetch_data.Qst_get_tm === "n") {
                         get_fetch_data.Qst_get_tm = new Date()
@@ -4957,16 +4786,16 @@ app.get("/get/question/no/by/user/name/bf/all/xx", authMiddleware, async (req, r
                     return res.status(200).json({ data });
 
                 } else {
-                    await Error_Catch_Module.create({Time, user, Type : QNO, Text : "No Qno Data Found then this will occurs", api : "/get/question/no/by/user/name/bf/xx", Where : "at [No Question Found.] " })
-                    return res.status(404).json({ Status: "BAD", message: "No Question Found."});
+                    await Error_Catch_Module.create({ Time, user, Type: QNO, Text: "No Qno Data Found then this will occurs", api: "/get/question/no/by/user/name/bf/xx", Where: "at [No Question Found.] " })
+                    return res.status(404).json({ Status: "BAD", message: "No Question Found." });
                 }
             } else {
-                return res.status(202).json({ Status: "BAD", message: "No Question Found.."});
+                return res.status(202).json({ Status: "BAD", message: "No Question Found.." });
             }
         } else {
-            return res.status(202).json({ Status: "BAD", message: "Not Valid to Yes"});
+            return res.status(202).json({ Status: "BAD", message: "Not Valid to Yes" });
         }
-    } 
+    }
     catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Internal Server Error", error: error.message, id: "Some Erorr" });
@@ -4996,22 +4825,22 @@ app.get("/get/question/no/by/user/name/bf/all/xx/1", authMiddleware, async (req,
                 // Get the first question number from the list
                 const QNO = Get_Qno_info.list[0];
 
-                if(!QNO || QNO === undefined || QNO === "" || QNO === null){
+                if (!QNO || QNO === undefined || QNO === "" || QNO === null) {
                     Data.valid = "No"
                     await Data.save()
                     await refund()
-                    await Error_Catch_Module.create({Time, user, Type : QNO, Text : "Error may be occurs due to QNO Undefined are some data Missing", api : "/get/question/no/by/user/name/bf/xx", Where : "On Finding Question Number" })
-                    return res.status(200).json({Status : "EXIT"})
+                    await Error_Catch_Module.create({ Time, user, Type: QNO, Text: "Error may be occurs due to QNO Undefined are some data Missing", api: "/get/question/no/by/user/name/bf/xx", Where: "On Finding Question Number" })
+                    return res.status(200).json({ Status: "EXIT" })
                 }
 
                 const Qno = await QuestionModule.findOne({ Qno: QNO.toString(), user: user }).lean();
 
-                if(!Qno || Qno === undefined || Qno === "" || Qno === null){
+                if (!Qno || Qno === undefined || Qno === "" || Qno === null) {
                     Data.valid = "No"
                     await Data.save()
                     await refund()
-                    await Error_Catch_Module.create({Time, user, Type : QNO, Text : "Error may be occurs due to QNO Undefined are some data Missing", api : "/get/question/no/by/user/name/bf/xx", Where : "On Finding Question Number" })
-                    return res.status(200).json({Status : "EXIT"})
+                    await Error_Catch_Module.create({ Time, user, Type: QNO, Text: "Error may be occurs due to QNO Undefined are some data Missing", api: "/get/question/no/by/user/name/bf/xx", Where: "On Finding Question Number" })
+                    return res.status(200).json({ Status: "EXIT" })
                 }
 
                 // if(parseInt(sec_cal) > 50){
@@ -5033,7 +4862,7 @@ app.get("/get/question/no/by/user/name/bf/all/xx/1", authMiddleware, async (req,
                         tough: Qno.tough
                     };
 
-                    const get_fetch_data = await time_ans_Module.findOne({user, Qno_ID : Qno._id})
+                    const get_fetch_data = await time_ans_Module.findOne({ user, Qno_ID: Qno._id })
 
                     if (get_fetch_data.Qst_get_tm === "n") {
                         get_fetch_data.Qst_get_tm = new Date()
@@ -5046,16 +4875,16 @@ app.get("/get/question/no/by/user/name/bf/all/xx/1", authMiddleware, async (req,
                     return res.status(200).json({ data });
 
                 } else {
-                    await Error_Catch_Module.create({Time, user, Type : QNO, Text : "No Qno Data Found then this will occurs", api : "/get/question/no/by/user/name/bf/xx", Where : "at [No Question Found.] " })
-                    return res.status(404).json({ Status: "BAD", message: "No Question Found."});
+                    await Error_Catch_Module.create({ Time, user, Type: QNO, Text: "No Qno Data Found then this will occurs", api: "/get/question/no/by/user/name/bf/xx", Where: "at [No Question Found.] " })
+                    return res.status(404).json({ Status: "BAD", message: "No Question Found." });
                 }
             } else {
-                return res.status(202).json({ Status: "BAD", message: "No Question Found.."});
+                return res.status(202).json({ Status: "BAD", message: "No Question Found.." });
             }
         } else {
-            return res.status(202).json({ Status: "BAD", message: "Not Valid to Yes"});
+            return res.status(202).json({ Status: "BAD", message: "Not Valid to Yes" });
         }
-    } 
+    }
     catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Internal Server Error", error: error.message, id: "Some Erorr" });
@@ -5880,7 +5709,7 @@ app.post('/verify/answer/question/number/xs', authMiddleware, async (req, res) =
 
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ Status: "BAD" , success: false, message: "Invalid ObjectId format" });
+            return res.status(400).json({ Status: "BAD", success: false, message: "Invalid ObjectId format" });
         }
 
 
@@ -5905,8 +5734,8 @@ app.post('/verify/answer/question/number/xs', authMiddleware, async (req, res) =
 
         if (check_ans) {
 
-            const chk_y_n_t_d = await Check_y_n_t_Module.findOne({user})
-            if(chk_y_n_t_d){
+            const chk_y_n_t_d = await Check_y_n_t_Module.findOne({ user })
+            if (chk_y_n_t_d) {
                 chk_y_n_t_d.Qno = `${Answer_Verify.Qno} Verified`
                 await chk_y_n_t_d.save()
             }
@@ -5965,35 +5794,35 @@ app.post('/verify/answer/question/number/xs', authMiddleware, async (req, res) =
                     // const sum = parseInt(get_user_balanc.balance) + parseInt(get_count_data.stars)
 
                     if (get_user_balanc) {
-                        if(Answer_Verify?.tough === "Easy"){
+                        if (Answer_Verify?.tough === "Easy") {
                             await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 10 })
                             await Historymodule.create({ Time, user, rupee: "10", type: "Credited", tp: "Stars" });
                             await To_Admin_Historymodule.create({ Time, user, rupee: "10", type: "Credited", tp: "Stars" });
                             const rank = toString(won.length + 1)
                             await Answer_Verify.updateOne({ $push: { yes: user } })
                             return res.status(200).json({ Status: "STARS", stars: "10", rank: rank });
-                        }else if(Answer_Verify?.tough === "Medium"){
+                        } else if (Answer_Verify?.tough === "Medium") {
                             await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 14 })
                             await Historymodule.create({ Time, user, rupee: "14", type: "Credited", tp: "Stars" });
                             await To_Admin_Historymodule.create({ Time, user, rupee: "14", type: "Credited", tp: "Stars" });
                             const rank = toString(won.length + 1)
                             await Answer_Verify.updateOne({ $push: { yes: user } })
                             return res.status(200).json({ Status: "STARS", stars: "14", rank: rank });
-                        }else if(Answer_Verify?.tough === "Tough"){
+                        } else if (Answer_Verify?.tough === "Tough") {
                             await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 20 })
                             await Historymodule.create({ Time, user, rupee: "20", type: "Credited", tp: "Stars" });
                             await To_Admin_Historymodule.create({ Time, user, rupee: "20", type: "Credited", tp: "Stars" });
                             const rank = toString(won.length + 1)
                             await Answer_Verify.updateOne({ $push: { yes: user } })
                             return res.status(200).json({ Status: "STARS", stars: "20", rank: rank });
-                        }else if(Answer_Verify?.tough === "Too Tough"){
+                        } else if (Answer_Verify?.tough === "Too Tough") {
                             await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 30 })
                             await Historymodule.create({ Time, user, rupee: "30", type: "Credited", tp: "Stars" });
                             await To_Admin_Historymodule.create({ Time, user, rupee: "30", type: "Credited", tp: "Stars" });
                             const rank = toString(won.length + 1)
                             await Answer_Verify.updateOne({ $push: { yes: user } })
                             return res.status(200).json({ Status: "STARS", stars: "30", rank: rank });
-                        }else{
+                        } else {
                             await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 4 })
                             await Historymodule.create({ Time, user, rupee: "4", type: "Credited", tp: "Stars" });
                             await To_Admin_Historymodule.create({ Time, user, rupee: "4", type: "Credited", tp: "Stars" });
@@ -6010,28 +5839,28 @@ app.post('/verify/answer/question/number/xs', authMiddleware, async (req, res) =
                             const rank = toString(won.length + 1)
                             await Answer_Verify.updateOne({ $push: { yes: user } })
                             return res.status(200).json({ Status: "STARS", stars: "10", rank: rank });
-                        }else if(Answer_Verify?.tough === "Medium") {
+                        } else if (Answer_Verify?.tough === "Medium") {
                             await StarBalmodule.create({ Time, user: user, balance: "14".stars });
                             await Historymodule.create({ Time, user, rupee: "14", type: "Credited", tp: "Stars" });
                             await To_Admin_Historymodule.create({ Time, user, rupee: "14", type: "Credited", tp: "Stars" });
                             const rank = toString(won.length + 1)
                             await Answer_Verify.updateOne({ $push: { yes: user } })
                             return res.status(200).json({ Status: "STARS", stars: "14", rank: rank });
-                        }else if(Answer_Verify?.tough === "Tough") {
+                        } else if (Answer_Verify?.tough === "Tough") {
                             await StarBalmodule.create({ Time, user: user, balance: "20".stars });
                             await Historymodule.create({ Time, user, rupee: "20", type: "Credited", tp: "Stars" });
                             await To_Admin_Historymodule.create({ Time, user, rupee: "20", type: "Credited", tp: "Stars" });
                             const rank = toString(won.length + 1)
                             await Answer_Verify.updateOne({ $push: { yes: user } })
                             return res.status(200).json({ Status: "STARS", stars: "20", rank: rank });
-                        }else if(Answer_Verify?.tough === "Too Tough") {
+                        } else if (Answer_Verify?.tough === "Too Tough") {
                             await StarBalmodule.create({ Time, user: user, balance: "30".stars });
                             await Historymodule.create({ Time, user, rupee: "30", type: "Credited", tp: "Stars" });
                             await To_Admin_Historymodule.create({ Time, user, rupee: "30", type: "Credited", tp: "Stars" });
                             const rank = toString(won.length + 1)
                             await Answer_Verify.updateOne({ $push: { yes: user } })
                             return res.status(200).json({ Status: "STARS", stars: "30", rank: rank });
-                        }else {
+                        } else {
                             await StarBalmodule.create({ Time, user: user, balance: "4".stars });
                             await Historymodule.create({ Time, user, rupee: "4", type: "Credited", tp: "Stars" });
                             await To_Admin_Historymodule.create({ Time, user, rupee: "4", type: "Credited", tp: "Stars" });
@@ -6062,8 +5891,8 @@ app.post('/verify/answer/question/number/xs', authMiddleware, async (req, res) =
             //make this if answer is false make verified is fale or no to throught the user out from playing
 
             const data = await StartValidmodule.findOne({ user });
-            const chk_y_n_t_d = await Check_y_n_t_Module.findOne({user})
-            if(chk_y_n_t_d){
+            const chk_y_n_t_d = await Check_y_n_t_Module.findOne({ user })
+            if (chk_y_n_t_d) {
                 chk_y_n_t_d.Qno = `${Answer_Verify.Qno} Not Verified`
                 await chk_y_n_t_d.save()
             }
@@ -6106,40 +5935,40 @@ app.post('/verify/answer/question/number/xs', authMiddleware, async (req, res) =
 
 
 const sec_qst_20_Schema = new mongoose.Schema({
-  user: {
-    type: String,
-    required: true
-  },
+    user: {
+        type: String,
+        required: true
+    },
 
-  cat: {
-    type: String,
-    required: true
-  },
+    cat: {
+        type: String,
+        required: true
+    },
 
-  ob: {
-    type: String,   // good if this is a function name / label
-    default: ""
-  },
+    ob: {
+        type: String,   // good if this is a function name / label
+        default: ""
+    },
 
-  yes: {
-    type: [String], // array of strings (IDs, answers, etc.)
-    default: []
-  },
+    yes: {
+        type: [String], // array of strings (IDs, answers, etc.)
+        default: []
+    },
 
-  no: {
-    type: [String],
-    default: []
-  },
+    no: {
+        type: [String],
+        default: []
+    },
 
-  lst_sec: {
-    type: Number,
-    default: 0
-  },
+    lst_sec: {
+        type: Number,
+        default: 0
+    },
 
-  lst_q_id: {
-    type: String,
-    default: ""
-  }
+    lst_q_id: {
+        type: String,
+        default: ""
+    }
 
 }, { timestamps: true });
 
@@ -6157,7 +5986,7 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
 
         const user = req.user
 
-        const check_sec_vrf = await time_ans_Module.findOne({user, Qno_ID : id})
+        const check_sec_vrf = await time_ans_Module.findOne({ user, Qno_ID: id })
         check_sec_vrf.updatedAt = new Date();
         check_sec_vrf.Qst_ans_tm = new Date();
         check_sec_vrf.r_sec = parseInt(sec);
@@ -6165,19 +5994,19 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
 
         if (!answer && !user && !id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
 
-            const STARS = sec
+        const STARS = sec
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ Status: "BAD" , success: false, message: "Invalid ObjectId format" });
+            return res.status(400).json({ Status: "BAD", success: false, message: "Invalid ObjectId format" });
         }
 
         const data = await StartValidmodule.findOne({ user });
-        if(data.valid === "no"){
-            return res.status(200).json({ Status: "Ok" , success: false, message: "Ok" });
+        if (data.valid === "no") {
+            return res.status(200).json({ Status: "Ok", success: false, message: "Ok" });
         }
 
-        
-        
+
+
 
 
 
@@ -6191,47 +6020,49 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
 
 
 
-
+ 
         const check_ans = compareHash(answer, Ans)
 
         const Answer_Verify = await QuestionModule.findById({ _id: id })
 
-        let up_sec_lst = await sng_qst_20_Module.findOne({
-                user,
-                cat: Answer_Verify.sub_lang
-            });
 
-            if (!up_sec_lst) {
-                up_sec_lst = await sng_qst_20_Module.create({
-                    user,
-                    cat: Answer_Verify.sub_lang,
-                    yes: [],
-                    no: [],
-                    lst_sec: timeDiffSeconds,
-                    lst_q_id: Answer_Verify._id
-                });
-            }
 
-        
+
 
         const User_List = await QuestionListmodule.findOne({ user })
 
 
-        const data_clt = await monitor_cal_data_Module.findOne({cat : Answer_Verify.sub_lang})
+        const data_clt = await monitor_cal_data_Module.findOne({ cat: Answer_Verify.sub_lang })
 
         const time = check_sec_vrf.updatedAt - check_sec_vrf.createdAt
         const timeDiffSeconds = Math.floor(time / 1000);
         check_sec_vrf.cl_sec = timeDiffSeconds
         await check_sec_vrf.save()
 
-        if(timeDiffSeconds > 25) res.status(200).json({Status : "Cheated"})
+        let up_sec_lst = await sng_qst_20_Module.findOne({
+            user,
+            cat: Answer_Verify.sub_lang
+        });
 
-        
+        if (!up_sec_lst) {
+            up_sec_lst = await sng_qst_20_Module.create({
+                user,
+                cat: Answer_Verify.sub_lang,
+                yes: [],
+                no: [],
+                lst_sec: timeDiffSeconds,
+                lst_q_id: Answer_Verify._id
+            });
+        }
+
+        if (timeDiffSeconds > 25) res.status(200).json({ Status: "Cheated" })
 
 
-        if (check_ans ) {
 
-            
+
+        if (check_ans) {
+
+
 
             await data_clt.updateOne(
                 {}, // since only one document exists
@@ -6245,7 +6076,7 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
                 }
             )
 
-            
+
             // const exactSeconds = (check_sec_vrf.updatedAt - check_sec_vrf.createdAt) / 1000;
 
             const diffMs = Math.floor(
@@ -6261,10 +6092,10 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
             }
 
 
-            await up_sec_lst.updateOne({$set : {lst_sec : STARS}, $push : {yes : user} })
+            await up_sec_lst.updateOne({ $set: { lst_sec: STARS }, $push: { yes: user } })
 
             if (User_List.list.length === 1 || User_List.list.length === 0) {
-                await User_List.updateOne({ $pull: { list: User_List.list[0] }})
+                await User_List.updateOne({ $pull: { list: User_List.list[0] } })
 
                 // await QuestionListmodule.updateOne(
                 //     { user },bharathikethireddy
@@ -6331,6 +6162,7 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
                         const rank = toString(won.length + 1)
                         await Answer_Verify.updateOne({ $push: { yes: user } })
                         await profit_cal_data_update(user, "0", starrrs)
+                        await admin_noti(`Debeted ${starrrs}`, `To ${user}`)
                         return res.status(200).json({ Status: "STARS", stars: `${starrrs}`, rank: rank });
 
                     } else {
@@ -6340,6 +6172,7 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
                         const rank = toString(won.length + 1)
                         await Answer_Verify.updateOne({ $push: { yes: user } })
                         await profit_cal_data_update(user, "0", starrrs)
+                        await admin_noti(`Debeted ${starrrs}`, `To ${user}`)
                         return res.status(200).json({ Status: "STARS", stars: `${starrrs}`, rank: rank });
 
                         // await StarBalmodule.create({Time, user : user, balance : get_count_data.stars});
@@ -6353,6 +6186,7 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
 
 
             } else {
+                await admin_noti(`Lost the Game`, `User ${user}`)
                 await User_List.updateOne({ $pull: { list: User_List.list[0] } })
                 await Answer_Verify.updateOne({ $push: { yes: user } })
                 return res.status(200).json({ Status: "OK" })
@@ -6360,12 +6194,13 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
             }
 
         } else {
-            await data_clt.updateOne({$push : {no : user}})
-            await up_sec_lst.updateOne({ $set : {lst_q_id : Answer_Verify._id} ,$push : {no : user}})
+            await admin_noti(`Lost the Game`, `User ${user}`)
+            await data_clt.updateOne({ $push: { no: user } })
+            await up_sec_lst.updateOne({ $set: { lst_q_id: Answer_Verify._id }, $push: { no: user } })
             await Answer_Verify.updateOne({ $push: { no: user } })
             //make this if answer is false make verified is fale or no to throught the user out from playing
 
-            
+
 
             if (data) {
                 data.valid = "no";
@@ -6389,10 +6224,10 @@ const IQ_Data_Schema = new mongoose.Schema({
 
     Time: String,
     user: String,
-    difi : String,
-    cat : String,
-    x : String,
-    per : String
+    difi: String,
+    cat: String,
+    x: String,
+    per: String
 
 
 });
@@ -6407,7 +6242,7 @@ const IQ_Data_Module = mongoose.model('IQ_Data', IQ_Data_Schema);
 
 //1931
 app.post('/verify/answer/question/number/xss', authMiddleware, async (req, res) => {
-    const { answer,id, sec, Ans } = req.body;
+    const { answer, id, sec, Ans } = req.body;
 
     try {
 
@@ -6420,7 +6255,7 @@ app.post('/verify/answer/question/number/xss', authMiddleware, async (req, res) 
 
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ Status : "BAD", success: false, message: "Invalid ObjectId format" });
+            return res.status(400).json({ Status: "BAD", success: false, message: "Invalid ObjectId format" });
         }
 
 
@@ -6438,13 +6273,13 @@ app.post('/verify/answer/question/number/xss', authMiddleware, async (req, res) 
         const Answer_Verify = await QuestionModule.findById({ _id: id })
         const User_List = await QuestionListmodule.findOne({ user })
 
-        if (check_ans) {            
+        if (check_ans) {
 
-            const iq_data = await IQ_Data_Module.findOne({user : user , difi : Answer_Verify.tough , cat : Answer_Verify.sub_lang})
-            
-            if(!iq_data){
-                await IQ_Data_Module.create({Time , user , difi : Answer_Verify.tough , cat : Answer_Verify.sub_lang , x : id , per : sec.toString()})
-            }else{
+            const iq_data = await IQ_Data_Module.findOne({ user: user, difi: Answer_Verify.tough, cat: Answer_Verify.sub_lang })
+
+            if (!iq_data) {
+                await IQ_Data_Module.create({ Time, user, difi: Answer_Verify.tough, cat: Answer_Verify.sub_lang, x: id, per: sec.toString() })
+            } else {
                 const new_x = parseInt(iq_data.per) + parseInt(sec)
                 iq_data.per = new_x.toString()
                 iq_data.x = id
@@ -6492,7 +6327,7 @@ app.post('/verify/answer/question/number/xss', authMiddleware, async (req, res) 
 
                     // const sum = parseInt(get_user_balanc.balance) + parseInt(get_count_data.stars)
 
-                    if(get_user_balanc){
+                    if (get_user_balanc) {
                         await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 10 })
                         await Historymodule.create({ Time, user, rupee: "10", type: "Credited", tp: "Stars" });
                         await To_Admin_Historymodule.create({ Time, user, rupee: "10", type: "Credited", tp: "Stars" });
@@ -6506,35 +6341,35 @@ app.post('/verify/answer/question/number/xss', authMiddleware, async (req, res) 
 
 
                     if (get_user_balanc) {
-                        if(Answer_Verify?.tough === "Easy"){
+                        if (Answer_Verify?.tough === "Easy") {
                             await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 10 })
                             await Historymodule.create({ Time, user, rupee: "10", type: "Credited", tp: "Stars" });
                             await To_Admin_Historymodule.create({ Time, user, rupee: "10", type: "Credited", tp: "Stars" });
                             const rank = toString(won.length + 1)
                             await Answer_Verify.updateOne({ $push: { yes: user } })
                             return res.status(200).json({ Status: "STARS", stars: "10", rank: rank });
-                        }else if(Answer_Verify?.tough === "Medium"){
+                        } else if (Answer_Verify?.tough === "Medium") {
                             await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 14 })
                             await Historymodule.create({ Time, user, rupee: "14", type: "Credited", tp: "Stars" });
                             await To_Admin_Historymodule.create({ Time, user, rupee: "14", type: "Credited", tp: "Stars" });
                             const rank = toString(won.length + 1)
                             await Answer_Verify.updateOne({ $push: { yes: user } })
                             return res.status(200).json({ Status: "STARS", stars: "14", rank: rank });
-                        }else if(Answer_Verify?.tough === "Tough"){
+                        } else if (Answer_Verify?.tough === "Tough") {
                             await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 20 })
                             await Historymodule.create({ Time, user, rupee: "20", type: "Credited", tp: "Stars" });
                             await To_Admin_Historymodule.create({ Time, user, rupee: "20", type: "Credited", tp: "Stars" });
                             const rank = toString(won.length + 1)
                             await Answer_Verify.updateOne({ $push: { yes: user } })
                             return res.status(200).json({ Status: "STARS", stars: "20", rank: rank });
-                        }else if(Answer_Verify?.tough === "Too Tough"){
+                        } else if (Answer_Verify?.tough === "Too Tough") {
                             await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 30 })
                             await Historymodule.create({ Time, user, rupee: "30", type: "Credited", tp: "Stars" });
                             await To_Admin_Historymodule.create({ Time, user, rupee: "30", type: "Credited", tp: "Stars" });
                             const rank = toString(won.length + 1)
                             await Answer_Verify.updateOne({ $push: { yes: user } })
                             return res.status(200).json({ Status: "STARS", stars: "30", rank: rank });
-                        }else{
+                        } else {
                             await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 4 })
                             await Historymodule.create({ Time, user, rupee: "4", type: "Credited", tp: "Stars" });
                             await To_Admin_Historymodule.create({ Time, user, rupee: "4", type: "Credited", tp: "Stars" });
@@ -6551,28 +6386,28 @@ app.post('/verify/answer/question/number/xss', authMiddleware, async (req, res) 
                             const rank = toString(won.length + 1)
                             await Answer_Verify.updateOne({ $push: { yes: user } })
                             return res.status(200).json({ Status: "STARS", stars: "10", rank: rank });
-                        }else if(Answer_Verify?.tough === "Medium") {
+                        } else if (Answer_Verify?.tough === "Medium") {
                             await StarBalmodule.create({ Time, user: user, balance: "14".stars });
                             await Historymodule.create({ Time, user, rupee: "14", type: "Credited", tp: "Stars" });
                             await To_Admin_Historymodule.create({ Time, user, rupee: "14", type: "Credited", tp: "Stars" });
                             const rank = toString(won.length + 1)
                             await Answer_Verify.updateOne({ $push: { yes: user } })
                             return res.status(200).json({ Status: "STARS", stars: "14", rank: rank });
-                        }else if(Answer_Verify?.tough === "Tough") {
+                        } else if (Answer_Verify?.tough === "Tough") {
                             await StarBalmodule.create({ Time, user: user, balance: "20".stars });
                             await Historymodule.create({ Time, user, rupee: "20", type: "Credited", tp: "Stars" });
                             await To_Admin_Historymodule.create({ Time, user, rupee: "20", type: "Credited", tp: "Stars" });
                             const rank = toString(won.length + 1)
                             await Answer_Verify.updateOne({ $push: { yes: user } })
                             return res.status(200).json({ Status: "STARS", stars: "20", rank: rank });
-                        }else if(Answer_Verify?.tough === "Too Tough") {
+                        } else if (Answer_Verify?.tough === "Too Tough") {
                             await StarBalmodule.create({ Time, user: user, balance: "30".stars });
                             await Historymodule.create({ Time, user, rupee: "30", type: "Credited", tp: "Stars" });
                             await To_Admin_Historymodule.create({ Time, user, rupee: "30", type: "Credited", tp: "Stars" });
                             const rank = toString(won.length + 1)
                             await Answer_Verify.updateOne({ $push: { yes: user } })
                             return res.status(200).json({ Status: "STARS", stars: "30", rank: rank });
-                        }else {
+                        } else {
                             await StarBalmodule.create({ Time, user: user, balance: "4".stars });
                             await Historymodule.create({ Time, user, rupee: "4", type: "Credited", tp: "Stars" });
                             await To_Admin_Historymodule.create({ Time, user, rupee: "4", type: "Credited", tp: "Stars" });
@@ -9493,10 +9328,10 @@ async function get_iq(user, cat, level) {
 
 
 async function cat_fn(user, cat, fn) {
-    let data_fnd = await sng_qst_20_Module.findOne({user, cat, ob : fn})
-    if(!data_fnd){
+    let data_fnd = await sng_qst_20_Module.findOne({ user, cat, ob: fn })
+    if (!data_fnd) {
         data_fnd = await sng_qst_20_Module.create({
-            user, cat, ob : fn
+            user, cat, ob: fn
         })
     }
     return "ok"
@@ -9506,10 +9341,10 @@ async function cat_fn(user, cat, fn) {
 const Calc_perr = new mongoose.Schema({
     Time: String,
     cat: { type: String, unique: true }, // Unique constraint
-    count : String,
-    yes : [],
-    no : [],
-    seconds : []
+    count: String,
+    yes: [],
+    no: [],
+    seconds: []
 }, { timestamps: true });
 
 const monitor_cal_data_Module = mongoose.model('Monitor_cal_per_data', Calc_perr);
@@ -9517,25 +9352,25 @@ const monitor_cal_data_Module = mongoose.model('Monitor_cal_per_data', Calc_perr
 
 
 async function calcccc_cc(cat, count) {
-    const cat_find = await monitor_cal_data_Module.findOne({cat})
-    if(cat_find){
+    const cat_find = await monitor_cal_data_Module.findOne({ cat })
+    if (cat_find) {
         return parseInt(cat_find.count)
-    }else{
-        await monitor_cal_data_Module.create({Time, cat, count, yes : [], no : [], seconds : []})
+    } else {
+        await monitor_cal_data_Module.create({ Time, cat, count, yes: [], no: [], seconds: [] })
         return count
     }
 }
 
 
-app.get("/get/calculate/data/monitor/main", async (req, res)=>{
-    try{
+app.get("/get/calculate/data/monitor/main", async (req, res) => {
+    try {
         const data = await monitor_cal_data_Module.find({})
-        if(data){
-            res.status(200).json({data})
-        }else{
-            res.status(200).json({message : "No Data Found"})
+        if (data) {
+            res.status(200).json({ data })
+        } else {
+            res.status(200).json({ message: "No Data Found" })
         }
-    }catch (error) {
+    } catch (error) {
         console.error("Error fetching IQ data:", error);
     }
 })
@@ -9547,7 +9382,7 @@ function One() {
 
 
             const cat_count = await calcccc_cc("Total Boxes [Comp]", 40)
-            const na = parseInt(cat_count) - (parseInt(sum)*3) //3 means it takes 1 seconds to make check the 3 boxes
+            const na = parseInt(cat_count) - (parseInt(sum) * 3) //3 means it takes 1 seconds to make check the 3 boxes
             const difficulty = getDifficultiesByPer(na); //fix 40 1931
             const boxes = generateBoxesData(difficulty);
 
@@ -9583,7 +9418,7 @@ function One() {
                 sub_lang: "Total Boxes [Comp]",
                 yes: [],
                 no: [],
-                x : x
+                x: x
             });
 
             await time_ans_Module.create({
@@ -9598,7 +9433,7 @@ function One() {
 
             })
 
-            
+
 
         } catch (err) {
             // ✅ FIX: no res → rethrow so caller can handle
@@ -9612,7 +9447,7 @@ function Two() {
         try {
 
             const cat_count = await calcccc_cc("Total Boxes [Broken]", 40)
-            const na = parseInt(cat_count) - (parseInt(sum)*3)
+            const na = parseInt(cat_count) - (parseInt(sum) * 3)
             const difficulty = getDifficultiesByPer_two(na); //fix 40 1931
             const { boxes, brokenCount } = generateBoxesData_two(difficulty);
 
@@ -9648,7 +9483,7 @@ function Two() {
                 sub_lang: "Total Boxes [Broken]",
                 yes: [],
                 no: [],
-                x : x
+                x: x
             });
 
             await time_ans_Module.create({
@@ -9671,13 +9506,13 @@ function Two() {
 }
 
 
-function Three(){
+function Three() {
     return async function (level, user, qno, sec, sum, x) {
         try {
 
 
             const cat_count = await calcccc_cc("Stars [Broken]", 60)
-            const na = parseInt(cat_count) - (parseInt(sum)*3)
+            const na = parseInt(cat_count) - (parseInt(sum) * 3)
             const puzzle = generatePuzzle_three(na); //fix 60 1931
 
             // convert base64 → image
@@ -9710,7 +9545,7 @@ function Three(){
                 sub_lang: "Stars [Broken]",
                 yes: [],
                 no: [],
-                x : x
+                x: x
             });
 
             await time_ans_Module.create({
@@ -9733,12 +9568,12 @@ function Three(){
 }
 
 
-function Four(){
+function Four() {
     return async function (level, user, qno, sec, sum, x) {
         try {
 
             const cat_count = await calcccc_cc("Stars [Comp]", 50)
-            const na = parseInt(cat_count) - (parseInt(sum)*3)
+            const na = parseInt(cat_count) - (parseInt(sum) * 3)
             const puzzle = generatePuzzle_four(na); //fix 50 1931
 
             // res.json({
@@ -9770,7 +9605,7 @@ function Four(){
                 sub_lang: "Stars [Comp]",
                 yes: [],
                 no: [],
-                x : x
+                x: x
             });
 
             await time_ans_Module.create({
@@ -9793,12 +9628,12 @@ function Four(){
 }
 
 
-function Five(){
+function Five() {
     return async function (level, user, qno, sec, sum, x) {
         try {
 
             const cat_count = await calcccc_cc("Triangle [Broken]", 50)
-            const na = parseInt(cat_count) - (parseInt(sum)*3)
+            const na = parseInt(cat_count) - (parseInt(sum) * 3)
             const puzzle = generatePuzzle_five(na); //50 fix 1931-1
 
             // convert base64 → image
@@ -9833,7 +9668,7 @@ function Five(){
                 sub_lang: "Triangle [Broken]",
                 yes: [],
                 no: [],
-                x : x
+                x: x
             });
 
             await time_ans_Module.create({
@@ -9858,12 +9693,12 @@ function Five(){
 
 
 
-function Six(){
+function Six() {
     return async function (level, user, qno, sec, sum, x) {
         try {
 
             const cat_count = await calcccc_cc("Triangle [Comp]", 50)
-            const na = parseInt(cat_count) - (parseInt(sum)*3) //3 means it takes 1 seconds to make check the 3 boxes
+            const na = parseInt(cat_count) - (parseInt(sum) * 3) //3 means it takes 1 seconds to make check the 3 boxes
             const puzzle = generatePuzzle_six(na); //50 fix 1931
 
             // convert base64 → image
@@ -9898,7 +9733,7 @@ function Six(){
                 sub_lang: "Triangle [Comp]",
                 yes: [],
                 no: [],
-                x : x
+                x: x
             });
 
             await time_ans_Module.create({
@@ -9913,7 +9748,7 @@ function Six(){
 
             })
 
-            
+
 
         } catch (error) {
             console.log(error)
@@ -9922,12 +9757,12 @@ function Six(){
 }
 
 
-function Seven(){
+function Seven() {
     return async function (level, user, qno, sec, sum, x) {
         try {
 
             const cat_count = await calcccc_cc("Circels [Comp]", 55)
-            const na = parseInt(cat_count) - (parseInt(sum)*3) //3 means it takes 1 seconds to make check the 3 boxes
+            const na = parseInt(cat_count) - (parseInt(sum) * 3) //3 means it takes 1 seconds to make check the 3 boxes
             const puzzle = generatePuzzle_seven(na); //fix 55 1931
 
             // res.json({
@@ -9959,7 +9794,7 @@ function Seven(){
                 sub_lang: "Circels [Comp]",
                 yes: [],
                 no: [],
-                x : x
+                x: x
             });
 
             await time_ans_Module.create({
@@ -9974,7 +9809,7 @@ function Seven(){
 
             })
 
-            
+
 
         } catch (error) {
             console.log(error)
@@ -9988,7 +9823,7 @@ function Eight() {
         try {
 
             const cat_count = await calcccc_cc("Circels [Broken]", 50)
-            const na = parseInt(cat_count) - (parseInt(sum)*3) //3 means it takes 1 seconds to make check the 3 boxes
+            const na = parseInt(cat_count) - (parseInt(sum) * 3) //3 means it takes 1 seconds to make check the 3 boxes
             const puzzle = generatePuzzle_eight(na); //fix 50
 
             // convert base64 → image
@@ -10021,7 +9856,7 @@ function Eight() {
                 sub_lang: "Circels [Broken]",
                 yes: [],
                 no: [],
-                x : x
+                x: x
             });
 
             await time_ans_Module.create({
@@ -10048,7 +9883,7 @@ function Nine() {
     return async function (level, user, qno, sec, sum, x) {
         try {
             const cat_count = await calcccc_cc("[Circels and Triangles] Comp", 40)
-            const na = parseInt(cat_count) - (parseInt(sum)*3) //3 means it takes 1 seconds to make check the 3 boxes
+            const na = parseInt(cat_count) - (parseInt(sum) * 3) //3 means it takes 1 seconds to make check the 3 boxes
             const puzzle = generatePuzzle_complete_nine(na); //40 fix 1931
 
             // convert base64 → image
@@ -10081,7 +9916,7 @@ function Nine() {
                 sub_lang: "[Circels and Triangles] Comp",
                 yes: [],
                 no: [],
-                x : x
+                x: x
             });
 
             await time_ans_Module.create({
@@ -10109,7 +9944,7 @@ function Ten() {
     return async function (level, user, qno, sec, sum, x) {
         try {
             const cat_count = await calcccc_cc("[Circels and Triangles] Broken", 40)
-            const na = parseInt(cat_count) - (parseInt(sum)*3) //3 means it takes 1 seconds to make check the 3 boxes
+            const na = parseInt(cat_count) - (parseInt(sum) * 3) //3 means it takes 1 seconds to make check the 3 boxes
             const puzzle = generatePuzzle_broken_ten(na);
 
             // convert base64 → image
@@ -10126,7 +9961,7 @@ function Ten() {
 
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(ans.toString()) 
+                .update(ans.toString())
                 .digest("hex");
 
             const dt_post = await QuestionModule.create({
@@ -10142,7 +9977,7 @@ function Ten() {
                 sub_lang: "[Circels and Triangles] Broken",
                 yes: [],
                 no: [],
-                x : x
+                x: x
             });
 
 
@@ -10175,7 +10010,7 @@ function Ten() {
 
 
 const functions = {
-    One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, 
+    One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten,
     // Eleven, Tweleve, Thirteen, Fourteen, Fifteen, Sixteen
 }
 
@@ -10189,13 +10024,13 @@ app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req
 
 
         const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
-        
+
 
         if (status?.Status === "off") {
             return res.status(200).json({ Status: "Time", message: status.text });
         }
 
-        
+
 
 
 
@@ -10217,10 +10052,10 @@ app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req
         // const get_per = (won_data / (total_play || 1)) * 100;
 
 
-        
+
         let create_data = await QuestionListmodule.findOne({ user }); //i this this was useless
 
-        
+
 
         await QuestionModule.deleteMany({ user });
 
@@ -10234,14 +10069,14 @@ app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req
         ];
 
         const _dec_bal = await Balancemodule.findOne({ user });
-        const won_data = await Wonmodule.find({user})
+        const won_data = await Wonmodule.find({ user })
         const randomFunction = qst_gen[Math.floor(Math.random() * qst_gen.length)];
 
         //make continue from here work 4831
 
         const get_profit = await Profit_cal_Module.findOne({ user }).lean()
 
-        if(!get_profit){
+        if (!get_profit) {
 
             //make him win because he was an new user make him win 50 rupees
             randomFunction(105, user, "1", "20", "3")
@@ -10281,10 +10116,10 @@ app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req
             }
 
         }
-        
-        
 
-        
+
+
+
 
         //105 = per
         //user = user
@@ -10302,7 +10137,7 @@ app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req
         //     data(lvl, user, num, "20", "1")
         // });
 
-        
+
 
 
         if (!create_data) {
@@ -10333,7 +10168,7 @@ app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req
 
         // const _to_str_up_rp = balanceNum - feesNum
 
-        
+
 
         if (_dec_bal) {
             const currentBal = parseInt(_dec_bal.balance);
@@ -10341,7 +10176,7 @@ app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req
 
             _dec_bal.balance = updatedBal.toString(); // ✅ convert number to string
             await _dec_bal.save();
-            await profit_cal_data_update(user, feesNum, "0" )
+            await profit_cal_data_update(user, feesNum, "0")
         }
 
         const wal_cnt_mod = await Amount_walet_count_Module.findOne({ user: "kick" });
@@ -10398,7 +10233,7 @@ app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req
         if (count === 1) {
             console.log("✅ Finished successfully");
             return res.status(200).json({ Status: "OK" });
-        }else{
+        } else {
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
@@ -10409,7 +10244,7 @@ app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req
             return res.status(200).json({ Status: "BAD_CR" })
         }
 
-        
+
 
     } catch (error) {
         console.error("❌ Main Catch Error:", error);
@@ -10428,15 +10263,15 @@ app.post('/start/playing/by/debit/amount/new/all/xx/main/1', authMiddleware, asy
 
 
         const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
-        
+
 
         if (status?.Status === "off") {
             return res.status(200).json({ Status: "Time", message: status.text });
         }
 
-        await StartValidmodule.findOneAndDelete({user : user})
+        await StartValidmodule.findOneAndDelete({ user: user })
 
-        
+
 
 
 
@@ -10458,18 +10293,18 @@ app.post('/start/playing/by/debit/amount/new/all/xx/main/1', authMiddleware, asy
         // const get_per = (won_data / (total_play || 1)) * 100;
 
 
-        
+
         let create_data = await QuestionListmodule.findOne({ user }); //i this this was useless
 
-        
+
 
         await QuestionModule.deleteMany({ user });
 
-        
+
 
         const qst_gen = [
             One(), Two(), Three(), Four(), Five(), Six(),
-            Seven(), Eight(), Nine(), Ten(), 
+            Seven(), Eight(), Nine(), Ten(),
             // Eleven(), Tweleve(), Thirteen(),
             // Fourteen(), Fifteen(), Sixteen()
             // Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),
@@ -10483,13 +10318,13 @@ app.post('/start/playing/by/debit/amount/new/all/xx/main/1', authMiddleware, asy
         //make continue from here work 4831
 
 
-        
+
 
         randomFunction(105, user, "1", "20", "0", "10")
-        
-        
 
-        
+
+
+
 
         //105 = per
         //user = user
@@ -10507,7 +10342,7 @@ app.post('/start/playing/by/debit/amount/new/all/xx/main/1', authMiddleware, asy
         //     data(lvl, user, num, "20", "1")
         // });
 
-        
+
 
 
         if (!create_data) {
@@ -10538,7 +10373,7 @@ app.post('/start/playing/by/debit/amount/new/all/xx/main/1', authMiddleware, asy
 
         // const _to_str_up_rp = balanceNum - feesNum
 
-        
+
 
         if (_dec_bal) {
             const currentBal = parseInt(_dec_bal.balance);
@@ -10546,7 +10381,7 @@ app.post('/start/playing/by/debit/amount/new/all/xx/main/1', authMiddleware, asy
 
             _dec_bal.balance = updatedBal.toString(); // ✅ convert number to string
             await _dec_bal.save();
-            await profit_cal_data_update(user, feesNum, "0" )
+            await profit_cal_data_update(user, feesNum, "0")
         }
 
         const wal_cnt_mod = await Amount_walet_count_Module.findOne({ user: "kick" });
@@ -10603,7 +10438,7 @@ app.post('/start/playing/by/debit/amount/new/all/xx/main/1', authMiddleware, asy
         if (count === 1) {
             console.log("✅ Finished successfully");
             return res.status(200).json({ Status: "OK" });
-        }else{
+        } else {
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(feesNum)
@@ -10621,7 +10456,7 @@ app.post('/start/playing/by/debit/amount/new/all/xx/main/1', authMiddleware, asy
             return res.status(200).json({ Status: "BAD_CR" })
         }
 
-        
+
 
     } catch (error) {
         console.error("❌ Main Catch Error:", error);
@@ -10638,25 +10473,42 @@ app.post('/start/playing/by/debit/amount/new/all/xx/main', authMiddleware, async
 
 
         const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
-        
+
 
         if (status?.Status === "off") {
             return res.status(200).json({ Status: "Time", message: status.text });
         }
 
-        await StartValidmodule.findOneAndDelete({user : user})
+        await StartValidmodule.findOneAndDelete({ user: user })
 
-        
-
-
-
-        const lang_data = await LanguageSelectModule.findOne({ user }).lean();
-        const balance = await Balancemodule.findOne({ user }); // ac balance
+        let lang_data = await LanguageSelectModule.findOne({ user });
+        let balance = await Balancemodule.findOne({ user }); // ac balance
+        const star_bal = await StarBalmodule.findOne({ user })
+        if (!star_bal) {
+            await StarBalmodule.create({
+                Time,
+                user,
+                balance: "2",
+            })
+        }
         const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
 
-        if (!lang_data || !lang_data.lang) throw new Error("No language data found");
+        if (!lang_data || !lang_data.lang) {
+            lang_data = await LanguageSelectModule.create({
+                Time,
+                lang: ["English"],
+                user
+            })
+        }
 
-        if (!balance) return res.status(200).json({ Status: "no_us" });
+        if (!balance) {
+            balance = await Balancemodule.create({
+                Time,
+                user,
+                balance: "10",
+                last_tr_id: "no"
+            })
+        }
 
         const balanceNum = parseInt(balance.balance);
         const feesNum = parseInt(10);
@@ -10668,32 +10520,32 @@ app.post('/start/playing/by/debit/amount/new/all/xx/main', authMiddleware, async
         // const get_per = (won_data / (total_play || 1)) * 100;
 
 
-        
+
         let create_data = await QuestionListmodule.findOne({ user }); //i this this was useless
 
-        
+
 
         await QuestionModule.deleteMany({ user }); //make add this in logics remove this from here
 
         const _dec_bal = await Balancemodule.findOne({ user });
 
-        
 
-        
 
-        get_cat_in_out(user, "10", "20", "10")
+        const typee = await get_cat_in_out(user, "10", "20", "10")
+        await admin_noti(`Credited +${feesNum}.00₹`, `Started Playing user ${user}, staWro : ${typee}` )
+
         // const randomFunction = qst_gen[Math.floor(Math.random() * qst_gen.length)];
 
         //make continue from here work 4831
 
 
-        
+
 
         // randomFunction(105, user, "1", "20", "0", "10")
-        
-        
 
-        
+
+
+
 
         //105 = per
         //user = user
@@ -10711,7 +10563,7 @@ app.post('/start/playing/by/debit/amount/new/all/xx/main', authMiddleware, async
         //     data(lvl, user, num, "20", "1")
         // });
 
-        
+
 
 
         if (!create_data) {
@@ -10742,7 +10594,7 @@ app.post('/start/playing/by/debit/amount/new/all/xx/main', authMiddleware, async
 
         // const _to_str_up_rp = balanceNum - feesNum
 
-        
+
 
         if (_dec_bal) {
             const currentBal = parseInt(_dec_bal.balance);
@@ -10750,7 +10602,8 @@ app.post('/start/playing/by/debit/amount/new/all/xx/main', authMiddleware, async
 
             _dec_bal.balance = updatedBal.toString(); // ✅ convert number to string
             await _dec_bal.save();
-            await profit_cal_data_update(user, feesNum, "0" )
+            await profit_cal_data_update(user, feesNum, "0")
+            
         }
 
         const wal_cnt_mod = await Amount_walet_count_Module.findOne({ user: "kick" });
@@ -10807,7 +10660,7 @@ app.post('/start/playing/by/debit/amount/new/all/xx/main', authMiddleware, async
         if (count === 1) {
             console.log("✅ Finished successfully");
             return res.status(200).json({ Status: "OK" });
-        }else{
+        } else {
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(feesNum)
@@ -10825,7 +10678,7 @@ app.post('/start/playing/by/debit/amount/new/all/xx/main', authMiddleware, async
             return res.status(200).json({ Status: "BAD_CR" })
         }
 
-        
+
 
     } catch (error) {
         console.error("❌ Main Catch Error:", error);
@@ -11146,13 +10999,13 @@ app.post(
 );
 
 
-app.get("/get/latest/won/stars/data", adminMiddleware, async (req, res)=>{
-    try{
+app.get("/get/latest/won/stars/data", adminMiddleware, async (req, res) => {
+    try {
         const data = await To_Admin_Historymodule.find({})
-        if(data){
-            return res.status(200).json({data})
-        }else{
-            return res.status(200).json({Message : "No Data Found"})
+        if (data) {
+            return res.status(200).json({ data })
+        } else {
+            return res.status(200).json({ Message: "No Data Found" })
         }
     } catch (error) {
         console.error("Verify route error:", error);
@@ -11210,16 +11063,16 @@ app.get("/get/latest/won/stars/data", adminMiddleware, async (req, res)=>{
 // });
 
 
-app.post("/verify/answer/question/number/m", async (req, res)=>{
+app.post("/verify/answer/question/number/m", async (req, res) => {
     const {
-            answer,
-            id,
-            seconds,
-            Ans
-          } = req.body;
-    try{
+        answer,
+        id,
+        seconds,
+        Ans
+    } = req.body;
+    try {
         console.log(answer, id, seconds, Ans)
-    }catch (error) {
+    } catch (error) {
         console.error("Verify route error:", error);
         return res
             .status(500)
@@ -11240,63 +11093,63 @@ app.get("/get/paid/user/list", async (req, res) => {
 
 
 const FCM_TokenSchema = new mongoose.Schema({
-  user: { type: String, unique: true },
-  token: String,
+    user: { type: String, unique: true },
+    token: String,
 }, { timestamps: true });
 
 const FCM_module = mongoose.model("FCM_Tokens", FCM_TokenSchema);
 
 
 app.post("/fm/token/new", authMiddleware, async (req, res) => {
-  try {
-    const user = req.user;  // convert to string
-    const { token } = req.body;
+    try {
+        const user = req.user;  // convert to string
+        const { token } = req.body;
 
-    await FCM_module.findOneAndUpdate(
-      { user: user },
-      { token: token },
-      { upsert: true, new: true }
-    );
+        await FCM_module.findOneAndUpdate(
+            { user: user },
+            { token: token },
+            { upsert: true, new: true }
+        );
 
-    return res.status(200).json({ Status: "OK" });
+        return res.status(200).json({ Status: "OK" });
 
-  } catch (error) {
-    console.error("Error saving FCM token:", error);
-    return res.status(500).json({
-      Status: "SERVER_ERR",
-      message: "Failed to save FCM token"
-    });
-  }
+    } catch (error) {
+        console.error("Error saving FCM token:", error);
+        return res.status(500).json({
+            Status: "SERVER_ERR",
+            message: "Failed to save FCM token"
+        });
+    }
 });
 
 
 
 export const sendNotification = async (user, title, body) => {
-  try {
+    try {
 
-    const user_data = await FCM_module.findOne({user})
-    if(user_data){
-        const message = {
-            notification: {
-                title: title,
-                body: body,
-            },
-            android: {
-                priority: "high",
+        const user_data = await FCM_module.findOne({ user })
+        if (user_data) {
+            const message = {
                 notification: {
-                    sound: "default",
-                    channelId: "high_importance_channel",
+                    title: title,
+                    body: body,
                 },
-            },
-            token: user_data.token,
-        };
+                android: {
+                    priority: "high",
+                    notification: {
+                        sound: "default",
+                        channelId: "high_importance_channel",
+                    },
+                },
+                token: user_data.token,
+            };
 
-        const response = await admin.messaging().send(message);    
+            const response = await admin.messaging().send(message);
+        }
+
+    } catch (err) {
+        console.error("Notification error:", err);
     }
-    
-  } catch (err) {
-    console.error("Notification error:", err);
-  }
 };
 
 
@@ -11320,11 +11173,11 @@ export const sendNotification = async (user, title, body) => {
 
 
 const uniq_new_user_Schema = new mongoose.Schema({
-  user: { type: String, unique: true },
-  star : {
-    default : "0",
-    type : String
-  },
+    user: { type: String, unique: true },
+    star: {
+        default: "0",
+        type: String
+    },
 
 }, { timestamps: true });
 
@@ -11334,123 +11187,123 @@ const Uniq_new_user_module = mongoose.model("New_user_uniq", uniq_new_user_Schem
 
 //try
 
-app.get("/doc/betwween/time/cal", async (req, res)=>{
+app.get("/doc/betwween/time/cal", async (req, res) => {
     const data = await sng_qst_20_Module.find({})
-    res.status(200).json({data})
+    res.status(200).json({ data })
 })
 
 
 //19-03-2026
-app.post("/get/question/for/new/users/signed/out/users/qstion", async (req, res) =>{
-    const {u_id} = req.body;
-    try{
-        const data_find = await Uniq_new_user_module.findOne({user : u_id}).lean()
-        if(!data_find){
-            const data = await QuestionModule.findOne({ user : u_id})
-            if(data){
-                const get_fetch_data = await time_ans_Module.findOne({user : u_id, Qno_ID : data._id})
+app.post("/get/question/for/new/users/signed/out/users/qstion", async (req, res) => {
+    const { u_id } = req.body;
+    try {
+        const data_find = await Uniq_new_user_module.findOne({ user: u_id }).lean()
+        if (!data_find) {
+            const data = await QuestionModule.findOne({ user: u_id })
+            if (data) {
+                const get_fetch_data = await time_ans_Module.findOne({ user: u_id, Qno_ID: data._id })
 
                 if (get_fetch_data.Qst_get_tm === "n") {
                     get_fetch_data.Qst_get_tm = new Date()
                     await get_fetch_data.save()
                 }
-                return res.status(200).json({Status : "OK" , data})
+                return res.status(200).json({ Status: "OK", data })
             }
-            return res.status(200).json({Status : "NO_EXI"})
+            return res.status(200).json({ Status: "NO_EXI" })
         }
-    }catch (error){
+    } catch (error) {
         console.log(error)
     }
 })
 
 
 app.post("/get/question/for/new/users/signed/out/users/verify/qst", async (req, res) => {
-  const { u_id, sec, ans, q_id } = req.body;
+    const { u_id, sec, ans, q_id } = req.body;
 
-  try {
-    // 🔍 Find data
-    const find_user_doc = await Uniq_new_user_module.findOne({ user: u_id });
-    const fetch_cal = await time_ans_Module.findOne({ Qno_ID: q_id });
+    try {
+        // 🔍 Find data
+        const find_user_doc = await Uniq_new_user_module.findOne({ user: u_id });
+        const fetch_cal = await time_ans_Module.findOne({ Qno_ID: q_id });
 
-    if (!fetch_cal) {
-      return res.status(404).json({ Status: "Timer Data Not Found" });
+        if (!fetch_cal) {
+            return res.status(404).json({ Status: "Timer Data Not Found" });
+        }
+
+        // ⏱ Update timing
+        const now = new Date();
+        fetch_cal.Qst_ans_tm = now;
+        fetch_cal.updatedAt = now;
+
+        const timeDiffSeconds = Math.floor((now - fetch_cal.createdAt) / 1000);
+        fetch_cal.r_sec = timeDiffSeconds;
+        fetch_cal.cl_sec = sec;
+
+        await fetch_cal.save();
+
+        // 🚨 Cheating check
+        if (timeDiffSeconds > 25) {
+            return res.status(200).json({ Status: "Cheated" });
+        }
+
+        // 📦 Get question data
+        const find_qst_data = await QuestionModule.findOne({ user: u_id });
+
+        if (!find_qst_data) {
+            return res.status(404).json({ Status: "Question Not Found" });
+        }
+
+        // 🔐 Compare hash
+        function compareHash(plainText, hash) {
+            const plainHash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(plainText.toString())
+                .digest("hex");
+
+            return plainHash === hash;
+        }
+
+        const check_ans = compareHash(ans, find_qst_data.Ans);
+
+        // ✅ If correct
+        if (check_ans) {
+            const reward = parseInt(sec) * 10;
+
+            await Uniq_new_user_module.create({
+                user: u_id,
+                star: reward
+            });
+
+            return res.status(200).json({
+                Status: "OKK",
+                rupee: reward
+            });
+        }
+
+        // ❌ If wrong
+        await Uniq_new_user_module.create({
+            user: u_id,
+            star: 0
+        });
+        return res.status(200).json({ Status: "OK" });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ Status: "Server Error" });
     }
-
-    // ⏱ Update timing
-    const now = new Date();
-    fetch_cal.Qst_ans_tm = now;
-    fetch_cal.updatedAt = now;
-
-    const timeDiffSeconds = Math.floor((now - fetch_cal.createdAt) / 1000);
-    fetch_cal.r_sec = timeDiffSeconds;
-    fetch_cal.cl_sec = sec;
-
-    await fetch_cal.save();
-
-    // 🚨 Cheating check
-    if (timeDiffSeconds > 25) {
-      return res.status(200).json({ Status: "Cheated" });
-    }
-
-    // 📦 Get question data
-    const find_qst_data = await QuestionModule.findOne({ user: u_id });
-
-    if (!find_qst_data) {
-      return res.status(404).json({ Status: "Question Not Found" });
-    }
-
-    // 🔐 Compare hash
-    function compareHash(plainText, hash) {
-      const plainHash = crypto
-        .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-        .update(plainText.toString())
-        .digest("hex");
-
-      return plainHash === hash;
-    }
-
-    const check_ans = compareHash(ans, find_qst_data.Ans);
-
-    // ✅ If correct
-    if (check_ans) {
-      const reward = parseInt(sec) * 10;
-
-      await Uniq_new_user_module.create({
-        user: u_id,
-        star: reward
-      });
-
-      return res.status(200).json({
-        Status: "OKK",
-        rupee: reward
-      });
-    }
-
-    // ❌ If wrong
-    await Uniq_new_user_module.create({
-      user: u_id,
-      star: 0
-    });
-    return res.status(200).json({ Status: "OK" });
-
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ Status: "Server Error" });
-  }
 });
 
-app.post("/get/question/for/new/users/signed/out/users", async (req, res)=>{
-    const {u_id} = req.body;
-    try{
+app.post("/get/question/for/new/users/signed/out/users", async (req, res) => {
+    const { u_id } = req.body;
+    try {
 
-        if(!u_id || u_id === undefined || u_id === null) return res.status(200).json({message : "Some Data Missing"})
+        if (!u_id || u_id === undefined || u_id === null) return res.status(200).json({ message: "Some Data Missing" })
 
 
-        const data_find = await Uniq_new_user_module.findOne({user : u_id}).lean()
-        if(!data_find){
+        const data_find = await Uniq_new_user_module.findOne({ user: u_id }).lean()
+        if (!data_find) {
             const qst_gen = [
                 One(), Two(), Three(), Four(), Five(), Six(),
-                Seven(), Eight(), 
+                Seven(), Eight(),
                 // Nine(), Ten(),
                 // Eleven(), Tweleve(), Thirteen(),
                 // Fourteen(), Fifteen(), Sixteen()
@@ -11462,16 +11315,17 @@ app.post("/get/question/for/new/users/signed/out/users", async (req, res)=>{
 
             //make continue from here work 4831
 
-            await QuestionModule.findOneAndDelete({user : u_id})
+            await QuestionModule.findOneAndDelete({ user: u_id })
 
-            randomFunction(105, u_id, "1", "20", "0", "10")
+            randomFunction(105, u_id, "1", "20", "5", "10")
+            await admin_noti("New User started Playing", "A new user started Playing")
 
-            return res.status(200).json({Status : "OK"})
+            return res.status(200).json({ Status: "OK" })
 
-        }else{
-            return res.status(200).json({Status : "IN"})
+        } else {
+            return res.status(200).json({ Status: "IN" })
         }
-    }catch (error){
+    } catch (error) {
         console.log(error)
     }
 })
@@ -11480,105 +11334,144 @@ app.post("/get/question/for/new/users/signed/out/users", async (req, res)=>{
 
 const Admin_app_FCM_Schema = new mongoose.Schema({
     Time: String,
-    FCM : String,
+    FCM: String,
+    name : {
+        default :"kick",
+        type : "String"
+    }
 }, { timestamps: true });
 
 const Admin_FCM_Module = mongoose.model('Admin_FCM', Admin_app_FCM_Schema);
 
-app.post("/get/new/admin/fcm/token", async(req, res)=>{
-    const {fcm} = req.body;
+app.post("/get/new/admin/fcm/token", async (req, res) => {
+    const { fcm } = req.body;
 
-    try{
-        const find_fcm = await Admin_FCM_Module.findOne({FCM : fcm}).lean()
-        if(!find_fcm){
-            await Admin_FCM_Module.create({FCM : fcm})
+    try {
+        if (!fcm) {
+            return res.status(400).json({ Status: "FAIL", message: "FCM token required" });
         }
-        return res.status(200).json({Status : "OK"})
-    }catch (error){
-        console.log(error)
+
+        await Admin_FCM_Module.findOneAndUpdate(
+            { name: "kick" },
+            { 
+                FCM: fcm,
+                Time: new Date()
+            },
+            { 
+                new: true,
+                upsert: true // 🔥 create if not exists
+            }
+        );
+
+        return res.status(200).json({ Status: "OK" });
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ Status: "ERROR", message: "Server error" });
     }
-})
+});
+
+app.post("/send/multiple", async (req, res) => {
+    const { title, body } = req.body;
+
+    try {
+
+        const tokens = [];
+
+        const fcm_tokens = await Admin_FCM_Module.find({});
+
+        fcm_tokens.forEach((tok) => {
+            tokens.push(tok.FCM); // 👈 make sure field name is correct
+        });
 
 
-// app.post("/send/multiple", async (req, res) => {
-//     const { title, body } = req.body;
+        const message = {
+            tokens: tokens, // 🔥 array of tokens
+            notification: {
+                title: title,
+                body: body,
+            },
+        };
 
-//     try {
+        const response = await admin.messaging().sendEachForMulticast(message);
 
-//         const tokens = [];
+        console.log("Success:", response.successCount);
+        console.log("Failed:", response.failureCount);
 
-//         const fcm_tokens = await Admin_FCM_Module.find({});
+        res.json({
+            Status: "OK",
+            success: response.successCount,
+            failed: response.failureCount
+        });
 
-//         fcm_tokens.forEach((tok) => {
-//             tokens.push(tok.FCM); // 👈 make sure field name is correct
-//         });
+    } catch (error) {
+        console.log("Error:", error);
+        res.status(500).json({
+            Status: "ERROR",
+            message: error.message
+        });
+    }
+});
 
+async function admin_noti(title, body) {
+    const find_tok = await Admin_FCM_Module.findOne({name : "kick"}).lean()
+        const token = find_tok.FCM;
 
+        const message = {
+            token, // 🔥 single FCM token
+            notification: {
+                title,
+                body,
+            },
+            android: {
+                priority: "high",
+                notification: { channelId: "high_priority_channel" }, // must match your Flutter channel
+            },
+            apns: { headers: { "apns-priority": "10" } }, // high priority for iOS
+        };
 
+        const response = await admin.messaging().send(message); // 🔹 send single
 
-//         const message = {
-//             tokens: tokens, // 🔥 array of tokens
-//             notification: {
-//                 title: title,
-//                 body: body,
-//             },
-//         };
-
-//         const response = await admin.messaging().sendEachForMulticast(message);
-
-//         console.log("Success:", response.successCount);
-//         console.log("Failed:", response.failureCount);
-
-//         res.json({
-//             Status: "OK",
-//             success: response.successCount,
-//             failed: response.failureCount
-//         });
-
-//     } catch (error) {
-//         console.log("Error:", error);
-//         res.status(500).json({
-//             Status: "ERROR",
-//             message: error.message
-//         });
-//     }
-// });
-
-
+        console.log("Message sent successfully:", response);
+}
 
 
 // 🔹 POST /send/single
 app.post("/send/single", async (req, res) => {
-  const { title, body, token } = req.body;
+    const { title, body } = req.body;
 
-  try {
-    if (!token) {
-      return res
-        .status(400)
-        .json({ Status: "ERROR", message: "FCM token is required" });
+    try {
+        // const token = "c_jDRvW4TeimHmQ9G2X4zW:APA91bFdBckrEUNB_9P49VHbj8zKcyiDwt23noVU_wctd21EqWvPSk4sIMljC4ANQk9E47rdaFy_R0IvNWswFQBMqU_UzOOZnkPRPkYrV3WlS8FKk4ui-KQ"
+        // if (!token) {
+        //     return res
+        //         .status(400)
+        //         .json({ Status: "ERROR", message: "FCM token is required" });
+        // }
+
+        const find_tok = await Admin_FCM_Module.findOne({name : "kick"}).lean()
+        const token = find_tok.FCM;
+
+        const message = {
+            token, // 🔥 single FCM token
+            notification: {
+                title,
+                body,
+            },
+            android: {
+                priority: "high",
+                notification: { channelId: "high_priority_channel" }, // must match your Flutter channel
+            },
+            apns: { headers: { "apns-priority": "10" } }, // high priority for iOS
+        };
+
+        const response = await admin.messaging().send(message); // 🔹 send single
+
+        console.log("Message sent successfully:", response);
+        res.json({ Status: "OK", messageId: response });
+    } catch (error) {
+        console.log("Error sending notification:", error);
+        res.status(500).json({ Status: "ERROR", message: error.message });
     }
-
-    const message = {
-      token, // 🔥 single FCM token
-      notification: {
-        title,
-        body,
-      },
-      android: {
-        priority: "high",
-        notification: { channelId: "high_priority_channel" }, // must match your Flutter channel
-      },
-      apns: { headers: { "apns-priority": "10" } }, // high priority for iOS
-    };
-
-    const response = await admin.messaging().send(message); // 🔹 send single
-
-    console.log("Message sent successfully:", response);
-    res.json({ Status: "OK", messageId: response });
-  } catch (error) {
-    console.log("Error sending notification:", error);
-    res.status(500).json({ Status: "ERROR", message: error.message });
-  }
 });
 
 
@@ -11596,50 +11489,58 @@ const Time_Try_Module = mongoose.model('Time_Try', Time_Try_Schema);
 
 
 app.get("/try/time/stamp", async (req, res) => {
-  try {
-    // find the first document
-    const data = await Time_Try_Module.findOne({});
+    try {
+        // find the first document
+        const data = await Time_Try_Module.findOne({});
 
-    if (!data) {
-      // create a new document if none exists
-      const newData = await Time_Try_Module.create({});
-      return res.json({ Status: "OK", data: newData, timeDifference: 0 });
-    } else {
-      // update only updatedAt
-      const updated = await Time_Try_Module.updateOne(
-        { _id: data._id },
-        { $set: { updatedAt: new Date() } }
-      );
+        if (!data) {
+            // create a new document if none exists
+            const newData = await Time_Try_Module.create({});
+            return res.json({ Status: "OK", data: newData, timeDifference: 0 });
+        } else {
+            // update only updatedAt
+            const updated = await Time_Try_Module.updateOne(
+                { _id: data._id },
+                { $set: { updatedAt: new Date() } }
+            );
 
-      // fetch the updated document
-      const updatedDoc = await Time_Try_Module.findById(data._id);
+            // fetch the updated document
+            const updatedDoc = await Time_Try_Module.findById(data._id);
 
-      // calculate time difference in milliseconds
-      const timeDiffMs = updatedDoc.updatedAt - updatedDoc.createdAt;
+            // calculate time difference in milliseconds
+            const timeDiffMs = updatedDoc.updatedAt - updatedDoc.createdAt;
 
-      // optional: convert to seconds, minutes, or hours
-      const timeDiffSeconds = Math.floor(timeDiffMs / 1000);
-      const timeDiffMinutes = Math.floor(timeDiffSeconds / 60);
-      const timeDiffHours = Math.floor(timeDiffMinutes / 60);
+            // optional: convert to seconds, minutes, or hours
+            const timeDiffSeconds = Math.floor(timeDiffMs / 1000);
+            const timeDiffMinutes = Math.floor(timeDiffSeconds / 60);
+            const timeDiffHours = Math.floor(timeDiffMinutes / 60);
 
-      return res.json({
-        Status: "OK",
-        message: "updatedAt updated successfully",
-        timeDifference: {
-        //   milliseconds: timeDiffMs,
-          seconds: timeDiffSeconds,
-        //   minutes: timeDiffMinutes,
-        //   hours: timeDiffHours
+            return res.json({
+                Status: "OK",
+                message: "updatedAt updated successfully",
+                timeDifference: {
+                    //   milliseconds: timeDiffMs,
+                    seconds: timeDiffSeconds,
+                    //   minutes: timeDiffMinutes,
+                    //   hours: timeDiffHours
+                }
+            });
         }
-      });
+    } catch (error) {
+        console.log("Error updating updatedAt:", error);
+        res.status(500).json({ Status: "ERROR", message: error.message });
     }
-  } catch (error) {
-    console.log("Error updating updatedAt:", error);
-    res.status(500).json({ Status: "ERROR", message: error.message });
-  }
 });
 
-
+app.get("/get/total/data", async (req, res) =>{
+    try{
+        const total_inc = await Amount_Count_Module.findOne({user : "kick"}).lean()
+        const total_paid = await Tot
+    }catch (error) {
+        console.log("Error updating updatedAt:", error);
+        res.status(500).json({ Status: "ERROR", message: error.message });
+    }
+})
 
 
 
@@ -11671,19 +11572,18 @@ app.listen(PORT, () => {
 
 
 //make add cat this user : String,
-    // cat : String,
-    // ob : {
-    //     type : String,
-    //     default : ""
-    // },
-    // yes : [],
-    // no : [],
-    // lst_sec : {
-    //     type : Number,
-    //     default : 100
-    // },
-    // lst_q_id : String, in one(), two()
+// cat : String,
+// ob : {
+//     type : String,
+//     default : ""
+// },
+// yes : [],
+// no : [],
+// lst_sec : {
+//     type : Number,
+//     default : 100
+// },
+// lst_q_id : String, in one(), two()
 
-    
 
- 
+
