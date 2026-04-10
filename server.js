@@ -261,7 +261,7 @@ app.post(
 
 
 app.use(cors({
-    // origin: ["https://stawro.com", "https://www.stawro.com", "https://kalanirdhari.in:3000"],
+    // origin: ["https://stawro.com", "https://www.stawro.com", "http://192.168.126.1:3000"],
     origin: "*",
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
@@ -4305,7 +4305,11 @@ const QnoSchema = new mongoose.Schema({
     sub_lang: String,
     x: String,
     yes: [],
-    no: []
+    no: [],
+    typ : {
+        default : "",
+        type : String
+    }
 
 }, { timestamps: true });
 
@@ -10652,14 +10656,11 @@ app.post('/start/playing/by/debit/amount/new/all/xx/main', authMiddleware, async
         }
 
 
-
-
-
-
         const count = await QuestionModule.countDocuments({ user });
+        const type_qst = await QuestionModule.findOne({ user });
         if (count === 1) {
             console.log("✅ Finished successfully");
-            return res.status(200).json({ Status: "OK" });
+            return res.status(200).json({ Status: "OK" , type : type_qst.typ });
         } else {
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
@@ -11543,12 +11544,6 @@ app.get("/get/total/data", async (req, res) =>{
 })
 
 
-
-
-
-
-
-
 process.on('uncaughtException', (err) => {
     console.error('Uncaught Exception:', err);
 });
@@ -11557,9 +11552,6 @@ process.on('uncaughtException', (err) => {
 process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection:', reason);
 });
-
-
-
 
 
 const PORT = 80;
@@ -11584,6 +11576,5 @@ app.listen(PORT, () => {
 //     default : 100
 // },
 // lst_q_id : String, in one(), two()
-
 
 
