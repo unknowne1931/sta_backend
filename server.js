@@ -9422,7 +9422,8 @@ function One() {
                 sub_lang: "Total Boxes [Comp]",
                 yes: [],
                 no: [],
-                x: x
+                x: x,
+                typ : "star_circ_tria"
             });
 
             await time_ans_Module.create({
@@ -9487,7 +9488,8 @@ function Two() {
                 sub_lang: "Total Boxes [Broken]",
                 yes: [],
                 no: [],
-                x: x
+                x: x,
+                typ : "star_circ_tria"
             });
 
             await time_ans_Module.create({
@@ -9549,7 +9551,8 @@ function Three() {
                 sub_lang: "Stars [Broken]",
                 yes: [],
                 no: [],
-                x: x
+                x: x,
+                typ : "star_circ_tria"
             });
 
             await time_ans_Module.create({
@@ -9609,7 +9612,8 @@ function Four() {
                 sub_lang: "Stars [Comp]",
                 yes: [],
                 no: [],
-                x: x
+                x: x,
+                typ : "star_circ_tria"
             });
 
             await time_ans_Module.create({
@@ -9672,7 +9676,8 @@ function Five() {
                 sub_lang: "Triangle [Broken]",
                 yes: [],
                 no: [],
-                x: x
+                x: x,
+                typ : "star_circ_tria"
             });
 
             await time_ans_Module.create({
@@ -9737,7 +9742,8 @@ function Six() {
                 sub_lang: "Triangle [Comp]",
                 yes: [],
                 no: [],
-                x: x
+                x: x,
+                typ : "star_circ_tria"
             });
 
             await time_ans_Module.create({
@@ -9798,7 +9804,8 @@ function Seven() {
                 sub_lang: "Circels [Comp]",
                 yes: [],
                 no: [],
-                x: x
+                x: x,
+                typ : "star_circ_tria"
             });
 
             await time_ans_Module.create({
@@ -9860,7 +9867,8 @@ function Eight() {
                 sub_lang: "Circels [Broken]",
                 yes: [],
                 no: [],
-                x: x
+                x: x,
+                typ : "star_circ_tria"
             });
 
             await time_ans_Module.create({
@@ -9920,7 +9928,8 @@ function Nine() {
                 sub_lang: "[Circels and Triangles] Comp",
                 yes: [],
                 no: [],
-                x: x
+                x: x,
+                typ : "star_circ_tria"
             });
 
             await time_ans_Module.create({
@@ -9981,7 +9990,8 @@ function Ten() {
                 sub_lang: "[Circels and Triangles] Broken",
                 yes: [],
                 no: [],
-                x: x
+                x: x,
+                typ : "star_circ_tria"
             });
 
 
