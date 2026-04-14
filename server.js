@@ -11329,9 +11329,10 @@ app.post("/get/question/for/new/users/signed/out/users", async (req, res) => {
             await QuestionModule.findOneAndDelete({ user: u_id })
 
             randomFunction(105, u_id, "1", "20", "5", "10")
+            const typ_dt = await QuestionModule.findOne({ user: u_id }).lean()
             await admin_noti("New User started Playing", "A new user started Playing")
 
-            return res.status(200).json({ Status: "OK" })
+            return res.status(200).json({ Status: "OK", typ : typ_dt.typ })
 
         } else {
             return res.status(200).json({ Status: "IN" })
