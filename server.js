@@ -30,6 +30,7 @@ import { generatePuzzle_seven } from './new_modules/seven.js';
 import { generatePuzzle_eight } from './new_modules/eight.js';
 import { generatePuzzle_complete_nine } from './new_modules/nine.js';
 import { generatePuzzle_broken_ten } from './new_modules/ten.js';
+import { generatePuzzle_color } from './new_modules/eleven.js';
 
 
 
@@ -10015,6 +10016,68 @@ function Ten() {
 }
 
 
+//Test this One
+function Eleven() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("[Colours & Name Match]", 17)
+            const na = parseInt(cat_count) - (parseInt(sum) * 1) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+            const puzzle = generatePuzzle_color(na);
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.correct;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: "Count the broken boxes that contain circles and triangles.",
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "[Colours & Name Match]",
+                yes: [],
+                no: [],
+                x: x,
+                typ : "Colours & Name Match"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
 
 
 
