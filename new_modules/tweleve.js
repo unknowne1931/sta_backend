@@ -188,3 +188,5 @@ export function generatePuzzle_unlock_pattern(patternLength) {
     image: canvas.toDataURL().split(",")[1]
   };
 }
+
+
