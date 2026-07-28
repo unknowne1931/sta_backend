@@ -287,7 +287,7 @@ Add your project's license information here.
 
 ## 👨‍💻 Author
 
-**staWro**
+**AVI**
 
 GitHub Repository:
 
