@@ -18,7 +18,7 @@ import { MongoClient } from "mongodb";
 
 
 import { fromJSON } from 'postcss';
-import admin from "firebase-admin";
+import admin, { } from "firebase-admin";
 import serviceAccount from "./config/firebase-key.json" with { type: "json" };
 import { drawImage, generateBoxesData, generateOptions, getDifficultiesByPer } from './new_modules/one.js';
 import { drawImage_two, generateBoxesData_two, generateOptions_two, getDifficultiesByPer_two, uploadImage_two } from './new_modules/two.js';
@@ -31,6 +31,23 @@ import { generatePuzzle_eight } from './new_modules/eight.js';
 import { generatePuzzle_complete_nine } from './new_modules/nine.js';
 import { generatePuzzle_broken_ten } from './new_modules/ten.js';
 import { generatePuzzle_color } from './new_modules/eleven.js';
+import { type } from 'os';
+import { count } from 'console';
+import generateGame from './similar/one.js';
+import generateGame_text from './similar/two.js';
+import { generatePuzzle_unlock_pattern } from './new_modules/tweleve.js';
+import { generatePuzzle_morseCode } from './new_modules/thirteen.js';
+import { generatePuzzle_alphabetColourCount } from './new_modules/fourteen.js';
+import { generatePuzzle_maleConnectorCount } from './new_modules/fifteen.js';
+import { generatePuzzle_misalignedLetters } from './new_modules/sixteen.js';
+import { generatePuzzle_clockCounting } from './new_modules/seventeen.js';
+import { generatePuzzle_scrambledWords } from './new_modules/eighteen.js';
+import { generatePuzzle_colorMatch } from './new_modules/nineteen.js';
+import { generatePuzzle_colorMatch2 } from './new_modules/twenty.js';
+import { generatePuzzle_cipher_text } from './new_modules/tweentyone.js';
+import { generatePuzzle_consonant_count } from './new_modules/tweentytwo.js';
+import { generatePuzzle_word_search } from './new_modules/thweentythree.js';
+import { generatePuzzle_alphabetical } from './new_modules/twentyfour.js';
 
 
 
@@ -262,7 +279,7 @@ app.post(
 
 
 app.use(cors({
-    // origin: ["https://stawro.com", "https://www.stawro.com", "http://192.168.126.1:3000"],
+    // origin: ["https://stawro.com", "https://www.stawro.com", "http://192.168.31.133:3000"],
     origin: "*",
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
@@ -529,6 +546,35 @@ async function add_stars_to_new_loged_in_users(u_id, user) {
     }
 }
 
+
+app.post("/post/login", async (req, res) => {
+
+    const { data } = req.body;
+
+    try {
+
+        console.log("Datttt ")
+
+        const token = jwt.sign({ id: "686e24d32f21c9417882f777" }, "kanna_stawro_founders_withhh_1931_liketha", {
+            expiresIn: "365 days"
+        });
+
+        return res.status(200).json({
+            Status: "OK",
+            message: "Login success",
+            token,
+            user: "686e24d32f21c9417882f777",
+            username: "Avi",
+            email : "avi@gmail.com"
+        });
+
+
+
+    } catch (error) {
+        console.error("Google Auth Error:", error);
+        return res.status(500).json({ Status: "ERR_SERVER", message: "Internal server error." });
+    }
+})
 
 
 app.post('/post/google/auth', async (req, res) => {
@@ -4237,9 +4283,11 @@ app.delete("/delete/by/user/id/for/valid/data", authMiddleware, async (req, res)
     const user = req.user;
 
     try {
+        console.log("This One '/delete/by/user/id/for/valid/data'")
         if (!user) return res.status(400).json({ Status: 400, message: "Some Data Missing" })
 
         const data = await StartValidmodule.findOne({ user });
+        await Milion_ten_qst_count_Module.findOneAndDelete({user})
 
         if (data) {
             await data.deleteOne();
@@ -4292,7 +4340,10 @@ app.get("/admin/get/all/users/data/logined", adminMiddleware, async (req, res) =
 const QnoSchema = new mongoose.Schema({
     Time: String,
     user: String,
-    img: String,
+    img: {
+        type: String,
+        unique: true
+    },
     Questio: String,
     options: [],
     Ans: String,
@@ -4307,9 +4358,9 @@ const QnoSchema = new mongoose.Schema({
     x: String,
     yes: [],
     no: [],
-    typ : {
-        default : "",
-        type : String
+    typ: {
+        default: "",
+        type: String
     }
 
 }, { timestamps: true });
@@ -4595,6 +4646,10 @@ async function get_level_seconds(level) {
 
 async function History(user, rupee) {
     await Historymodule.create({ Time, user, rupee: rupee, type: "Credited", tp: "Rupee" });
+}
+
+async function History_db(user, rupee) {
+    await Historymodule.create({ Time, user, rupee: rupee, type: "Debited", tp: "Rupee" });
 }
 
 async function History_star(user, star) {
@@ -6025,7 +6080,7 @@ app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, re
 
 
 
- 
+
         const check_ans = compareHash(answer, Ans)
 
         const Answer_Verify = await QuestionModule.findById({ _id: id })
@@ -9367,6 +9422,7 @@ async function calcccc_cc(cat, count) {
 }
 
 
+
 app.get("/get/calculate/data/monitor/main", async (req, res) => {
     try {
         const data = await monitor_cal_data_Module.find({})
@@ -9424,7 +9480,7 @@ function One() {
                 yes: [],
                 no: [],
                 x: x,
-                typ : "star_circ_tria"
+                typ: "star_circ_tria"
             });
 
             await time_ans_Module.create({
@@ -9490,8 +9546,10 @@ function Two() {
                 yes: [],
                 no: [],
                 x: x,
-                typ : "star_circ_tria"
+                typ: "star_circ_tria"
             });
+
+            console.log(dt_post)
 
             await time_ans_Module.create({
                 Time,
@@ -9511,6 +9569,9 @@ function Two() {
         }
     }
 }
+
+
+
 
 
 function Three() {
@@ -9553,7 +9614,7 @@ function Three() {
                 yes: [],
                 no: [],
                 x: x,
-                typ : "star_circ_tria"
+                typ: "star_circ_tria"
             });
 
             await time_ans_Module.create({
@@ -9574,6 +9635,7 @@ function Three() {
         }
     }
 }
+
 
 
 function Four() {
@@ -9614,7 +9676,7 @@ function Four() {
                 yes: [],
                 no: [],
                 x: x,
-                typ : "star_circ_tria"
+                typ: "star_circ_tria"
             });
 
             await time_ans_Module.create({
@@ -9626,7 +9688,6 @@ function Four() {
                 Qst_ans_tm: "n",
                 cl_sec: "n",
                 r_sec: -1
-
             })
 
 
@@ -9678,7 +9739,7 @@ function Five() {
                 yes: [],
                 no: [],
                 x: x,
-                typ : "star_circ_tria"
+                typ: "star_circ_tria"
             });
 
             await time_ans_Module.create({
@@ -9744,7 +9805,7 @@ function Six() {
                 yes: [],
                 no: [],
                 x: x,
-                typ : "star_circ_tria"
+                typ: "star_circ_tria"
             });
 
             await time_ans_Module.create({
@@ -9806,7 +9867,7 @@ function Seven() {
                 yes: [],
                 no: [],
                 x: x,
-                typ : "star_circ_tria"
+                typ: "star_circ_tria"
             });
 
             await time_ans_Module.create({
@@ -9869,7 +9930,7 @@ function Eight() {
                 yes: [],
                 no: [],
                 x: x,
-                typ : "star_circ_tria"
+                typ: "star_circ_tria"
             });
 
             await time_ans_Module.create({
@@ -9930,7 +9991,7 @@ function Nine() {
                 yes: [],
                 no: [],
                 x: x,
-                typ : "star_circ_tria"
+                typ: "star_circ_tria"
             });
 
             await time_ans_Module.create({
@@ -9992,7 +10053,7 @@ function Ten() {
                 yes: [],
                 no: [],
                 x: x,
-                typ : "star_circ_tria"
+                typ: "star_circ_tria"
             });
 
 
@@ -10021,7 +10082,7 @@ function Eleven() {
     return async function (level, user, qno, sec, sum, x) {
         try {
             const cat_count = await calcccc_cc("[Colours & Name Match]", 17)
-            const na = parseInt(cat_count) - (parseInt(sum) * 1) //3 means it takes 1 seconds to make check the 3 boxes
+            const na = parseInt(cat_count) - (parseInt(sum) * 0.85) //3 means it takes 1 seconds to make check the 3 boxes
             // const puzzle = generatePuzzle_broken_ten(na);
             const puzzle = generatePuzzle_color(na);
 
@@ -10035,7 +10096,7 @@ function Eleven() {
             //     image: puzzle.image
             // })
 
-            const ans = puzzle.correct;
+            const ans = puzzle.answer;
 
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
@@ -10046,7 +10107,7 @@ function Eleven() {
                 Time: Time,
                 user: user,
                 img: puzzle.image,
-                Questio: "Count the broken boxes that contain circles and triangles.",
+                Questio: puzzle.question,
                 options: puzzle.options,
                 Ans: hash,
                 tough: "none",
@@ -10056,7 +10117,7 @@ function Eleven() {
                 yes: [],
                 no: [],
                 x: x,
-                typ : "Colours & Name Match"
+                typ: "Colours & Name Match"
             });
 
 
@@ -10081,15 +10142,1663 @@ function Eleven() {
 
 
 
+function Tweleve() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("Pattern_to_Numbers", 17)
+            const na = parseInt(cat_count) - (parseInt(sum) * 1) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+            const puzzle = generatePuzzle_unlock_pattern(na)
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.answer;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: "Count how many colour names match their actual colours.",
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "Pattern_to_Numbers",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "Pattern_to_Numbers"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
 
 
 
+function Thirteen() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("Morse code", 17)
+            const na = parseInt(cat_count) - (parseInt(sum) * 1) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+            const puzzle = generatePuzzle_morseCode(na);
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.answer;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: "Find the correct word from the Morse code.",
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "Morse code",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "Morse code"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+function Fourteen() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("Black_&_White_letters", 10)
+            const na = parseInt(cat_count) - (parseInt(sum) * 1) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+            const puzzle = generatePuzzle_alphabetColourCount(na);
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.answer;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: "How many letters match the clue colours?.",
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "Black_&_White_letters",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "Black_&_White_letters"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+
+function Fifteen() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("puzle_peace_male_female", 10)
+            const na = parseInt(cat_count) - (parseInt(sum) * 1) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+            let puzzle;
+
+            // let data
+            // const num = 16
+            if (na <= 7) {
+                puzzle = generatePuzzle_maleConnectorCount(2, 3)
+            } else if (na == 8) {
+                puzzle = generatePuzzle_maleConnectorCount(2, 4)
+            } else if (na == 9 || na == 10) {
+                puzzle = generatePuzzle_maleConnectorCount(3, 3)
+            } else if (na == 11) {
+                puzzle = generatePuzzle_maleConnectorCount(2, 5)
+            } else if (na == 12 || na == 13 || na == 14) {
+                puzzle = generatePuzzle_maleConnectorCount(3, 4)
+            } else if (na == 15) {
+                puzzle = generatePuzzle_maleConnectorCount(3, 5)
+            } else if (na >= 16) {
+                puzzle = generatePuzzle_maleConnectorCount(4, 4)
+            } else {
+                puzzle = generatePuzzle_maleConnectorCount(4, 4)
+            }
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.answer;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: "How many puzzle pieces contain 2 or more MALE connectors (outward tabs)?",
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "puzle_peace_male_female",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "puzle_peace_male_female"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+function Sixteen() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("letters_missalign", 10)
+            const na = parseInt(cat_count) - (parseInt(sum) * 1) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+            
+            const puzzle = generatePuzzle_misalignedLetters(na); //if na = 10 it shows 10 words
+
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.answer;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: "How many letters are misaligned?",
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "letters_missalign",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "letters_missalign"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+
+function Seventeen() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("clock_s", 6)
+            const na = parseInt(cat_count) - (parseInt(sum) * 0.5) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+            const puzzle = generatePuzzle_clockCounting(na);
+            console.log("Numbers of clocks : ", na)
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.answer;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: puzzle.question,
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "clock_s",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "clock_s"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+function Eighteen() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("scramble_words", 20)
+            const na = parseInt(cat_count) - (parseInt(sum) * 1) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+            const puzzle = generatePuzzle_scrambledWords(na, 90);
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.answer;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: puzzle.question,
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "scramble_words",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "scramble_words"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+function Nineteen() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("letter_colour_find", 8)
+            const na = parseInt(cat_count) - (parseInt(sum) * 1) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+            const puzzle = generatePuzzle_colorMatch(na);
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.answer;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: puzzle.question,
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "letter_colour_find",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "letter_colour_find"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+
+function Twenty() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("word_colour_find", 5)
+            const na = parseInt(cat_count) - (parseInt(sum) * 0.5) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+            const puzzle = generatePuzzle_colorMatch2(na);
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.answer;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: puzzle.question,
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "word_colour_find",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "word_colour_find"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+
+function Twentyone() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("encode_decode", 5)
+            const na = parseInt(cat_count) - (parseInt(sum) * 0.8) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+            const puzzle = generatePuzzle_cipher_text({letterLength : na});
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.answer;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: puzzle.question,
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "encode_decode",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "encode_decode"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+function Twentytwo() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("count_leters_exist", 8)
+            const na = parseInt(cat_count) - (parseInt(sum) * 0.7) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+            // const puzzle = generatePuzzle_cipher_text({letterLength : na});
+
+            const num = na
+            const puzzle = generatePuzzle_consonant_count({
+                minWords: num - 2,
+                maxWords: num
+            });
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.answer;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: puzzle.question,
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "count_leters_exist",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "count_leters_exist"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+function Twentythree() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("count_word_exist", 14)
+            const na = parseInt(cat_count) - (parseInt(sum) * 1) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+            // const puzzle = generatePuzzle_cipher_text({letterLength : na});
+
+            const puzzle = generatePuzzle_word_search({totalWords: na})
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.answer;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: puzzle.question,
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "count_word_exist",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "count_word_exist"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+//work
+function Twentyfour() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("re_arrange_letters", 5)
+            const na = parseInt(cat_count) - (parseInt(sum) * 0.5) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+            // const puzzle = generatePuzzle_cipher_text({letterLength : na});
+
+            const puzzle = generatePuzzle_alphabetical({ letters: na})
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.answer;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: puzzle.question,
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "re_arrange_letters",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "re_arrange_letters"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
 
 
 const functions = {
     One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten,
     // Eleven, Tweleve, Thirteen, Fourteen, Fifteen, Sixteen
 }
+
+
+const milion_qst_Schema = new mongoose.Schema({
+    Time: String,
+    count: {
+        type: Number,
+        default: 1
+    },
+    rs: {
+        type: Number,
+    },
+    shown_qst: {
+        type: Number,
+        default: 1
+    },
+    user: {
+        type: String,
+        unique: true
+    },
+    m_counts: {
+        type: [Number],
+        default: [6, 7, 8, 9, 10]
+    }
+}, { timestamps: true });
+
+const Milion_ten_qst_count_Module = mongoose.model('Milion', milion_qst_Schema);
+
+const qst_aray_store_Schema = new mongoose.Schema({
+    Time: String,
+    user: {
+        type: String,
+        unique: true
+    },
+    qst_array: {
+        type: [String],
+        default: [],
+    },
+}, { timestamps: true });
+
+const Qst_array_store_Module = mongoose.model('Qst_array', qst_aray_store_Schema);
+
+
+async function generate_qst_no(user, count) {
+
+    console.log("Generating question for user:", user, "Question number:", count);
+
+    try {
+
+        let qst_array_data =
+            await Qst_array_store_Module.findOne({ user });
+
+        const get_level = await get_tough_ll(count);
+
+        const functions = {
+        Twentyfour,
+            Twentythree,
+            Twentytwo,
+            Twentyone,
+            Twenty,
+            Nineteen,
+            Eighteen,
+            // Seventeen,
+            Sixteen,
+            Fifteen,
+            // Fourteen,
+            // Thirteen,
+            // Tweleve,
+            One,
+            Two,
+            // Three,
+            // Four,
+            // Five,
+            // Six,
+            // Seven,
+            // Eight,
+            // Nine,
+            // Ten
+            Eleven,
+        };
+
+        // If already exists
+        if (qst_array_data) {
+
+            const qst_array = qst_array_data.qst_array;
+
+            const fnName = qst_array[count - 1];
+
+            const qst_fn = functions[fnName];
+
+            console.log("Function:", qst_fn);
+
+            if (typeof qst_fn === "function") {
+
+                // CALL FIRST FUNCTION
+                const returned_fn = qst_fn();
+
+                // RUN ASYNC FUNCTION
+                await returned_fn(
+                    get_level.toString(),
+                    user.toString(),
+                    count.toString(),
+                    "20",
+                    get_level.toString(),
+                    "x"
+                );
+
+                return qst_array_data;
+            }
+
+            console.log("Function not found:", fnName);
+
+            return false;
+        }
+
+        // Generate questions
+        const qst_gen = [
+        "Twentyfour",
+            "Twentythree",
+            "Twentytwo",
+            "Twentyone",
+            "Twenty",
+            "Nineteen",
+            "Eighteen",
+            // "Seventeen",
+            "Sixteen",
+            "Fifteen",
+            // "Fourteen",
+            // "Thirteen",
+            // "Tweleve",
+            "Eleven",
+            "One",
+            "Two",
+            // "Three",
+            // "Four",
+            // "Five",
+            // "Six",
+            // "Seven",
+            // "Eight",
+            // "Nine",
+            // "Ten"
+
+        ];
+
+        // Shuffle
+        const shuffled = [...qst_gen]
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 10);
+
+        // Save
+        qst_array_data =
+            await Qst_array_store_Module.create({
+                Time: new Date().toISOString(),
+                user,
+                qst_array: shuffled
+            });
+
+        const fnName = shuffled[count - 1];
+
+        const qst_fn = functions[fnName];
+
+        if (typeof qst_fn === "function") {
+
+            const returned_fn = qst_fn();
+
+            await returned_fn(
+                get_level.toString(),
+                user.toString(),
+                count.toString(),
+                "20",
+                get_level.toString(),
+                "x"
+            );
+
+            return qst_array_data;
+        }
+
+        console.log("Function not found:", fnName);
+
+        return false;
+
+    } catch (error) {
+
+        console.log(error);
+
+        return false;
+    }
+}
+
+async function get_categ_fn(fn){
+    const data = [
+        {
+            fn : "One",
+            typ : "star_circ_tria"
+        },
+        {
+            fn : "Two",
+            typ : "star_circ_tria"
+        },
+        {
+            fn : "Three",
+            typ : "star_circ_tria"
+        },
+        {
+            fn : "Four",    
+            typ : "star_circ_tria"
+
+        },
+         {
+            fn : "Five",
+            typ : "star_circ_tria"
+        },
+        {
+            fn : "Six",
+            typ : "star_circ_tria"
+        },
+        {
+            fn : "Seven",
+            typ : "star_circ_tria"
+        },
+        {
+            fn : "Eight",
+            typ : "star_circ_tria"
+        },
+        {
+            fn : "Nine",
+            typ : "star_circ_tria"
+        },
+        {
+            fn : "Ten",
+            typ : "star_circ_tria"
+        },
+        {
+            fn : "Eleven",
+            typ : "Colours & Name Match"
+        },
+        {
+            fn : "Tweleve",
+            typ : "Pattern_to_Numbers"
+        },
+        {
+            fn : "Thirteen",
+            typ : "Morse code"
+        },
+        {
+            fn : "Fourteen",
+            typ : "Black_&_White_letters"
+        },
+        {
+            fn : "Fifteen",
+            typ : "puzle_peace_male_female"
+        },
+        {
+            fn : "Sixteen",
+            typ : "letters_missalign"
+        },
+        {
+            fn : "Seventeen",
+            typ : "clock_s"
+        },
+        {
+            fn : "Eighteen",
+            typ : "scramble_words"
+        },
+        {
+            fn : "Nineteen",
+            typ : "letter_colour_find"
+        },
+        {
+            fn : "Twenty",
+            typ : "word_colour_find"
+        },
+        {
+            fn : "Twentyone",
+            typ : "encode_decode"
+        },
+        {
+            fn : "Twentytwo",
+            typ : "count_leters_exist"
+        },
+        {
+            fn : "Twentythree",
+            typ : "count_word_exist"
+        },
+        {
+            fn : "Twentyfour",
+            typ : "re_arrange_letters"
+        }
+    ]
+
+    const find_data = data.find(d => d.fn === fn)
+    return find_data ? find_data.typ : null;
+
+
+}
+
+
+app.post("/milionear/game/start/ten/qst", authMiddleware, async (req, res) => {
+
+    const user = req.user;
+    const { rs } = req.body;
+    try {
+
+        
+        const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
+        await Qst_array_store_Module.deleteMany({ user });
+        await Milion_ten_qst_count_Module.deleteMany({ user }); //deleting qst array store data for new game start
+        await QuestionModule.deleteMany({ user }); //make add this in logics remove this from here
+
+
+        if (status?.Status === "off") {
+            return res.status(200).json({ Status: "Time", message: status.text });
+        }
+
+        await StartValidmodule.findOneAndDelete({ user: user })
+
+        let lang_data = await LanguageSelectModule.findOne({ user });
+
+        if (!lang_data || !lang_data.lang) {
+            lang_data = await LanguageSelectModule.create({
+                Time,
+                lang: ["English"],
+                user
+            })
+        }
+
+        let balance = await Balancemodule.findOne({ user }); // ac balance
+
+        if (!balance) {
+            balance = await Balancemodule.create({
+                Time,
+                user,
+                balance: "10",
+                last_tr_id: "no"
+            })
+        }
+
+        const star_bal = await StarBalmodule.findOne({ user })
+        if (!star_bal) {
+            await StarBalmodule.create({
+                Time,
+                user,
+                balance: "20",
+            })
+        }
+        const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
+
+
+
+
+
+        const balanceNum = parseInt(balance.balance);
+        const feesNum = parseInt(10);
+
+        if (balanceNum < feesNum) {
+            return res.status(200).json({ Status: "Low-Bal" });
+        }
+
+        const f_bal = parseInt(balance.balance) - 10
+        balance.balance = f_bal.toString()
+        await balance.save()
+        await History_db(user, "10")
+
+        // const get_per = (won_data / (total_play || 1)) * 100;
+
+
+
+        let create_data = await QuestionListmodule.findOne({ user }); //i this this was useless
+
+
+        const _dec_bal = await Balancemodule.findOne({ user });
+
+
+        // const reward_data = await milion_reward(1, rs)
+
+        await Milion_ten_qst_count_Module.create({
+            Time: new Date().toISOString(),
+            count: 1,
+            rs: 0,
+            user: user,
+            m_counts: [ 6, 7, 8, 9, 10]
+        });
+
+
+        const dat = await Milion_ten_qst_count_Module.findOne({ user });
+        console.log("Data created for user:", dat);
+
+        return res.status(200).json({ Status: "OK", message: "Milionear game started with ten questions" });
+
+        // pending
+
+
+
+
+
+
+    } catch (error) {
+        console.error("❌ Main Catch Error:", error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+})
+
+async function get_qst_time_update(user, Qno_ID) {
+    const time_up = await time_ans_Module.findOne({ user, Qno_ID });
+    if (time_up && time_up.Qst_get_tm === "n") {
+        time_up.Qst_get_tm = new Date();
+        await time_up.save();
+    }
+}
+
+app.post("/milionear/game/quit/ten/qst", authMiddleware, async (req, res) => {
+    const user = req.user;
+    const { yn } = req.body;
+    try {
+
+        //question must be Do you want to play
+        if (yn === "no") {
+            const data_milion_ten_dt = await Milion_ten_qst_count_Module.findOne({ user });
+            if (data_milion_ten_dt) {
+                const reward = data_milion_ten_dt.rs
+                const star_bal = await StarBalmodule.findOne({ user })
+                if (star_bal) {
+                    star_bal.balance = (parseInt(star_bal.balance) + parseInt(reward)).toString();
+                    await star_bal.save();
+                } else {
+                    await StarBalmodule.create({
+                        Time,
+                        user,
+                        balance: reward.toString(),
+                    })
+                }
+                await History(user, reward)
+                await Milion_ten_qst_count_Module.deleteMany({ user: user })
+
+
+                return res.status(200).json({ Status: "Credit_Quit", message: "Milionear game quit successfully" });
+
+            } else {
+                await Milion_ten_qst_count_Module.updateOne(
+                    { user : user },
+                    { $pull: { m_counts: data_milion_ten_dt.count } }
+                );
+                return res.status(200).json({ Status: "No-Game", message: "No active Milionear game found to quit" });
+            }
+        } else {
+
+            return res.status(200).json({ Status: "Continue", message: "Milionear game continue" });
+        }
+
+    } catch (error) {
+        console.error("❌ Main Catch Error:", error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+})
+
+app.post("/revel/qst/start/game" , authMiddleware, async (req, res) => {
+    const user = req.user;
+
+    try {
+        const data_milion_ten_dt = await Milion_ten_qst_count_Module
+            .findOne({ user })
+
+        console.log("Data for user:", data_milion_ten_dt);
+        if (data_milion_ten_dt.count === data_milion_ten_dt.shown_qst) {
+            await Milion_ten_qst_count_Module.updateOne(
+                { user },
+                { $inc: { shown_qst: 1 } }
+            );
+            return res.status(200).json({ Status: "OK", message: "Do you want to play" })
+        }
+        return res.status(200).json({ Status: "OK", message: "No question to show" })
+    } catch (error) {
+        console.error("❌ Main Catch Error:", error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+});
+
+app.get("/milionear/game/get/qst/no/to/play", authMiddleware, async (req, res) => {
+    const user = req.user;
+
+    try {
+        const data_milion_ten_dt = await Milion_ten_qst_count_Module.findOne({ user });
+
+
+        if (!data_milion_ten_dt) {
+            return res.status(200).json({ Status: "OUT", message: "OUT" });
+        }
+
+
+        const data_milion_ten_data = data_milion_ten_dt.m_counts
+
+        const data = await Qst_array_store_Module.findOne({ user });
+
+        if(!data){
+            await generate_qst_no(user, data_milion_ten_dt.count)
+        }
+
+        if (data_milion_ten_data.includes(data_milion_ten_dt.count)) {
+            //make ask do you want to play or continue
+            return res.status(200).json({ Status: "yes/no", message: "Do you want to play", rs :data_milion_ten_dt.rs })
+        }
+
+        if(data_milion_ten_dt.count === data_milion_ten_dt.shown_qst){
+            const data = await Qst_array_store_Module.findOne({ user }).lean()
+            const categ = await get_categ_fn(data.qst_array[data_milion_ten_dt.count - 1]);
+            return res.status(200).json({ Status: "show", message: "Understand Game", cat : categ })
+        }
+
+        if (data_milion_ten_dt.count <= 10) {
+            const rs = data_milion_ten_dt.count || 0
+            const fnd_qst = await QuestionModule.findOne({ user, Qno: data_milion_ten_dt.count.toString() }).lean();
+            const rupp = ["10", "20", "30", "40", "50", "80", "110", "140", "170", "200"]
+            const ind = data_milion_ten_dt.count -1
+            const rsss = rupp[ind]
+            if (!fnd_qst) {
+                //get question function here create a Question function here
+                const ret = await generate_qst_no(user, data_milion_ten_dt.count)
+                const fnd_qst = await QuestionModule.findOne({ user, Qno: data_milion_ten_dt.count.toString() }).lean(); //make this dynamic later
+                await get_qst_time_update(user, fnd_qst._id)
+
+
+                return res.status(200).json({ Status: "OK", Data: fnd_qst, rw: rsss})
+            }
+            await get_qst_time_update(user, fnd_qst._id)
+
+            
+
+            return res.status(200).json({ Status: "OK", Data: fnd_qst, rw: rsss})
+
+        }
+
+    } catch (error) {
+        console.error("❌ Main Catch Error:", error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+
+})
+
+
+async function get_tough_ll(count) {
+    const data = [
+
+        {
+            num: 1,
+            tough: 5
+        },
+
+        {
+            num: 2,
+            tough: 4
+        },
+
+        {
+            num: 3,
+            tough: 3
+        },
+
+        {
+            num: 4,
+            tough: 2
+        },
+
+        {
+            num: 5,
+            tough: 1
+        },
+
+        {
+            num: 6,
+            tough: 0
+        },
+
+        {
+            num: 7,
+            tough: 0
+        },
+
+        {
+            num: 8,
+            tough: 0
+        },
+
+        {
+            num: 9,
+            tough: 0
+        },
+
+        {
+            num: 10,
+            tough: 0
+        }
+
+    ]
+
+    const find_data = data.find(d => d.num === count)
+    return find_data ? find_data.tough : 0
+
+}
+
+async function milion_reward(count, rs) {
+
+    //10 and 20 rupees
+
+    const data = [
+        {
+            num: 1,
+            reward: 10
+        },
+        {
+            num: 2,
+            reward: 20
+        },
+        {
+            num: 3,
+            reward: 30
+        },
+        {
+            num: 4,
+            reward: 40
+        },
+        {
+            num: 5,
+            reward: 50
+        },
+        {
+            num: 6,
+            reward: 80
+        },
+        {
+            num: 7,
+            reward: 110
+        },
+        {
+            num: 8,
+            reward: 140
+        },
+        {
+            num: 9,
+            reward: 170
+        },
+        {
+            num: 10,
+            reward: 200
+        }
+
+    ]
+
+    const find_data = data.find(d => d.num === count)
+    if (rs === 10) {
+        return find_data ? find_data.reward * 2 : 0
+    } else {
+        return find_data ? find_data.reward : 0
+    }
+
+}
+
+
+app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
+    const user = req.user;
+    const { answer } = req.body;
+
+    try {
+
+
+
+
+        const data_milion_ten_dt = await Milion_ten_qst_count_Module.findOne({ user });
+
+        if (!data_milion_ten_dt) {
+            return res.status(200).json({ Status: "OUT", message: "OUT" });
+        }
+
+
+        const find_qst_data = await QuestionModule.findOne({ user, Qno: data_milion_ten_dt.count.toString() });
+        // const answer_time_data = await time_ans_Module.findOne({ user, Qno_ID: find_qst_data._id });
+
+        // answer_time_data.updatedAt = new Date();
+        // const time = answer_time_data.updatedAt - answer_time_data.Qst_get_tm
+        // const timeDiffSeconds = Math.floor(time / 1000);
+
+        // console.log("Time taken to answer : " + timeDiffSeconds + " Timeeee : " + time )
+
+
+
+
+
+
+
+        const answer_time_data = await time_ans_Module.findOne({
+            user,
+            Qno_ID: find_qst_data._id
+        });
+
+        if (!answer_time_data) {
+            console.log("Record not found");
+            return;
+        }
+
+        const currentTime = new Date();
+        const questionTime = new Date(answer_time_data.Qst_get_tm);
+
+        const time = currentTime.getTime() - questionTime.getTime();
+        const timeDiffSeconds = Math.floor(time / 1000);
+
+        console.log(
+            "Time taken to answer:",
+            timeDiffSeconds,
+            "seconds",
+            "Milliseconds:",
+            time
+        );
+
+
+
+
+
+
+
+
+
+        if (timeDiffSeconds > parseInt(find_qst_data.seconds) + 5) {
+            //time out
+            await Milion_ten_qst_count_Module.deleteMany({ user })
+            return res.status(200).json({ Status: "TimeOut", message: "Time Out! Game Over." });
+        }
+
+        await time_ans_Module.findOneAndDelete({user})
+
+
+
+
+
+
+
+        let Ans = find_qst_data.Ans;
+
+        function compareHash(plainText, hash) {
+            const plainHash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(plainText.toString())
+                .digest("hex");
+            return plainHash === hash;
+        }
+
+
+
+
+        const check_ans = compareHash(answer, Ans)
+
+        if (check_ans) {
+            if (data_milion_ten_dt.count <= 10) {
+                await find_qst_data.deleteOne();
+                const rward_amt = await milion_reward(data_milion_ten_dt.count, data_milion_ten_dt.rs)
+                const mi_dtt = await Milion_ten_qst_count_Module.findOne({user})
+
+                mi_dtt.count = mi_dtt.count + 1
+                mi_dtt.rs = rward_amt
+                await mi_dtt.save()
+
+
+                // await Milion_ten_qst_count_Module.updateOne(
+                //     { user },
+                //     {
+                //         $inc: { count: 1 },
+                //         $set: { rs: rward_amt }
+                //     }
+                // );
+                console.log(rward_amt)
+                return res.status(200).json({ Status: "correct", message: "Correct Answer!", reward: rward_amt });
+            }
+            else {
+                return res.status(200).json({ Status: "completed", message: "Congratulations! You have completed the game." });
+            }
+
+
+        } else {
+            //wrong answer
+            await find_qst_data.deleteOne();
+            await Milion_ten_qst_count_Module.deleteMany({ user })
+            return res.status(200).json({ Status: "wrong", message: "Wrong Answer! Game Over." });
+
+        }
+
+
+
+
+
+
+
+    } catch (error) {
+        console.error("❌ Main Catch Error:", error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+
+})
+
 
 
 //Main start API
@@ -10106,9 +11815,6 @@ app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req
         if (status?.Status === "off") {
             return res.status(200).json({ Status: "Time", message: status.text });
         }
-
-
-
 
 
         const lang_data = await LanguageSelectModule.findOne({ user }).lean();
@@ -10347,9 +12053,6 @@ app.post('/start/playing/by/debit/amount/new/all/xx/main/1', authMiddleware, asy
         }
 
         await StartValidmodule.findOneAndDelete({ user: user })
-
-
-
 
 
         const lang_data = await LanguageSelectModule.findOne({ user }).lean();
@@ -10609,7 +12312,7 @@ app.post('/start/playing/by/debit/amount/new/all/xx/main', authMiddleware, async
 
 
         const typee = await get_cat_in_out(user, "10", "20", "10")
-        await admin_noti(`Credited +${feesNum}.00₹`, `Started Playing user ${user}, staWro : ${typee}` )
+        await admin_noti(`Credited +${feesNum}.00₹`, `Started Playing user ${user}, staWro : ${typee}`)
 
         // const randomFunction = qst_gen[Math.floor(Math.random() * qst_gen.length)];
 
@@ -10680,7 +12383,7 @@ app.post('/start/playing/by/debit/amount/new/all/xx/main', authMiddleware, async
             _dec_bal.balance = updatedBal.toString(); // ✅ convert number to string
             await _dec_bal.save();
             await profit_cal_data_update(user, feesNum, "0")
-            
+
         }
 
         const wal_cnt_mod = await Amount_walet_count_Module.findOne({ user: "kick" });
@@ -10733,7 +12436,7 @@ app.post('/start/playing/by/debit/amount/new/all/xx/main', authMiddleware, async
         const type_qst = await QuestionModule.findOne({ user });
         if (count === 1) {
             console.log("✅ Finished successfully");
-            return res.status(200).json({ Status: "OK" , type : type_qst.typ });
+            return res.status(200).json({ Status: "OK", type: type_qst.typ });
         } else {
             console.log("amount credited")
             const bal_dt = await Balancemodule.findOne({ user: user })
@@ -10867,9 +12570,9 @@ app.get("/get/levels/user", authMiddleware, async (req, res) => {
     try {
         const user = req.user;
 
-        const data = await Level_up_Module.findOne({ user }).lean()
+        const data = await StarBalmodule.findOne({ user }).lean()
         if (data) {
-            return res.status(200).json({ data: data.rank })
+            return res.status(200).json({ data: data.balance })
         } else {
             return res.status(200).json({ message: "No Data" })
         }
@@ -11395,7 +13098,7 @@ app.post("/get/question/for/new/users/signed/out/users", async (req, res) => {
             const typ_dt = await QuestionModule.findOne({ user: u_id }).lean()
             await admin_noti("New User started Playing", "A new user started Playing")
 
-            return res.status(200).json({ Status: "OK", typ : typ_dt.typ })
+            return res.status(200).json({ Status: "OK", typ: typ_dt.typ })
 
         } else {
             return res.status(200).json({ Status: "IN" })
@@ -11410,9 +13113,9 @@ app.post("/get/question/for/new/users/signed/out/users", async (req, res) => {
 const Admin_app_FCM_Schema = new mongoose.Schema({
     Time: String,
     FCM: String,
-    name : {
-        default :"kick",
-        type : "String"
+    name: {
+        default: "kick",
+        type: "String"
     }
 }, { timestamps: true });
 
@@ -11428,11 +13131,11 @@ app.post("/get/new/admin/fcm/token", async (req, res) => {
 
         await Admin_FCM_Module.findOneAndUpdate(
             { name: "kick" },
-            { 
+            {
                 FCM: fcm,
                 Time: new Date()
             },
-            { 
+            {
                 new: true,
                 upsert: true // 🔥 create if not exists
             }
@@ -11489,25 +13192,25 @@ app.post("/send/multiple", async (req, res) => {
 });
 
 async function admin_noti(title, body) {
-    const find_tok = await Admin_FCM_Module.findOne({name : "kick"}).lean()
-        const token = find_tok.FCM;
+    const find_tok = await Admin_FCM_Module.findOne({ name: "kick" }).lean()
+    const token = find_tok.FCM;
 
-        const message = {
-            token, // 🔥 single FCM token
-            notification: {
-                title,
-                body,
-            },
-            android: {
-                priority: "high",
-                notification: { channelId: "high_priority_channel" }, // must match your Flutter channel
-            },
-            apns: { headers: { "apns-priority": "10" } }, // high priority for iOS
-        };
+    const message = {
+        token, // 🔥 single FCM token
+        notification: {
+            title,
+            body,
+        },
+        android: {
+            priority: "high",
+            notification: { channelId: "high_priority_channel" }, // must match your Flutter channel
+        },
+        apns: { headers: { "apns-priority": "10" } }, // high priority for iOS
+    };
 
-        const response = await admin.messaging().send(message); // 🔹 send single
+    const response = await admin.messaging().send(message); // 🔹 send single
 
-        console.log("Message sent successfully:", response);
+    console.log("Message sent successfully:", response);
 }
 
 
@@ -11523,7 +13226,7 @@ app.post("/send/single", async (req, res) => {
         //         .json({ Status: "ERROR", message: "FCM token is required" });
         // }
 
-        const find_tok = await Admin_FCM_Module.findOne({name : "kick"}).lean()
+        const find_tok = await Admin_FCM_Module.findOne({ name: "kick" }).lean()
         const token = find_tok.FCM;
 
         const message = {
@@ -11607,15 +13310,61 @@ app.get("/try/time/stamp", async (req, res) => {
     }
 });
 
-app.get("/get/total/data", async (req, res) =>{
-    try{
-        const total_inc = await Amount_Count_Module.findOne({user : "kick"}).lean()
+app.get("/get/total/data", async (req, res) => {
+    try {
+        const total_inc = await Amount_Count_Module.findOne({ user: "kick" }).lean()
         const total_paid = await Tot
-    }catch (error) {
+    } catch (error) {
         console.log("Error updating updatedAt:", error);
         res.status(500).json({ Status: "ERROR", message: error.message });
     }
 })
+
+
+
+
+
+//trial
+
+
+
+app.get('/similar/question/colour', (req, res) => {
+  const Data = generateGame()
+    res.json({
+      Data
+    });
+});
+
+
+app.get('/similar/question/text', (req, res) => {
+  const Data = generateGame_text()
+    res.json({
+      Data
+    });
+});
+
+
+app.get('/trial/ten/questions/11', (req, res) => {
+  const Data = generatePuzzle_color(20)
+    res.json({
+      Data
+    });
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 process.on('uncaughtException', (err) => {
@@ -11650,5 +13399,6 @@ app.listen(PORT, () => {
 //     default : 100
 // },
 // lst_q_id : String, in one(), two()
+
 
 
