@@ -968,7 +968,7 @@ app.get("/get/bank/account/data", authMiddleware, async (req, res) => {
         if (data) {
             return res.status(200).json({ data, balance: bal.balance })
         } else {
-            return res.status(202).json({ Status: "No" })
+            return res.status(202).json({ Status: "No Data Found" })
         }
 
     } catch (error) {
