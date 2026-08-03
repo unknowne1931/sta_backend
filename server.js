@@ -279,7 +279,7 @@ app.post(
 
 
 app.use(cors({
-    // origin: ["https://stawro.com", "https://www.stawro.com", "http://192.168.31.133:3000"],
+    // origin: ["https://stawro.com", "https://www.stawro.com", "http://192.168.126.1:3000"],
     origin: "*",
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
@@ -912,48 +912,341 @@ app.get('/update/data', authMiddleware, async (req, res) => {
 })
 
 
-const UPI_BANKSchema = new mongoose.Schema({
-    Time: String,
-    user: String,
-    ac_h_nme: String,
-    bank_nme: {
-        default: "No",
-        type: String
-    },
-    Acc_no: String,
-    ifsc: {
-        default: "No",
-        type: String
-    },
-    app: {
-        default: "No",
-        type: String
-    },
-    type: String
+// const UPI_BANKSchema = new mongoose.Schema({
+//     Time: String,
+//     user: String,
+//     ac_h_nme: String,
+//     bank_nme: {
+//         default: "No",
+//         type: String
+//     },
+//     Acc_no: String,
+//     ifsc: {
+//         default: "No",
+//         type: String
+//     },
+//     app: {
+//         default: "No",
+//         type: String
+//     },
+//     type: String
 
+// }, { timestamps: true });
+
+// const UPImodule = mongoose.model('Baank_UPI', UPI_BANKSchema);
+
+// app.post("/bank/upi/data/collect", authMiddleware, async (req, res) => {
+//     const { user, ac_h_nme, bank_nme, Acc_no, ifsc, app, type } = req.body;
+//     try {
+
+//         if (!user && !ac_h_nme && !bank_nme && !Acc_no && !ifsc && !app && !type) return res.status(400).json({ Status: "NO", message: "Some Data Missing" })
+
+//         const data = await UPImodule.findOne({ user: user }).lean()
+
+//         if (!data) {
+//             await UPImodule.create({ user, ac_h_nme, bank_nme, Acc_no, ifsc, app, type })
+//             return res.status(200).json({ Status: "OK" })
+//         } else {
+//             return res.status(200).json({ Status: "IN" })
+//         }
+//     } catch (error) {
+//         console.log(error);
+//         return res.status(500).json({ message: "Internal Server Error" });
+//     }
+// })
+
+
+
+
+
+
+
+const UPI_BANKSchema = new mongoose.Schema({
+    user: { 
+        type: String, 
+        required: true,
+        index: true 
+    },
+    type: { 
+        type: String, 
+        enum: ['Bank', 'UPI'], 
+        required: true 
+    },
+    ac_h_nme: { 
+        type: String, 
+        required: true 
+    },
+    // Bank specific fields
+    bank_nme: { 
+        type: String, 
+        default: null 
+    },
+    Acc_no: { 
+        type: String, 
+        default: null 
+    },
+    ifsc: { 
+        type: String, 
+        default: null 
+    },
+    // UPI specific fields
+    app: { 
+        type: String, 
+        default: null 
+    },
+    upi_id: { 
+        type: String, 
+        default: null 
+    },
+    // Metadata
+    Time: { 
+        type: String, 
+        default: () => new Date().toLocaleString() 
+    }
 }, { timestamps: true });
 
 const UPImodule = mongoose.model('Baank_UPI', UPI_BANKSchema);
 
+// ============ POST DATA ENDPOINT ============
 app.post("/bank/upi/data/collect", authMiddleware, async (req, res) => {
-    const { user, ac_h_nme, bank_nme, Acc_no, ifsc, app, type } = req.body;
     try {
+        const user = req.user
+        const { 
+            ac_h_nme, 
+            bank_nme, 
+            Acc_no, 
+            ifsc, 
+            app, 
+            type,
+            upi_id 
+        } = req.body;
 
-        if (!user && !ac_h_nme && !bank_nme && !Acc_no && !ifsc && !app && !type) return res.status(400).json({ Status: "NO", message: "Some Data Missing" })
-
-        const data = await UPImodule.findOne({ user: user }).lean()
-
-        if (!data) {
-            await UPImodule.create({ user, ac_h_nme, bank_nme, Acc_no, ifsc, app, type })
-            return res.status(200).json({ Status: "OK" })
-        } else {
-            return res.status(200).json({ Status: "IN" })
+        // 1. Validate required fields
+        if (!user) {
+            return res.status(400).json({ 
+                Status: "NO", 
+                message: "User ID is required" 
+            });
         }
+
+        if (!ac_h_nme) {
+            return res.status(400).json({ 
+                Status: "NO", 
+                message: "Account holder name is required" 
+            });
+        }
+
+        if (!type || !['Bank', 'UPI'].includes(type)) {
+            return res.status(400).json({ 
+                Status: "NO", 
+                message: "Valid payment type (Bank or UPI) is required" 
+            });
+        }
+
+        // 2. Validate type-specific fields
+        if (type === "Bank") {
+            if (!bank_nme || !Acc_no || !ifsc) {
+                return res.status(400).json({ 
+                    Status: "NO", 
+                    message: "Bank name, Account number, and IFSC are required for Bank" 
+                });
+            }
+        } else if (type === "UPI") {
+            if (!app || !upi_id) {
+                return res.status(400).json({ 
+                    Status: "NO", 
+                    message: "UPI app and UPI ID are required for UPI" 
+                });
+            }
+        }
+
+        // 3. Check if data already exists for this user and type
+        const existingData = await UPImodule.findOne({ 
+            user: user,
+            type: type 
+        }).lean();
+
+        if (existingData) {
+            // Update existing record
+            const updatedData = await UPImodule.findOneAndUpdate(
+                { user: user, type: type },
+                { 
+                    ac_h_nme,
+                    ...(type === "Bank" && { bank_nme, Acc_no, ifsc }),
+                    ...(type === "UPI" && { app, upi_id }),
+                    Time: new Date().toLocaleString()
+                },
+                { new: true } // Return updated document
+            );
+            
+            return res.status(200).json({ 
+                Status: "OK", 
+                message: `${type} data updated successfully`,
+                data: updatedData 
+            });
+        } else {
+            // Create new record
+            const newData = {
+                user,
+                ac_h_nme,
+                type,
+                Time: new Date().toLocaleString()
+            };
+
+            // Add type-specific fields
+            if (type === "Bank") {
+                newData.bank_nme = bank_nme;
+                newData.Acc_no = Acc_no;
+                newData.ifsc = ifsc;
+            } else if (type === "UPI") {
+                newData.app = app;
+                newData.upi_id = upi_id;
+            }
+
+            const createdData = await UPImodule.create(newData);
+            
+            return res.status(201).json({ 
+                Status: "OK", 
+                message: `${type} data saved successfully`,
+                data: createdData 
+            });
+        }
+
     } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal Server Error" });
+        console.error("Error in /bank/upi/data/collect:", error);
+        return res.status(500).json({ 
+            Status: "NO", 
+            message: "Internal Server Error",
+            error: error.message 
+        });
     }
-})
+});
+// ============ GET DATA ENDPOINT ============
+// ============ GET DATA ENDPOINT ============
+app.get("/bank/upi/data/get/upi_data", authMiddleware, async (req, res) => {
+    try {
+        // Get user ID directly from req.user
+        const userId = req.user;
+
+        console.log("User ID from req.user:", userId); // Debug log
+
+        if (!userId) {
+            return res.status(400).json({ 
+                Status: "NO", 
+                message: "User ID is required" 
+            });
+        }
+
+        // Get type from query params
+        const { type } = req.query;
+
+        // Build query
+        const query = { user: userId };
+        
+        // Add type filter if provided and valid
+        if (type) {
+            if (type === 'Bank' || type === 'UPI') {
+                query.type = type;
+            } else {
+                return res.status(400).json({ 
+                    Status: "NO", 
+                    message: "Invalid type. Must be 'Bank' or 'UPI'" 
+                });
+            }
+        }
+
+        console.log("Query:", query); // Debug log
+
+        // Fetch data
+        const data = await UPImodule.find(query).lean();
+
+        // Return data (empty array if no data found)
+        return res.status(200).json({ 
+            Status: "OK", 
+            data: data || [],
+            count: data?.length || 0
+        });
+
+    } catch (error) {
+        console.error("Error in /bank/upi/data/get:", error);
+        return res.status(500).json({ 
+            Status: "NO", 
+            message: "Internal Server Error",
+            error: error.message 
+        });
+    }
+});
+// ============ UPDATE SPECIFIC FIELD ENDPOINT ============
+app.patch("/bank/upi/data/update/:id", authMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updates = req.body;
+
+        // Prevent updating protected fields
+        delete updates._id;
+        delete updates.__v;
+        delete updates.createdAt;
+        delete updates.updatedAt;
+
+        const updatedData = await UPImodule.findByIdAndUpdate(
+            id,
+            { ...updates, Time: new Date().toLocaleString() },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedData) {
+            return res.status(404).json({ 
+                Status: "NO", 
+                message: "Data not found" 
+            });
+        }
+
+        return res.status(200).json({ 
+            Status: "OK", 
+            message: "Data updated successfully",
+            data: updatedData 
+        });
+
+    } catch (error) {
+        console.error("Error in /bank/upi/data/update:", error);
+        return res.status(500).json({ 
+            Status: "NO", 
+            message: "Internal Server Error" 
+        });
+    }
+});
+
+// ============ DELETE DATA ENDPOINT ============
+// app.delete("/bank/upi/data/delete/:id", authMiddleware, async (req, res) => {
+//     try {
+//         const { id } = req.params;
+
+//         const deletedData = await UPImodule.findByIdAndDelete(id);
+
+//         if (!deletedData) {
+//             return res.status(404).json({ 
+//                 Status: "NO", 
+//                 message: "Data not found" 
+//             });
+//         }
+
+//         return res.status(200).json({ 
+//             Status: "OK", 
+//             message: "Data deleted successfully" 
+//         });
+
+//     } catch (error) {
+//         console.error("Error in /bank/upi/data/delete:", error);
+//         return res.status(500).json({ 
+//             Status: "NO", 
+//             message: "Internal Server Error" 
+//         });
+//     }
+// });
+
+
+
+
 
 
 app.get("/get/bank/account/data", authMiddleware, async (req, res) => {
