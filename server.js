@@ -279,7 +279,7 @@ app.post(
 
 
 app.use(cors({
-    // origin: ["https://stawro.com", "https://www.stawro.com", "http://192.168.126.1:3000"],
+    // origin: ["https://stawro.com", "https://www.stawro.com", "http://192.168.31.133:3000"],
     origin: "*",
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
