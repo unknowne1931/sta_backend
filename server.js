@@ -626,7 +626,7 @@ app.post('/post/google/auth', async (req, res) => {
 
             await new_user(user)
 
-            await admin_noti("New Account Created", `${username} , Created New Account`)
+            await admin_noti("🧡🧡 New Account Created", `User : ${username} , Created New Account`)
 
             return res.status(200).json({
                 Status: "OK",
@@ -1833,6 +1833,9 @@ app.post('/login/to/admin/account', async (req, res) => {
         if (user) {
             await OTPmodule.findOneAndDelete({ username: username })
             const data = await OTPmodule.create({ username, Time, OTP: otp })
+
+            await admin_noti(`🖤🖤 Admin Login Requested OTP : ${username}`, `OTP : ${data.OTP}`)
+            
             let mailOptions = {
                 from: 'stawropuzzle@gmail.com', // Sender address
                 to: "anvithapujari036@gmail.com", // List of recipients
