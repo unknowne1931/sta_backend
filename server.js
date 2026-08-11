@@ -265,7 +265,7 @@ app.post(
                 cred_to.ac_deb = "Yes";
                 await cred_to.save();
             }
-            await admin_noti(`₹${rp_i} credited to Razorpay`, `User Added ₹${rp_i} to Wallet`)
+            await admin_noti(`🤑🤑🤑 ₹${rp_i} credited to Razorpay`, `User Added ₹${rp_i} to Wallet`)
 
 
             console.log(`✅ ₹${rp_i} credited to user: ${user}`);
@@ -514,7 +514,7 @@ let transporter = nodemailer.createTransport({
     service: 'gmail', // You can use any email service
     auth: {
         user: 'stawropuzzle@gmail.com',
-        pass: 'osrz jhwt tcqx zeyf' // Be careful with your email password
+        pass: 'xadj xndp jtsh hzaf' // Be careful with your email password
     }
 });
 
@@ -1555,7 +1555,7 @@ app.post('/claim/reqst/coins/admin', authMiddleware, async (req, res) => {
             })
             await PendingNotimodule.create({ Time, user, idd: Bougt_Coin._id, type: "Coin", title: Bougt_Coin.title, sub: "pending" })
             await Bougt_Coin.deleteOne();
-            await admin_noti("Payment Pending", `${Bougt_Coin.title} to ${user}`)
+            await admin_noti("🩵🩵 Payment Pending", `${Bougt_Coin.title} to ${user}`)
             return res.status(200).json({ Status: "OK" })
 
         } else {
@@ -7571,15 +7571,6 @@ app.post("/verify-payment", async (req, res) => {
 
 
 
-const user_login_admin_Schema = new mongoose.Schema({
-    Time: String,
-    username: String,
-    password: String,
-    language: String,
-    email: String
-}, { timestamps: true });
-
-const Employeloginmodule = mongoose.model('Employes_data', user_login_admin_Schema);
 
 
 const users_otpSchema = new mongoose.Schema({
@@ -7591,217 +7582,10 @@ const users_otpSchema = new mongoose.Schema({
 const Employeotpmodule = mongoose.model('Employes_otp', users_otpSchema);
 
 
-app.post("/get/employe/login/data/create/new", async (req, res) => {
-    const { username, password, email, language } = req.body;
-    try {
-        if (!username && !password && !email && !language) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
 
-        const findDocu = await Employeloginmodule.findOne({ username }).lean();
-        if (!findDocu) {
-            const hash = await bcrypt.hash(password, 10);
-            await Employeloginmodule.create({ Time, username, email, password: hash, language })
-            return res.status(200).json({ Status: "OK" })
-        } else {
-            return res.status(200).json({ Status: "IN" })
-        }
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
-})
-
-app.get('/get/all/total/users/data/from/admins/super', adminMiddleware, async (req, res) => {
-    try {
-        const user = await Employeloginmodule.find({}).lean();
-        const data = user.map(dat => ({
-            user: dat.username,
-            email: dat.email,
-            lang: dat.language
-        }))
-        return res.json({ data })
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
-})
-
-app.post('/get/and/login/users/admin/pages/auth', async (req, res) => {
-    const { username, password } = req.body;
-    try {
-        if (!username && !password) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
-
-        const OTP = generateOTP()
-        const find_One = await Employeloginmodule.findOne({ username }).lean();
-        if (find_One) {
-            const isMatch = await bcrypt.compare(password, find_One.password);
-            const inorno = await Employeotpmodule.findOne({ username });
-            if (isMatch) {
-                if (inorno) {
-                    await inorno.deleteOne()
-                }
-                const data = await Employeotpmodule.create({ Time, username, otp: OTP })
-
-
-                let mailOptions = {
-                    from: 'stawropuzzle@gmail.com', // Sender address
-                    to: `${find_One.email}`, // List of recipients
-                    subject: `stawro, Admin Login OTP`, // Subject line
-                    text: '', // Plain text body
-                    html: `
-                    <html lang="en">
-                        <head>
-
-                            <meta charset="UTF-8">
-                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                            <meta http-equiv="refresh" content="30" />
-                            <title>Document</title>
-                            <style>
-            
-                                @import url('https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@400;700&display=swap');
-            
-            
-                                .email-main-cnt-01{
-                                    width: 95%;
-                                    justify-content: center;
-                                    margin: auto;
-                                }
-            
-                                .email-cnt-01{
-                                    width: 90%;
-                                    height: auto;
-                                    display: flex;
-                                    margin: 10px;
-                                }
-            
-                                .email-cnt-01 div{
-                                    width: 50px;
-                                    height: 50px;
-                                    overflow: hidden;
-                                    border-radius: 50%;
-                                    border: 1px solid;
-                                    
-                                }
-            
-                                .email-cnt-01 div img{
-                                    width: 100%;
-                                    height: 100%;
-                                    object-fit: cover;
-                                }
-            
-                                .email-cnt-01 strong{
-                                    font-family: Inknut Antiqua;
-                                    margin-left: 10px;
-                                }
-            
-                                .email-cnt-btn-01{
-                                    width: 120px;
-                                    height: 30px;
-                                    margin: 10px;
-                                    color: aliceblue;
-                                    background-color: rgb(5, 148, 195);
-                                    border: 1px solid;
-                                    border-radius: 5px;
-                                    cursor: pointer;
-                                }
-            
-            
-                            </style>
-                        </head>
-                        <body>
-                            <div class="email-main-cnt-01">
-                                <div class="email-cnt-01">
-                                    <strong>stawro</strong>
-                                </div>
-                                <div class="email-cnt-02">
-                                    <span>Hello, Dear <strong>${data.username}</strong> </span><br/>
-                                    <p>Welcome to stawro.<br/>
-                                    Login using OTP Authentication, Dont share With anyone, ${data.otp}</p><br/>
-                                        
-                                    <strong>${data.otp}</strong><br/>
-                         
-                                    <strong>Thank you</strong>
-            
-                                </div>
-                            </div>
-                            
-                        </body>
-                        </html>
-            
-                    ` // HTML body
-                };
-
-                // Send email
-                transporter.sendMail(mailOptions, (error, info) => {
-                    if (error) {
-                        console.log(error);
-                        return res.status(202).json({ message: "Something went Wrong" })
-                    }
-
-                    return res.status(200).json({ Status: "OK", data: data._id })
-                });
-
-            } else {
-                return res.status(200).json({ Status: "BAD" })
-            }
-        } else {
-            return res.status(200).json({ Status: "NO" })
-        }
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
-})
-
-
-app.post("/verify/users/language/modele/and/otp", async (req, res) => {
-    const { otp, id } = req.body;
-    try {
-        const find_one = await Employeotpmodule.findById({ _id: id })
-        const get_one = await Employeloginmodule.findOne({ username: find_one.username })
-        if (parseInt(find_one.otp) === parseInt(otp)) {
-            await find_one.deleteOne()
-            const token = jwt.sign({ id: get_one._id }, "kanna_stawro_founrs_withhh_1931_liketha", { expiresIn: "2h" });
-            return res.status(200).json({ Status: "OK", Token: token, ssid: get_one._id })
-        } else {
-            return res.status(200).json({ Status: "BAD" })
-        }
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
-})
 
 // Start From Here
 
-app.get('/get/user/admin/languages/to/post/:id', users_admin_Middle, async (req, res) => {
-    const id = req.params.id;
-
-    try {
-        if (!id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
-
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ success: false, message: "Invalid ObjectId format" });
-        }
-
-        const get_user = await Employeloginmodule.findById(id).lean();
-
-        if (get_user) {
-            const data = {
-                lang: get_user.language,
-                user: get_user.username
-            }
-            return res.status(200).json({
-                data
-
-            });
-        } else {
-            return res.status(404).json({ success: false, message: "User not found" });
-        }
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
-});
 
 
 
@@ -7823,103 +7607,8 @@ const Questions_usersSchema = new mongoose.Schema({
 
 const Users_Questionsmodule = mongoose.model('Questions_users', Questions_usersSchema);
 
-app.post('/get/a/users/admin/posted/questions/from/all/users', users_admin_Middle, async (req, res) => {
-    const { user, img, Questio, a, b, c, d, Ans, tough, seconds } = req.body;
-
-    try {
-
-        if (!user && !img && !Questio && !a && !b && !c && !d && !Ans && !tough && !seconds) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
-
-        if (!mongoose.Types.ObjectId.isValid(user)) {
-            return res.status(400).json({ success: false, message: "Invalid ObjectId format" });
-        }
-
-        const User_Admin_lang_get = await Employeloginmodule.findById(user).lean()
-        const lang = User_Admin_lang_get.language
-
-        const find_usrs = await Users_Questionsmodule.find({ user: User_Admin_lang_get.username }).lean();
-
-        const questionExists = find_usrs.some((item) => item.Questio === Questio);
-
-        if (!questionExists) {
-            // Add the question to the database
-            const newQuestion = await Users_Questionsmodule.create({
-                user: User_Admin_lang_get.username,
-                img,
-                Questio,
-                qno: find_usrs.length + 1, // Increment question number based on existing questions
-                a,
-                b,
-                c,
-                d,
-                Ans,
-                lang,
-                tough,
-                seconds,
-                Time: Time // Automatically set the current time
-            });
-
-            return res.status(201).json({
-                Status: "OK", qno: newQuestion.qno
-            });
-        } else {
-            // Return a response indicating the question already exists
-            return res.status(200).json({ Status: "IN" });
-        }
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
-});
-
-app.get('/get/admin/sub/users/posted/datas/011/:id', users_admin_Middle, async (req, res) => {
-    const id = req.params.id;
-    try {
-
-        if (!id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
-
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ success: false, message: "Invalid ObjectId format" });
-        }
-
-        const get_user = await Employeloginmodule.findById(id).lean()
-        const data = await Users_Questionsmodule.find({ user: get_user.username }).lean()
-        if (data) {
-            return res.status(200).json({ data })
-        } else {
-            return res.status(200).json({ Status: "BAD" })
-        }
-
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
-})
 
 
-app.delete('/delete/users/admin/qno/from/admin/users/:id', async (req, res) => {
-    const { id } = req.params;
-
-    try {
-
-        if (!id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
-
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ success: false, message: "Invalid ObjectId format" });
-        }
-
-        const deletedData = await Users_Questionsmodule.findByIdAndDelete(id);
-
-        if (!deletedData) {
-            return res.status(404).json({ success: false, message: "Data not found" });
-        }
-
-        return res.status(200).json({ Status: "OK" });
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
-});
 
 app.get('/admin/get/tottal/users/created/questions', adminMiddleware, async (req, res) => {
     try {
@@ -8006,72 +7695,6 @@ app.post('/get/data/and/post/users/selected/data/to/db', async (req, res) => {
     }
 });
 
-
-app.get('/get/wallet/amount/credits/links/by/:id', users_admin_Middle, async (req, res) => {
-    const id = req.params.id;
-
-    try {
-
-        if (!id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
-
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ success: false, message: "Invalid ObjectId format" });
-        }
-
-        // Find the employee by ID
-        const get_name = await Employeloginmodule.findById(id).lean();
-
-        if (!get_name) {
-            return res.status(404).json({ message: "Employee not found" });
-        }
-
-        // Find the question summary for the user
-        const find_one = await Quest_summerymodule.findOne({ user: get_name.username }).lean();
-
-        if (!find_one || !find_one.Qno_sel) {
-            return res.status(404).json({ message: "No question summary found for this user" });
-        }
-
-        // Fetch all questions based on IDs in Qno_sel
-
-        let intd = 0; // Use `let` instead of `const` for mutable variables
-
-        const List = await Promise.all(
-            find_one.Qno_sel.map(async (questionId) => {
-                const dat = await QuestionModule.findById(questionId);
-                return dat?.no?.length - 1 || 0; // Safely handle undefined 'yes'
-            })
-        );
-
-        let inte = 0;
-
-        const List1 = await Promise.all(
-            find_one.Qno_sel.map(async (questionId) => {
-                const dat = await QuestionModule.findById(questionId);
-                return dat?.yes?.length - 1 || 0; // Safely handle undefined 'yes'
-            })
-        );
-
-        // Accumulate the total 'yes' lengths
-        intd = List.reduce((sum, length) => sum + length, 0);
-        inte = List1.reduce((sum, length) => sum + length, 0);
-
-        // Respond with the summary and questions
-        const Rupee = (find_one.Qno_sel.length + intd)
-        const Datas = {
-            Out: intd,
-            Ans: inte,
-            Rupee: Rupee,
-            Total_Quest: find_one.Qno_sel.length
-        }
-        return res.status(200).json({ Datas });
-
-    } catch (error) {
-        console.error("Error:", error);
-        return res.status(500).json({ message: "Internal Server Error" });
-
-    }
-});
 
 
 
@@ -11683,6 +11306,10 @@ app.post("/milionear/game/start/ten/qst", authMiddleware, async (req, res) => {
         const dat = await Milion_ten_qst_count_Module.findOne({ user });
         console.log("Data created for user:", dat);
 
+        await Totalusermodule.create({user, Time})
+        const data_user =  await Usermodule.findById(user).lean()
+        await admin_noti("💚💚 Mili Game Started", `User : ${data_user.username}` )
+
         return res.status(200).json({ Status: "OK", message: "Milionear game started with ten questions" });
 
         // pending
@@ -11729,6 +11356,15 @@ app.post("/milionear/game/quit/ten/qst", authMiddleware, async (req, res) => {
                 }
                 await History(user, reward)
                 await Milion_ten_qst_count_Module.deleteMany({ user: user })
+                await Wonmodule.create({
+                    Time,
+                    user,
+                    no: "No Rank" ,
+                    ID : "No ID"
+                })
+
+                const data_user = await Usermodule.findById(user).lean()
+                await admin_noti(`${reward} Stars Deposited. 🛑`, `Stars Deposited to User : ${data_user.username}`)
 
 
                 return res.status(200).json({ Status: "Credit_Quit", message: "Milionear game quit successfully" });
@@ -12067,6 +11703,8 @@ app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
                 return res.status(200).json({ Status: "correct", message: "Correct Answer!", reward: rward_amt });
             }
             else {
+                const data_user =  await Usermodule.findById(user).lean()
+                await admin_noti("❤️❤️ Mili. Won the Game.", `User : ${data_user.username}` )
                 return res.status(200).json({ Status: "completed", message: "Congratulations! You have completed the game." });
             }
 
@@ -12075,8 +11713,9 @@ app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
             //wrong answer
             await find_qst_data.deleteOne();
             await Milion_ten_qst_count_Module.deleteMany({ user })
+            const data_user =  await Usermodule.findById(user).lean()
+            await admin_noti("💚💚 Mili. Answered Incorrectly", `User : ${data_user.username}` )
             return res.status(200).json({ Status: "wrong", message: "Wrong Answer! Game Over." });
-
         }
 
 
