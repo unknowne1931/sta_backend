@@ -15,8 +15,17 @@ import Razorpay from 'razorpay';
 import users_admin_Middle from './module/admin_users_Midle.js';
 import crypto from 'crypto';
 import { MongoClient } from "mongodb";
+import webpush from "web-push";
+import path from 'path';
+
+import { fileURLToPath } from "url";
+import fs from "fs";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 
+import XLSX from 'xlsx'
 import { fromJSON } from 'postcss';
 import admin, { } from "firebase-admin";
 import serviceAccount from "./config/firebase-key.json" with { type: "json" };
@@ -58,6 +67,22 @@ app.use(express.static('public'))
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
 });
+
+
+
+
+// const gameInMiddle = (req, res, next) => {
+
+//     const userId = req.user?.id;
+//     console.log(req)
+
+//     if (userId) {
+//         activeUsers.set(userId.toString(), Date.now());
+//     }
+
+//     next();
+// };
+
 
 
 
@@ -109,7 +134,7 @@ const qst_gen = [
 ];
 
 
-
+//razorpay webhook
 app.post(
     "/razorpay/webhook",
     express.raw({ type: "application/json" }),
@@ -290,6 +315,205 @@ app.use(cors({
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: true }));
+
+
+
+
+
+
+let subscription = null;
+
+webpush.setVapidDetails(
+    "mailto:unknowne1931@gmail.com",
+    "BNpCHYbsI9XNFi0VsRddAW9pLNUtpgX7B-WTyU-YqWlHLUfTBLQTP_yFrJOLJYbZBJi_tOrPbz2Y6jwt52euzwA",
+    "b9XCfq2O0jboPZz9Z6vtQahBGvuSAKbJTRDnV9qX3XU"
+
+);
+
+
+const activeUsers = new Map();
+
+
+
+const liveUserSchema = new mongoose.Schema({
+    user: String,
+    name: String,
+    action: String,
+}, { timestamps: true });
+
+const LiveHistoryModule = mongoose.model(
+    "livehistory",
+    liveUserSchema
+);
+
+
+const activeUserMiddleware = (req, res, next) => {
+
+    const userId = req.user;
+    console.log(req.user)
+
+    if (userId) {
+        activeUsers.set(userId.toString(), Date.now());
+    }
+
+    next();
+};
+
+
+function indianDateTime(date) {
+    const d = new Date(date);
+
+    const parts = new Intl.DateTimeFormat("en-IN", {
+        timeZone: "Asia/Kolkata",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true
+    }).formatToParts(d);
+
+    const get = type => parts.find(p => p.type === type)?.value;
+
+    return `${get("day")}-${get("month")}-${get("year")} ${get("hour")}:${get("minute")}:${get("second")} ${get("dayPeriod")}`;
+}
+
+
+
+async function addToExcel(documents) {
+    try {
+        const filePath = path.join(__dirname, "live-history.xlsx");
+
+        let existingData = [];
+
+        // Read existing Excel file
+        if (fs.existsSync(filePath)) {
+            const workbook = XLSX.readFile(filePath);
+
+            const sheetName = workbook.SheetNames[0];
+
+            if (sheetName) {
+                const worksheet = workbook.Sheets[sheetName];
+
+                existingData = XLSX.utils.sheet_to_json(worksheet);
+            }
+        }
+
+        // Existing MongoDB IDs already stored in Excel
+        const existingIds = new Set(
+            existingData.map(item => String(item.ID))
+        );
+
+        // Add only records that are not already in Excel
+        const newData = documents
+            .filter(doc => !existingIds.has(String(doc._id)))
+            .map(doc => ({
+                ID: String(doc._id),
+                User: doc.user,
+                Name: doc.name,
+                Action: doc.action,
+                CreatedAt: doc.createdAt,
+                CreatedAt: indianDateTime(doc.createdAt)
+            }));
+
+        // Nothing new to add
+        if (newData.length === 0) {
+            console.log("No new records to add to Excel");
+            return;
+        }
+
+        // Combine old + new data
+        const finalData = [
+            ...existingData,
+            ...newData
+        ];
+
+        // Create workbook
+        const workbook = XLSX.utils.book_new();
+
+        const worksheet = XLSX.utils.json_to_sheet(finalData);
+
+        XLSX.utils.book_append_sheet(
+            workbook,
+            worksheet,
+            "Live History"
+        );
+
+        // Save in the same directory
+        XLSX.writeFile(workbook, filePath);
+
+        console.log(
+            `${newData.length} records added to Excel`
+        );
+
+    } catch (error) {
+        console.error(
+            "Excel Error:",
+            error
+        );
+    }
+}
+
+
+async function LiveHistory(user, action) {
+    try {
+
+        const userData = await Usermodule
+            .findById(user)
+            .select("name");
+
+        if (!userData) {
+            console.log("User not found");
+            return;
+        }
+
+        // Create new history
+        await LiveHistoryModule.create({
+            user: user,
+            name: userData.name,
+            action: action
+        });
+
+        // Find everything except latest 100
+        const documents = await LiveHistoryModule
+            .find()
+            .sort({ createdAt: -1 })
+            .skip(30);
+
+        // If old documents exist
+        if (documents.length > 0) {
+
+            // Add old documents to Excel
+            await addToExcel(documents);
+
+            // Get IDs
+            const idsToDelete = documents.map(
+                doc => doc._id
+            );
+
+            // Delete from MongoDB
+            await LiveHistoryModule.deleteMany({
+                _id: { $in: idsToDelete }
+            });
+
+            console.log(
+                `${documents.length} old records archived and deleted`
+            );
+        }
+
+    } catch (error) {
+
+        console.error(
+            "LiveHistory Error:",
+            error
+        );
+    }
+}
+
+
+
+
 
 
 
@@ -559,13 +783,15 @@ app.post("/post/login", async (req, res) => {
             expiresIn: "365 days"
         });
 
+        await LiveHistory("686e24d32f21c9417882f777", "Hare Krishna")
+
         return res.status(200).json({
             Status: "OK",
             message: "Login success",
             token,
             user: "686e24d32f21c9417882f777",
             username: "Avi",
-            email : "avi@gmail.com"
+            email: "avi@gmail.com"
         });
 
 
@@ -598,6 +824,8 @@ app.post('/post/google/auth', async (req, res) => {
                 expiresIn: "365 days"
             });
 
+            await LiveHistory(user, "Login")
+
             return res.status(200).json({
                 Status: "OK",
                 message: "Login success",
@@ -627,6 +855,8 @@ app.post('/post/google/auth', async (req, res) => {
             await new_user(user)
 
             await admin_noti("🧡🧡 New Account Created", `User : ${username} , Created New Account`)
+
+            await LiveHistory(user._id, "New User Login && Account Created")
 
             return res.status(200).json({
                 Status: "OK",
@@ -671,6 +901,9 @@ app.post('/post/new/google/user', async (req, res) => {
             valid: "yes"
         });
 
+        await LiveHistory(user._id, "New Account & New User")
+
+
         return res.status(200).json({ Status: "OK", message: "User created successfully." });
 
     } catch (error) {
@@ -714,6 +947,8 @@ app.post('/post/google/login', async (req, res) => {
         // Generate JWT
         const token = jwt.sign({ id: user._id }, "kanna_stawro_founders_withhh_1931_liketha", { expiresIn: "365 days" });
 
+        await LiveHistory(user._id, "Login")
+
         return res.status(200).json({
             Status: "OK",
             token,
@@ -755,7 +990,7 @@ const my_money_Schema = new mongoose.Schema({
 const My_MoneyModule = mongoose.model('My_Money', my_money_Schema);
 
 
-
+//Work from Here 15-08-2026
 
 
 
@@ -805,13 +1040,16 @@ app.post('/get/balance/new/data', authMiddleware, async (req, res) => {
                 }
 
                 await Historymodule.create({ Time, user: refer_ui, rupee: "10", type: "Credited", tp: "Rupee" });
+                await LiveHistory(user, "Adding Free Credit to New User")
                 return res.status(200).json({ Status: "OK" });
             } else {
                 await StarBalmodule.create({ Time, user, balance: "0" });
+                await LiveHistory(user, "Created New stars Balance Document")
                 return res.status(200).json({ Status: "OK" });
             }
 
         } else {
+            await LiveHistory(user, "")
             return res.status(202).json({ Status: "NO" });
         }
     } catch (error) {
@@ -962,46 +1200,46 @@ app.get('/update/data', authMiddleware, async (req, res) => {
 
 
 const UPI_BANKSchema = new mongoose.Schema({
-    user: { 
-        type: String, 
+    user: {
+        type: String,
         required: true,
-        index: true 
+        index: true
     },
-    type: { 
-        type: String, 
-        enum: ['Bank', 'UPI'], 
-        required: true 
+    type: {
+        type: String,
+        enum: ['Bank', 'UPI'],
+        required: true
     },
-    ac_h_nme: { 
-        type: String, 
-        required: true 
+    ac_h_nme: {
+        type: String,
+        required: true
     },
     // Bank specific fields
-    bank_nme: { 
-        type: String, 
-        default: null 
+    bank_nme: {
+        type: String,
+        default: null
     },
-    Acc_no: { 
-        type: String, 
-        default: null 
+    Acc_no: {
+        type: String,
+        default: null
     },
-    ifsc: { 
-        type: String, 
-        default: null 
+    ifsc: {
+        type: String,
+        default: null
     },
     // UPI specific fields
-    app: { 
-        type: String, 
-        default: null 
+    app: {
+        type: String,
+        default: null
     },
-    upi_id: { 
-        type: String, 
-        default: null 
+    upi_id: {
+        type: String,
+        default: null
     },
     // Metadata
-    Time: { 
-        type: String, 
-        default: () => new Date().toLocaleString() 
+    Time: {
+        type: String,
+        default: () => new Date().toLocaleString()
     }
 }, { timestamps: true });
 
@@ -1011,66 +1249,66 @@ const UPImodule = mongoose.model('Baank_UPI', UPI_BANKSchema);
 app.post("/bank/upi/data/collect", authMiddleware, async (req, res) => {
     try {
         const user = req.user
-        const { 
-            ac_h_nme, 
-            bank_nme, 
-            Acc_no, 
-            ifsc, 
-            app, 
+        const {
+            ac_h_nme,
+            bank_nme,
+            Acc_no,
+            ifsc,
+            app,
             type,
-            upi_id 
+            upi_id
         } = req.body;
 
         // 1. Validate required fields
         if (!user) {
-            return res.status(400).json({ 
-                Status: "NO", 
-                message: "User ID is required" 
+            return res.status(400).json({
+                Status: "NO",
+                message: "User ID is required"
             });
         }
 
         if (!ac_h_nme) {
-            return res.status(400).json({ 
-                Status: "NO", 
-                message: "Account holder name is required" 
+            return res.status(400).json({
+                Status: "NO",
+                message: "Account holder name is required"
             });
         }
 
         if (!type || !['Bank', 'UPI'].includes(type)) {
-            return res.status(400).json({ 
-                Status: "NO", 
-                message: "Valid payment type (Bank or UPI) is required" 
+            return res.status(400).json({
+                Status: "NO",
+                message: "Valid payment type (Bank or UPI) is required"
             });
         }
 
         // 2. Validate type-specific fields
         if (type === "Bank") {
             if (!bank_nme || !Acc_no || !ifsc) {
-                return res.status(400).json({ 
-                    Status: "NO", 
-                    message: "Bank name, Account number, and IFSC are required for Bank" 
+                return res.status(400).json({
+                    Status: "NO",
+                    message: "Bank name, Account number, and IFSC are required for Bank"
                 });
             }
         } else if (type === "UPI") {
             if (!app || !upi_id) {
-                return res.status(400).json({ 
-                    Status: "NO", 
-                    message: "UPI app and UPI ID are required for UPI" 
+                return res.status(400).json({
+                    Status: "NO",
+                    message: "UPI app and UPI ID are required for UPI"
                 });
             }
         }
 
         // 3. Check if data already exists for this user and type
-        const existingData = await UPImodule.findOne({ 
+        const existingData = await UPImodule.findOne({
             user: user,
-            type: type 
+            type: type
         }).lean();
 
         if (existingData) {
             // Update existing record
             const updatedData = await UPImodule.findOneAndUpdate(
                 { user: user, type: type },
-                { 
+                {
                     ac_h_nme,
                     ...(type === "Bank" && { bank_nme, Acc_no, ifsc }),
                     ...(type === "UPI" && { app, upi_id }),
@@ -1078,11 +1316,11 @@ app.post("/bank/upi/data/collect", authMiddleware, async (req, res) => {
                 },
                 { new: true } // Return updated document
             );
-            
-            return res.status(200).json({ 
-                Status: "OK", 
+
+            return res.status(200).json({
+                Status: "OK",
                 message: `${type} data updated successfully`,
-                data: updatedData 
+                data: updatedData
             });
         } else {
             // Create new record
@@ -1104,20 +1342,20 @@ app.post("/bank/upi/data/collect", authMiddleware, async (req, res) => {
             }
 
             const createdData = await UPImodule.create(newData);
-            
-            return res.status(201).json({ 
-                Status: "OK", 
+
+            return res.status(201).json({
+                Status: "OK",
                 message: `${type} data saved successfully`,
-                data: createdData 
+                data: createdData
             });
         }
 
     } catch (error) {
         console.error("Error in /bank/upi/data/collect:", error);
-        return res.status(500).json({ 
-            Status: "NO", 
+        return res.status(500).json({
+            Status: "NO",
             message: "Internal Server Error",
-            error: error.message 
+            error: error.message
         });
     }
 });
@@ -1131,9 +1369,9 @@ app.get("/bank/upi/data/get/upi_data", authMiddleware, async (req, res) => {
         console.log("User ID from req.user:", userId); // Debug log
 
         if (!userId) {
-            return res.status(400).json({ 
-                Status: "NO", 
-                message: "User ID is required" 
+            return res.status(400).json({
+                Status: "NO",
+                message: "User ID is required"
             });
         }
 
@@ -1142,15 +1380,15 @@ app.get("/bank/upi/data/get/upi_data", authMiddleware, async (req, res) => {
 
         // Build query
         const query = { user: userId };
-        
+
         // Add type filter if provided and valid
         if (type) {
             if (type === 'Bank' || type === 'UPI') {
                 query.type = type;
             } else {
-                return res.status(400).json({ 
-                    Status: "NO", 
-                    message: "Invalid type. Must be 'Bank' or 'UPI'" 
+                return res.status(400).json({
+                    Status: "NO",
+                    message: "Invalid type. Must be 'Bank' or 'UPI'"
                 });
             }
         }
@@ -1161,18 +1399,18 @@ app.get("/bank/upi/data/get/upi_data", authMiddleware, async (req, res) => {
         const data = await UPImodule.find(query).lean();
 
         // Return data (empty array if no data found)
-        return res.status(200).json({ 
-            Status: "OK", 
+        return res.status(200).json({
+            Status: "OK",
             data: data || [],
             count: data?.length || 0
         });
 
     } catch (error) {
         console.error("Error in /bank/upi/data/get:", error);
-        return res.status(500).json({ 
-            Status: "NO", 
+        return res.status(500).json({
+            Status: "NO",
             message: "Internal Server Error",
-            error: error.message 
+            error: error.message
         });
     }
 });
@@ -1195,23 +1433,23 @@ app.patch("/bank/upi/data/update/:id", authMiddleware, async (req, res) => {
         );
 
         if (!updatedData) {
-            return res.status(404).json({ 
-                Status: "NO", 
-                message: "Data not found" 
+            return res.status(404).json({
+                Status: "NO",
+                message: "Data not found"
             });
         }
 
-        return res.status(200).json({ 
-            Status: "OK", 
+        return res.status(200).json({
+            Status: "OK",
             message: "Data updated successfully",
-            data: updatedData 
+            data: updatedData
         });
 
     } catch (error) {
         console.error("Error in /bank/upi/data/update:", error);
-        return res.status(500).json({ 
-            Status: "NO", 
-            message: "Internal Server Error" 
+        return res.status(500).json({
+            Status: "NO",
+            message: "Internal Server Error"
         });
     }
 });
@@ -1835,7 +2073,7 @@ app.post('/login/to/admin/account', async (req, res) => {
             const data = await OTPmodule.create({ username, Time, OTP: otp })
 
             await admin_noti(`🖤🖤 Admin Login Requested OTP : ${username}`, `OTP : ${data.OTP}`)
-            
+
             let mailOptions = {
                 from: 'stawropuzzle@gmail.com', // Sender address
                 to: "anvithapujari036@gmail.com", // List of recipients
@@ -4575,15 +4813,16 @@ app.get("/get/singel/ticket/to/test/:id", adminMiddleware, async (req, res) => {
 
 
 
-app.delete("/delete/by/user/id/for/valid/data", authMiddleware, async (req, res) => {
+app.delete("/delete/by/user/id/for/valid/data", authMiddleware, activeUserMiddleware, async (req, res) => {
     const user = req.user;
 
     try {
-        console.log("This One '/delete/by/user/id/for/valid/data'")
         if (!user) return res.status(400).json({ Status: 400, message: "Some Data Missing" })
 
+        await LiveHistory(user, "Deleting Documnet")
+
         const data = await StartValidmodule.findOne({ user });
-        await Milion_ten_qst_count_Module.findOneAndDelete({user})
+        await Milion_ten_qst_count_Module.findOneAndDelete({ user })
 
         if (data) {
             await data.deleteOne();
@@ -10341,7 +10580,7 @@ function Sixteen() {
             const cat_count = await calcccc_cc("letters_missalign", 10)
             const na = parseInt(cat_count) - (parseInt(sum) * 1) //3 means it takes 1 seconds to make check the 3 boxes
             // const puzzle = generatePuzzle_broken_ten(na);
-            
+
             const puzzle = generatePuzzle_misalignedLetters(na); //if na = 10 it shows 10 words
 
 
@@ -10662,7 +10901,7 @@ function Twentyone() {
             const cat_count = await calcccc_cc("encode_decode", 5)
             const na = parseInt(cat_count) - (parseInt(sum) * 0.8) //3 means it takes 1 seconds to make check the 3 boxes
             // const puzzle = generatePuzzle_broken_ten(na);
-            const puzzle = generatePuzzle_cipher_text({letterLength : na});
+            const puzzle = generatePuzzle_cipher_text({ letterLength: na });
 
             // convert base64 → image
 
@@ -10796,7 +11035,7 @@ function Twentythree() {
             // const puzzle = generatePuzzle_broken_ten(na);
             // const puzzle = generatePuzzle_cipher_text({letterLength : na});
 
-            const puzzle = generatePuzzle_word_search({totalWords: na})
+            const puzzle = generatePuzzle_word_search({ totalWords: na })
 
             // convert base64 → image
 
@@ -10862,7 +11101,7 @@ function Twentyfour() {
             // const puzzle = generatePuzzle_broken_ten(na);
             // const puzzle = generatePuzzle_cipher_text({letterLength : na});
 
-            const puzzle = generatePuzzle_alphabetical({ letters: na})
+            const puzzle = generatePuzzle_alphabetical({ letters: na })
 
             // convert base64 → image
 
@@ -10977,7 +11216,7 @@ async function generate_qst_no(user, count) {
         const get_level = await get_tough_ll(count);
 
         const functions = {
-        Twentyfour,
+            Twentyfour,
             Twentythree,
             Twentytwo,
             Twentyone,
@@ -11039,7 +11278,7 @@ async function generate_qst_no(user, count) {
 
         // Generate questions
         const qst_gen = [
-        "Twentyfour",
+            "Twentyfour",
             "Twentythree",
             "Twentytwo",
             "Twentyone",
@@ -11111,104 +11350,104 @@ async function generate_qst_no(user, count) {
     }
 }
 
-async function get_categ_fn(fn){
+async function get_categ_fn(fn) {
     const data = [
         {
-            fn : "One",
-            typ : "star_circ_tria"
+            fn: "One",
+            typ: "star_circ_tria"
         },
         {
-            fn : "Two",
-            typ : "star_circ_tria"
+            fn: "Two",
+            typ: "star_circ_tria"
         },
         {
-            fn : "Three",
-            typ : "star_circ_tria"
+            fn: "Three",
+            typ: "star_circ_tria"
         },
         {
-            fn : "Four",    
-            typ : "star_circ_tria"
+            fn: "Four",
+            typ: "star_circ_tria"
 
         },
-         {
-            fn : "Five",
-            typ : "star_circ_tria"
+        {
+            fn: "Five",
+            typ: "star_circ_tria"
         },
         {
-            fn : "Six",
-            typ : "star_circ_tria"
+            fn: "Six",
+            typ: "star_circ_tria"
         },
         {
-            fn : "Seven",
-            typ : "star_circ_tria"
+            fn: "Seven",
+            typ: "star_circ_tria"
         },
         {
-            fn : "Eight",
-            typ : "star_circ_tria"
+            fn: "Eight",
+            typ: "star_circ_tria"
         },
         {
-            fn : "Nine",
-            typ : "star_circ_tria"
+            fn: "Nine",
+            typ: "star_circ_tria"
         },
         {
-            fn : "Ten",
-            typ : "star_circ_tria"
+            fn: "Ten",
+            typ: "star_circ_tria"
         },
         {
-            fn : "Eleven",
-            typ : "Colours & Name Match"
+            fn: "Eleven",
+            typ: "Colours & Name Match"
         },
         {
-            fn : "Tweleve",
-            typ : "Pattern_to_Numbers"
+            fn: "Tweleve",
+            typ: "Pattern_to_Numbers"
         },
         {
-            fn : "Thirteen",
-            typ : "Morse code"
+            fn: "Thirteen",
+            typ: "Morse code"
         },
         {
-            fn : "Fourteen",
-            typ : "Black_&_White_letters"
+            fn: "Fourteen",
+            typ: "Black_&_White_letters"
         },
         {
-            fn : "Fifteen",
-            typ : "puzle_peace_male_female"
+            fn: "Fifteen",
+            typ: "puzle_peace_male_female"
         },
         {
-            fn : "Sixteen",
-            typ : "letters_missalign"
+            fn: "Sixteen",
+            typ: "letters_missalign"
         },
         {
-            fn : "Seventeen",
-            typ : "clock_s"
+            fn: "Seventeen",
+            typ: "clock_s"
         },
         {
-            fn : "Eighteen",
-            typ : "scramble_words"
+            fn: "Eighteen",
+            typ: "scramble_words"
         },
         {
-            fn : "Nineteen",
-            typ : "letter_colour_find"
+            fn: "Nineteen",
+            typ: "letter_colour_find"
         },
         {
-            fn : "Twenty",
-            typ : "word_colour_find"
+            fn: "Twenty",
+            typ: "word_colour_find"
         },
         {
-            fn : "Twentyone",
-            typ : "encode_decode"
+            fn: "Twentyone",
+            typ: "encode_decode"
         },
         {
-            fn : "Twentytwo",
-            typ : "count_leters_exist"
+            fn: "Twentytwo",
+            typ: "count_leters_exist"
         },
         {
-            fn : "Twentythree",
-            typ : "count_word_exist"
+            fn: "Twentythree",
+            typ: "count_word_exist"
         },
         {
-            fn : "Twentyfour",
-            typ : "re_arrange_letters"
+            fn: "Twentyfour",
+            typ: "re_arrange_letters"
         }
     ]
 
@@ -11225,7 +11464,7 @@ app.post("/milionear/game/start/ten/qst", authMiddleware, async (req, res) => {
     const { rs } = req.body;
     try {
 
-        
+
         const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
         await Qst_array_store_Module.deleteMany({ user });
         await Milion_ten_qst_count_Module.deleteMany({ user }); //deleting qst array store data for new game start
@@ -11302,16 +11541,16 @@ app.post("/milionear/game/start/ten/qst", authMiddleware, async (req, res) => {
             count: 1,
             rs: 0,
             user: user,
-            m_counts: [ 6, 7, 8, 9, 10]
+            m_counts: [6, 7, 8, 9, 10]
         });
 
 
         const dat = await Milion_ten_qst_count_Module.findOne({ user });
         console.log("Data created for user:", dat);
 
-        await Totalusermodule.create({user, Time})
-        const data_user =  await Usermodule.findById(user).lean()
-        await admin_noti("💚💚 Mili Game Started", `User : ${data_user.username}` )
+        await Totalusermodule.create({ user, Time })
+        const data_user = await Usermodule.findById(user).lean()
+        await admin_noti("💚💚 Mili Game Started", `User : ${data_user.username}`)
 
         return res.status(200).json({ Status: "OK", message: "Milionear game started with ten questions" });
 
@@ -11362,8 +11601,8 @@ app.post("/milionear/game/quit/ten/qst", authMiddleware, async (req, res) => {
                 await Wonmodule.create({
                     Time,
                     user,
-                    no: "No Rank" ,
-                    ID : "No ID"
+                    no: "No Rank",
+                    ID: "No ID"
                 })
 
                 const data_user = await Usermodule.findById(user).lean()
@@ -11374,7 +11613,7 @@ app.post("/milionear/game/quit/ten/qst", authMiddleware, async (req, res) => {
 
             } else {
                 await Milion_ten_qst_count_Module.updateOne(
-                    { user : user },
+                    { user: user },
                     { $pull: { m_counts: data_milion_ten_dt.count } }
                 );
                 return res.status(200).json({ Status: "No-Game", message: "No active Milionear game found to quit" });
@@ -11390,7 +11629,7 @@ app.post("/milionear/game/quit/ten/qst", authMiddleware, async (req, res) => {
     }
 })
 
-app.post("/revel/qst/start/game" , authMiddleware, async (req, res) => {
+app.post("/revel/qst/start/game", authMiddleware, async (req, res) => {
     const user = req.user;
 
     try {
@@ -11428,26 +11667,26 @@ app.get("/milionear/game/get/qst/no/to/play", authMiddleware, async (req, res) =
 
         const data = await Qst_array_store_Module.findOne({ user });
 
-        if(!data){
+        if (!data) {
             await generate_qst_no(user, data_milion_ten_dt.count)
         }
 
         if (data_milion_ten_data.includes(data_milion_ten_dt.count)) {
             //make ask do you want to play or continue
-            return res.status(200).json({ Status: "yes/no", message: "Do you want to play", rs :data_milion_ten_dt.rs })
+            return res.status(200).json({ Status: "yes/no", message: "Do you want to play", rs: data_milion_ten_dt.rs })
         }
 
-        if(data_milion_ten_dt.count === data_milion_ten_dt.shown_qst){
+        if (data_milion_ten_dt.count === data_milion_ten_dt.shown_qst) {
             const data = await Qst_array_store_Module.findOne({ user }).lean()
             const categ = await get_categ_fn(data.qst_array[data_milion_ten_dt.count - 1]);
-            return res.status(200).json({ Status: "show", message: "Understand Game", cat : categ })
+            return res.status(200).json({ Status: "show", message: "Understand Game", cat: categ })
         }
 
         if (data_milion_ten_dt.count <= 10) {
             const rs = data_milion_ten_dt.count || 0
             const fnd_qst = await QuestionModule.findOne({ user, Qno: data_milion_ten_dt.count.toString() }).lean();
             const rupp = ["10", "20", "30", "40", "50", "80", "110", "140", "170", "200"]
-            const ind = data_milion_ten_dt.count -1
+            const ind = data_milion_ten_dt.count - 1
             const rsss = rupp[ind]
             if (!fnd_qst) {
                 //get question function here create a Question function here
@@ -11456,13 +11695,13 @@ app.get("/milionear/game/get/qst/no/to/play", authMiddleware, async (req, res) =
                 await get_qst_time_update(user, fnd_qst._id)
 
 
-                return res.status(200).json({ Status: "OK", Data: fnd_qst, rw: rsss})
+                return res.status(200).json({ Status: "OK", Data: fnd_qst, rw: rsss })
             }
             await get_qst_time_update(user, fnd_qst._id)
 
-            
 
-            return res.status(200).json({ Status: "OK", Data: fnd_qst, rw: rsss})
+
+            return res.status(200).json({ Status: "OK", Data: fnd_qst, rw: rsss })
 
         }
 
@@ -11661,7 +11900,7 @@ app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
             return res.status(200).json({ Status: "TimeOut", message: "Time Out! Game Over." });
         }
 
-        await time_ans_Module.findOneAndDelete({user})
+        await time_ans_Module.findOneAndDelete({ user })
 
 
 
@@ -11688,7 +11927,7 @@ app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
             if (data_milion_ten_dt.count <= 10) {
                 await find_qst_data.deleteOne();
                 const rward_amt = await milion_reward(data_milion_ten_dt.count, data_milion_ten_dt.rs)
-                const mi_dtt = await Milion_ten_qst_count_Module.findOne({user})
+                const mi_dtt = await Milion_ten_qst_count_Module.findOne({ user })
 
                 mi_dtt.count = mi_dtt.count + 1
                 mi_dtt.rs = rward_amt
@@ -11706,8 +11945,8 @@ app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
                 return res.status(200).json({ Status: "correct", message: "Correct Answer!", reward: rward_amt });
             }
             else {
-                const data_user =  await Usermodule.findById(user).lean()
-                await admin_noti("❤️❤️ Mili. Won the Game.", `User : ${data_user.username}` )
+                const data_user = await Usermodule.findById(user).lean()
+                await admin_noti("❤️❤️ Mili. Won the Game.", `User : ${data_user.username}`)
                 return res.status(200).json({ Status: "completed", message: "Congratulations! You have completed the game." });
             }
 
@@ -11716,8 +11955,8 @@ app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
             //wrong answer
             await find_qst_data.deleteOne();
             await Milion_ten_qst_count_Module.deleteMany({ user })
-            const data_user =  await Usermodule.findById(user).lean()
-            await admin_noti("💚💚 Mili. Answered Incorrectly", `User : ${data_user.username}` )
+            const data_user = await Usermodule.findById(user).lean()
+            await admin_noti("💚💚 Mili. Answered Incorrectly", `User : ${data_user.username}`)
             return res.status(200).json({ Status: "wrong", message: "Wrong Answer! Game Over." });
         }
 
@@ -13264,25 +13503,25 @@ app.get("/get/total/data", async (req, res) => {
 
 
 app.get('/similar/question/colour', (req, res) => {
-  const Data = generateGame()
+    const Data = generateGame()
     res.json({
-      Data
+        Data
     });
 });
 
 
 app.get('/similar/question/text', (req, res) => {
-  const Data = generateGame_text()
+    const Data = generateGame_text()
     res.json({
-      Data
+        Data
     });
 });
 
 
 app.get('/trial/ten/questions/11', (req, res) => {
-  const Data = generatePuzzle_color(20)
+    const Data = generatePuzzle_color(20)
     res.json({
-      Data
+        Data
     });
 });
 
@@ -13334,6 +13573,155 @@ app.listen(PORT, () => {
 //     default : 100
 // },
 // lst_q_id : String, in one(), two()
+
+
+
+app.post("/api/notifications/subscribe", (req, res) => {
+
+    console.log("Received subscription:");
+    console.log(req.body);
+
+    subscription = req.body;
+
+    res.json({
+        success: true,
+        message: "Subscription saved"
+    });
+
+});
+
+app.post("/api/notifications/send", async (req, res) => {
+
+    const { title, message } = req.body;
+
+    try {
+
+        if (!subscription) {
+            return res.status(400).json({
+                success: false,
+                message: "No subscription found. Enable notifications first."
+            });
+        }
+
+        const payload = JSON.stringify({
+            title: title,
+            message: message
+        });
+
+        console.log("Sending notification...");
+
+        await webpush.sendNotification(
+            subscription,
+            payload
+        );
+
+        console.log("Notification sent!");
+
+        res.json({
+            success: true,
+            message: "Notification sent successfully"
+        });
+
+    } catch (error) {
+
+        console.error("PUSH ERROR:", error);
+
+        res.status(500).json({
+            success: false,
+            message: "Failed to send notification",
+            error: error.message
+        });
+
+    }
+
+});
+
+
+
+app.get("/get/active/users/data", async (req, res) => {
+    try {
+        if (activeUsers.size > 0) {
+            return res.status(200).json({
+                success: true,
+                activeUsers: Array.from(activeUsers.keys()),
+                totalActiveUsers: activeUsers.size
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "No Data Found",
+            activeUsers: [],
+            totalActiveUsers: 0
+        });
+
+    } catch (error) {
+        console.log(error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Server Error"
+        });
+    }
+});
+
+
+
+app.get("/export/live-history", async (req, res) => {
+    try {
+        const data = await LiveHistoryModule
+            .find()
+            .sort({ createdAt: -1 })
+            .lean();
+
+        // Convert MongoDB data to Excel-friendly data
+        const excelData = data.map(item => ({
+            User: item.user,
+            Name: item.name,
+            Action: item.action,
+            CreatedAt: item.createdAt
+        }));
+
+        // Create worksheet
+        const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+        // Create workbook
+        const workbook = XLSX.utils.book_new();
+
+        XLSX.utils.book_append_sheet(
+            workbook,
+            worksheet,
+            "Live History"
+        );
+
+        // Create Excel file in memory
+        const excelBuffer = XLSX.write(workbook, {
+            type: "buffer",
+            bookType: "xlsx"
+        });
+
+        res.setHeader(
+            "Content-Disposition",
+            'attachment; filename="live-history.xlsx"'
+        );
+
+        res.setHeader(
+            "Content-Type",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        );
+
+        res.send(excelBuffer);
+
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            success: false,
+            message: "Failed to export Excel",
+            error: error.message
+        });
+    }
+});
 
 
 
