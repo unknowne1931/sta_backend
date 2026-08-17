@@ -1,6 +1,5 @@
 //Main server file
 // Main server file (ESM imports)
-
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
@@ -17,14 +16,10 @@ import crypto from 'crypto';
 import { MongoClient } from "mongodb";
 import webpush from "web-push";
 import path from 'path';
-
 import { fileURLToPath } from "url";
 import fs from "fs";
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-
 import XLSX from 'xlsx'
 import { fromJSON } from 'postcss';
 import admin, { } from "firebase-admin";
@@ -57,8 +52,7 @@ import { generatePuzzle_cipher_text } from './new_modules/tweentyone.js';
 import { generatePuzzle_consonant_count } from './new_modules/tweentytwo.js';
 import { generatePuzzle_word_search } from './new_modules/thweentythree.js';
 import { generatePuzzle_alphabetical } from './new_modules/twentyfour.js';
-
-
+import { addPaymentToExcel } from './paymentdatatoexcel.js';
 
 const app = express();
 app.use(express.static('public'))
@@ -218,6 +212,10 @@ app.post(
                 user,
                 `💰 Deposited ₹${creditAmount} to staWro | Previous Balance: ₹${userData.balance} | New Balance: ₹${int_bal}`
             );
+
+            const data_user = await Usermodule.findById(user)
+
+            await addPaymentToExcel(user, data_user.username, creditAmount, "💵💵🩵🩵 Added to Wallet via Razorpay [Real Money]", "Credited")
 
             const admin_bal_wallet = await Amount_in_wallet_Count_Module.findOne({ user: "kick" });
 
@@ -513,6 +511,8 @@ async function LiveHistory(user, action) {
         );
     }
 }
+
+
 
 
 
@@ -8896,7 +8896,8 @@ app.post("/milionear/game/start/ten/qst", authMiddleware, async (req, res) => {
         balance.balance = f_bal.toString()
         await balance.save()
         await History_db(user, `${feesNum}`)
-
+        const user_data = await Usermodule.findById(user).lean()
+        await addPaymentToExcel(user, user_data.username, feesNum, "To start Mili Game", "Debited")
         // const get_per = (won_data / (total_play || 1)) * 100;
 
 
