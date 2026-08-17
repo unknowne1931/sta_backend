@@ -1,30 +1,140 @@
 //Main server file
+// Main server file (ESM imports)
 
-const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
-const jwt = require("jsonwebtoken");
-const multer = require('multer');
-const path = require('path');
-const nodemailer = require('nodemailer');
-const { hash } = require('crypto');
-const authMiddleware = require('./module/authmidle');
-const adminMidleware = require('./module/adminMidle');
-const adminMiddleware = require('./module/adminMidle');
-const { type } = require('os');
-const fs = require('fs')
-const https = require('https');
-const Razorpay = require("razorpay");
-const users_admin_Middle = require('./module/admin_users_Midle');
-// const admin = require("firebase-admin");
-// ✅ Correct import
-const crypto = require("crypto");
+import express from 'express';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import nodemailer from 'nodemailer';
+import authMiddleware from './module/authmidle.js';
+import adminMidleware from './module/adminMidle.js';
+import adminMiddleware from './module/adminMidle.js';
+import Razorpay from 'razorpay';
+import users_admin_Middle from './module/admin_users_Midle.js';
+import crypto from 'crypto';
+import { MongoClient } from "mongodb";
+import webpush from "web-push";
+import path from 'path';
+
+import { fileURLToPath } from "url";
+import fs from "fs";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+
+import XLSX from 'xlsx'
+import { fromJSON } from 'postcss';
+import admin, { } from "firebase-admin";
+import serviceAccount from "./config/firebase-key.json" with { type: "json" };
+import { drawImage, generateBoxesData, generateOptions, getDifficultiesByPer } from './new_modules/one.js';
+import { drawImage_two, generateBoxesData_two, generateOptions_two, getDifficultiesByPer_two, uploadImage_two } from './new_modules/two.js';
+import { generatePuzzle_three } from './new_modules/three.js';
+import { generatePuzzle_four } from './new_modules/four.js';
+import { generatePuzzle_five } from './new_modules/five.js';
+import { generatePuzzle_six } from './new_modules/six.js';
+import { generatePuzzle_seven } from './new_modules/seven.js';
+import { generatePuzzle_eight } from './new_modules/eight.js';
+import { generatePuzzle_complete_nine } from './new_modules/nine.js';
+import { generatePuzzle_broken_ten } from './new_modules/ten.js';
+import { generatePuzzle_color } from './new_modules/eleven.js';
+import { type } from 'os';
+import { count } from 'console';
+import generateGame from './similar/one.js';
+import generateGame_text from './similar/two.js';
+import { generatePuzzle_unlock_pattern } from './new_modules/tweleve.js';
+import { generatePuzzle_morseCode } from './new_modules/thirteen.js';
+import { generatePuzzle_alphabetColourCount } from './new_modules/fourteen.js';
+import { generatePuzzle_maleConnectorCount } from './new_modules/fifteen.js';
+import { generatePuzzle_misalignedLetters } from './new_modules/sixteen.js';
+import { generatePuzzle_clockCounting } from './new_modules/seventeen.js';
+import { generatePuzzle_scrambledWords } from './new_modules/eighteen.js';
+import { generatePuzzle_colorMatch } from './new_modules/nineteen.js';
+import { generatePuzzle_colorMatch2 } from './new_modules/twenty.js';
+import { generatePuzzle_cipher_text } from './new_modules/tweentyone.js';
+import { generatePuzzle_consonant_count } from './new_modules/tweentytwo.js';
+import { generatePuzzle_word_search } from './new_modules/thweentythree.js';
+import { generatePuzzle_alphabetical } from './new_modules/twentyfour.js';
 
 
 
 const app = express();
+app.use(express.static('public'))
+// app.use(express.json());
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+});
+
+
+
+
+// const gameInMiddle = (req, res, next) => {
+
+//     const userId = req.user?.id;
+//     console.log(req)
+
+//     if (userId) {
+//         activeUsers.set(userId.toString(), Date.now());
+//     }
+
+//     next();
+// };
+
+
+
+
+function getNow() {
+    return {
+        ts: Date.now(), // milliseconds (for calculation)
+        readable: new Date().toLocaleString("en-US", {
+            timeZone: "Asia/Kolkata",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: true
+        })
+    };
+}
+
+
+const Time = new Date().toLocaleString("en-US", {
+    timeZone: "Asia/Kolkata",
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true // or false for 24-hour format
+});
+
+
+const Time_2 = Time.toLocaleString("en-US", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true
+});
+
+
+
+const qst_gen = [
+    One(), Two(), Three(), Four(), Five(), Six(),
+    Seven(), Eight(), Nine(), Ten(),
+    // Eleven(), Tweleve(), Thirteen(),
+    // Fourteen(), Fifteen(), Sixteen()
+    // Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),
+];
+
+
+//razorpay webhook
 app.post(
     "/razorpay/webhook",
     express.raw({ type: "application/json" }),
@@ -34,6 +144,7 @@ app.post(
         const rawBody = req.body;
 
         try {
+            console.log("Okkkkkkkkkkk")
             // ✅ Ensure raw body is a Buffer
             if (!Buffer.isBuffer(rawBody)) {
                 throw new Error("Invalid raw body: not a Buffer");
@@ -54,6 +165,8 @@ app.post(
             const data = JSON.parse(rawBody.toString("utf8"));
             const payment = data?.payload?.payment?.entity;
 
+            console.log("Razorpay Webhook received:", data);
+
             if (!payment || payment.status !== "captured") {
                 console.log("❗ Payment not captured or invalid");
                 return res.status(200).json({ success: false });
@@ -62,6 +175,8 @@ app.post(
             // ✅ Extract user from Razorpay notes
             const user = payment.notes?.user;
             const rp_i = payment.amount / 100
+
+            console.log("Payment details:", { user, amount: rp_i });
             if (!user) {
                 console.log("⚠️ No user found in payment notes");
                 return res.status(400).json({ success: false, message: "User missing in notes" });
@@ -76,6 +191,7 @@ app.post(
 
             // ✅ Find user balance
             const userData = await Balancemodule.findOne({ user });
+            console.log("User found:", userData);
             if (!userData) {
                 console.log("❌ User not found:", user);
                 return res.status(404).json({ success: false, message: "User not found" });
@@ -97,26 +213,76 @@ app.post(
             userData.balance = int_bal
             await userData.save();
 
+            const admin_bal_wallet = await Amount_in_wallet_Count_Module.findOne({ user: "kick" });
+
+            const num = Number(rp_i)
+            console.log("User found:", userData);
+            console.log("Credit amount:", creditAmount);
+            console.log("Admin balance wallet:", admin_bal_wallet);
+
+
+            if (admin_bal_wallet) {
+                await Amount_in_wallet_Count_Module.updateOne(
+                    { user: "kick" },
+                    {
+                        $inc: { count: num },
+                        $push: { user_id: { user: user, rupee: toString(rp_i), tr_id: payment.id, time: Time } }
+                    }
+                );
+                // admin_bal_wallet.count = parseInt(admin_bal_wallet.count) + rp_i
+                // await admin_bal_wallet.save()
+            } else {
+                // await Amount_in_wallet_Count_Module.create
+                await Amount_in_wallet_Count_Module.create({
+                    Time: new Date().toISOString(),
+                    count: Number(rp_i),
+                    user: "kick",
+                    user_id: [{ user: user, rupee: toString(rp_i), tr_id: payment.id, time: Time }]
+                });
+            }
+
 
             // ✅ Log transaction
             await Historymodule.create({
                 Time: new Date().toISOString(),
                 user,
-                rupee: toString(rp_i),
+                rupee: rp_i,
                 type: "Credited",
                 tp: "Rupee",
             });
 
             const cred_to = await referandearnModule.findOne({ user: user });
 
-            if(cred_to && cred_to.ac_deb !== "Yes" && rp_i > 20){
+            if (cred_to && cred_to.ac_deb !== "Yes" && rp_i >= 20) {
                 const get_referd_user = await Balancemodule.findOne({ user: cred_to.referd_user_d_id });
                 const new_bal = parseInt(get_referd_user.balance) + 40;
                 get_referd_user.balance = new_bal;
                 await get_referd_user.save();
+                const admin_bal = await Amount_Free_Count_Module.findOne({ user: "kick  " });
+                if (admin_bal) {
+                    await Amount_Free_Count_Module.updateOne(
+                        { user: "kick" },
+                        {
+                            $inc: { count: 40 },
+                            $push: { user_id: { user: cred_to.referd_user_d_id, tr_id: payment.id, time: new Date().toLocaleString("en-US", {}) } }
+                        }
+                    );
+                    // admin_bal.count = parseInt(admin_bal.count) + 40
+                    // await admin_bal.save()
+                } else {
+                    // await Amount_Free_Count_Module.create({ Time, user: "kick", count: 40 })
+
+                    await Amount_Free_Count_Module.create({
+                        Time: new Date().toISOString(),
+                        user: "kick",
+                        count: 40,
+                        user_id: [{ user: cred_to.referd_user_d_id, tr_id: payment.id, time: new Date().toLocaleString("en-US", {}) }]
+                    });
+
+                }
                 await Historymodule.create({
                     Time: new Date().toISOString(),
-                    user : cred_to.referd_user_d_id,
+                    user: cred_to.referd_user_d_id,
                     rupee: "40",
                     type: "Credited",
                     tp: "Rupee",
@@ -124,6 +290,8 @@ app.post(
                 cred_to.ac_deb = "Yes";
                 await cred_to.save();
             }
+            await admin_noti(`🤑🤑🤑 ₹${rp_i} credited to Razorpay`, `User Added ₹${rp_i} to Wallet`)
+
 
             console.log(`✅ ₹${rp_i} credited to user: ${user}`);
             return res.status(200).json({ success: true });
@@ -134,8 +302,13 @@ app.post(
     }
 );
 
-app.use(express.static('public'))
-// app.use(express.json());
+
+app.use(cors({
+    // origin: ["https://stawro.com", "https://www.stawro.com", "http://192.168.31.133:3000"],
+    origin: "*",
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+}));
 
 
 
@@ -144,46 +317,251 @@ app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: true }));
 
 
-// app.use(bodyParser.urlencoded({ extended: true }));
-
-// 🟡 RAW BODY middleware for webhook
-// app.use(
-//   "/razorpay/webhook",
-//   bodyParser.json({
-//     verify: (req, res, buf) => {
-//       req.rawBody = buf;
-//     },
-//   })
-// );
 
 
 
 
-// Initialize Firebase Admin SDK
-// const serviceAccount = require("./firebase-adminsdk.json"); // Ensure the correct path
+let subscription = null;
 
-// admin.initializeApp({
-//   credential: admin.credential.cert(serviceAccount),
-// });
+webpush.setVapidDetails(
+    "mailto:unknowne1931@gmail.com",
+    "BNpCHYbsI9XNFi0VsRddAW9pLNUtpgX7B-WTyU-YqWlHLUfTBLQTP_yFrJOLJYbZBJi_tOrPbz2Y6jwt52euzwA",
+    "b9XCfq2O0jboPZz9Z6vtQahBGvuSAKbJTRDnV9qX3XU"
+
+);
 
 
-
-
-app.use(cors({
-    origin: "*", // Allow any origin
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true
-}));
+const activeUsers = new Map();
 
 
 
-const Time = new Date().toLocaleString("en-US", {
-    timeZone: "Asia/Kolkata",
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true // or false for 24-hour format
-});
+const liveUserSchema = new mongoose.Schema({
+    user: String,
+    name: String,
+    action: String,
+}, { timestamps: true });
+
+const LiveHistoryModule = mongoose.model(
+    "livehistory",
+    liveUserSchema
+);
+
+
+const activeUserMiddleware = (req, res, next) => {
+
+    const userId = req.user;
+    console.log(req.user)
+
+    if (userId) {
+        activeUsers.set(userId.toString(), Date.now());
+    }
+
+    next();
+};
+
+
+function indianDateTime(date) {
+    const d = new Date(date);
+
+    const parts = new Intl.DateTimeFormat("en-IN", {
+        timeZone: "Asia/Kolkata",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true
+    }).formatToParts(d);
+
+    const get = type => parts.find(p => p.type === type)?.value;
+
+    return `${get("day")}-${get("month")}-${get("year")} ${get("hour")}:${get("minute")}:${get("second")} ${get("dayPeriod")}`;
+}
+
+
+
+async function addToExcel(documents) {
+    try {
+        const filePath = path.join(__dirname, "live-history.xlsx");
+
+        let existingData = [];
+
+        // Read existing Excel file
+        if (fs.existsSync(filePath)) {
+            const workbook = XLSX.readFile(filePath);
+
+            const sheetName = workbook.SheetNames[0];
+
+            if (sheetName) {
+                const worksheet = workbook.Sheets[sheetName];
+
+                existingData = XLSX.utils.sheet_to_json(worksheet);
+            }
+        }
+
+        // Existing MongoDB IDs already stored in Excel
+        const existingIds = new Set(
+            existingData.map(item => String(item.ID))
+        );
+
+        // Add only records that are not already in Excel
+        const newData = documents
+            .filter(doc => !existingIds.has(String(doc._id)))
+            .map(doc => ({
+                ID: String(doc._id),
+                User: doc.user,
+                Name: doc.name,
+                Action: doc.action,
+                CreatedAt: doc.createdAt,
+                CreatedAt: indianDateTime(doc.createdAt)
+            }));
+
+        // Nothing new to add
+        if (newData.length === 0) {
+            console.log("No new records to add to Excel");
+            return;
+        }
+
+        // Combine old + new data
+        const finalData = [
+            ...existingData,
+            ...newData
+        ];
+
+        // Create workbook
+        const workbook = XLSX.utils.book_new();
+
+        const worksheet = XLSX.utils.json_to_sheet(finalData);
+
+        XLSX.utils.book_append_sheet(
+            workbook,
+            worksheet,
+            "Live History"
+        );
+
+        // Save in the same directory
+        XLSX.writeFile(workbook, filePath);
+
+        console.log(
+            `${newData.length} records added to Excel`
+        );
+
+    } catch (error) {
+        console.error(
+            "Excel Error:",
+            error
+        );
+    }
+}
+
+
+async function LiveHistory(user, action) {
+    try {
+
+        const userData = await Usermodule
+            .findById(user)
+            .select("name");
+
+        if (!userData) {
+            console.log("User not found");
+            return;
+        }
+
+        // Create new history
+        await LiveHistoryModule.create({
+            user: user,
+            name: userData.name,
+            action: action
+        });
+
+        // Find everything except latest 100
+        const documents = await LiveHistoryModule
+            .find()
+            .sort({ createdAt: -1 })
+            .skip(30);
+
+        // If old documents exist
+        if (documents.length > 0) {
+
+            // Add old documents to Excel
+            await addToExcel(documents);
+
+            // Get IDs
+            const idsToDelete = documents.map(
+                doc => doc._id
+            );
+
+            // Delete from MongoDB
+            await LiveHistoryModule.deleteMany({
+                _id: { $in: idsToDelete }
+            });
+
+            console.log(
+                `${documents.length} old records archived and deleted`
+            );
+        }
+
+    } catch (error) {
+
+        console.error(
+            "LiveHistory Error:",
+            error
+        );
+    }
+}
+
+
+
+
+
+
+
+const Amount_free_count_Schema = new mongoose.Schema({
+    Time: String,
+    count: Number,
+    user: {
+        default: "kick",
+        type: String
+    },
+    user_id: [{
+        user: String,
+        time: String,
+        rupee: String,
+        tr_id: String
+    }]
+}, { timestamps: true });
+
+const Amount_Free_Count_Module = mongoose.model('Amount', Amount_free_count_Schema);
+
+const Amount_in_wallet_count_Schema = new mongoose.Schema({
+    Time: String,
+    count: Number,
+    user: {
+        default: "kick",
+        type: String
+    },
+    user_id: [{
+        user: String,
+        time: String,
+        rupee: String
+    }]
+}, { timestamps: true });
+
+const Amount_in_wallet_Count_Module = mongoose.model('Amount_wallet', Amount_in_wallet_count_Schema);
+
+
+
+const level_Up_Schema = new mongoose.Schema({
+    Time: String,
+    user: String,
+    rank: String,
+}, { timestamps: true });
+
+const Level_up_Module = mongoose.model('Levels_data', level_Up_Schema);
+
+app.use(bodyParser.urlencoded({ extended: true }));
+
 
 
 // MongoDB connection
@@ -194,6 +572,19 @@ mongoose.connect(mongoURI,)
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.log(err));
 
+
+
+// const client = new MongoClient(mongoURI);
+
+// let users_db;
+
+// async function run() {
+//     await client.connect();
+//     const db = client.db("test");
+//     users_db = db.collection("most_answerd_modules");
+// }
+
+// run().catch(console.error)
 
 
 const generateOTP = () => {
@@ -216,7 +607,7 @@ const generateOTP = () => {
 //https end
 
 app.get('/', (req, res) => {
-    res.send('Hello, world Vs : 1.3.3 ; Last Updated : 16-08-2025 ; Type : Live');
+    res.send('Hello, world Vs : 23.0.0 ; Last Updated : 26-03-2026 ; Type : Live');
 });
 
 
@@ -224,6 +615,107 @@ app.get('/ip', (req, res) => {
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     res.send(`Your IP address is: ${ip}`);
 });
+
+
+app.get("/verify", authMiddleware, async (req, res) => {
+    try {
+        console.log("In", req.user)
+        res.status(200).json({ Status: "OK" })
+    } catch (error) {
+        console.log(error)
+        return res.status(400).json({ message: "Something went Wrong" })
+    }
+})
+
+
+export async function get_per(user) {
+    try {
+
+
+        const data = await Level_up_Module.findOne({ user })
+        if (data) {
+            return data.rank
+        } else {
+            return 0
+        }
+
+        // return 0;
+        // const data = await users_db.findOne({ sub_lang, tough });
+
+        // if (!data) return 0;
+
+        // // safely check if seconds exists
+
+        // const userObj = await data.yes.includes(user)
+
+
+
+        // if (userObj) {
+        //     const total = (data.yes?.length || 0) + (data.no?.length || 0);
+        //     if (total === 0) return 0;
+        //     const per = (data.yes?.length || 0) / total * 100;
+        //     return per;
+        // } else {
+        //     return 0;
+        // }
+
+    } catch (err) {
+        console.error(err);
+        return 0; // return 0 if any error occurs
+    }
+}
+
+export async function get_level_step() {
+    const data = Admin_levl_diff_Module.findOne({ user: "Kick" }).lean()
+    if (!data) {
+        await Admin_levl_diff_Module.create({ Time, user: "Kick", diff: "1" })
+        return "1"
+    } else {
+        return data.diff
+    }
+}
+
+
+const level_setup_schema = new mongoose.Schema({
+
+    Time: String,
+    user: String,
+    diff: String
+});
+
+const Admin_levl_diff_Module = mongoose.model('Level_admin_level', level_setup_schema);
+
+app.get("/get/dificulties/data/to/make/dificulties", adminMiddleware, async (req, res) => {
+    try {
+        const data = await Admin_levl_diff_Module.findOne({ user: "Kick" })
+        if (!data) {
+            const data_1 = await Admin_levl_diff_Module.create({ Time, user: "Kick", diff: "1" })
+            return res.status(200).json({ data_1 })
+        } else {
+            return res.status(200).json({ data })
+        }
+    } catch (error) {
+        console.error("Google Auth Error:", error);
+        return res.status(500).json({ Status: "ERR_SERVER", message: "Internal server error." });
+    }
+})
+
+app.post("/change/dificulti/level/by/from/admin", adminMiddleware, async (req, res) => {
+    const { text } = req.body
+    try {
+        const data = await Admin_levl_diff_Module.findOne({ user: "Kick" })
+        if (data) {
+            data.diff = text
+            await data.save()
+            return res.status(200).json({ Status: "OK" })
+        } else {
+            return res.status(200).json({ Message: "No Data Exist to Update" })
+        }
+    } catch (error) {
+        console.error("Google Auth Error:", error);
+        return res.status(500).json({ Status: "ERR_SERVER", message: "Internal server error." });
+    }
+})
 
 const UsersSchema = new mongoose.Schema({
 
@@ -246,7 +738,7 @@ let transporter = nodemailer.createTransport({
     service: 'gmail', // You can use any email service
     auth: {
         user: 'stawropuzzle@gmail.com',
-        pass: 'osrz jhwt tcqx zeyf' // Be careful with your email password
+        pass: 'xadj xndp jtsh hzaf' // Be careful with your email password
     }
 });
 
@@ -263,8 +755,54 @@ const User_s_OTP_module = mongoose.model('Users_OTP', user_s_otpSchema);
 // const GoogleUser = require('./models/GoogleUser'); // already required
 
 
+//call this after account create because we need user var
+async function add_stars_to_new_loged_in_users(u_id, user) {
+    const data_find = await Uniq_new_user_module.findOne({ user: u_id })
+    if (data_find) {
+        const fetch_star_bal = await StarBalmodule.findOne({ user }).lean()
+        if (!fetch_star_bal) {
+            await StarBalmodule.create({ Time, user, balance: data_find.star })
+            await History_star(user, data_find.star)
+            await QuestionModule.findOneAndDelete({ user: u_id })
+            data_find.star = "0"
+            await data_find.save()
+        }
+    }
+}
+
+
+app.post("/post/login", async (req, res) => {
+
+    const { data } = req.body;
+
+    try {
+
+        console.log("Datttt ")
+
+        const token = jwt.sign({ id: "686e24d32f21c9417882f777" }, "kanna_stawro_founders_withhh_1931_liketha", {
+            expiresIn: "365 days"
+        });
+
+        await LiveHistory("686e24d32f21c9417882f777", "Default Login Without Verification" )
+
+        return res.status(200).json({
+            Status: "OK",
+            message: "Login success",
+            token,
+            user: "686e24d32f21c9417882f777",
+            username: "Avi",
+            email: "avi@gmail.com"
+        });
+
+    } catch (error) {
+        console.error("Google Auth Error:", error);
+        return res.status(500).json({ Status: "ERR_SERVER", message: "Internal server error." });
+    }
+})
+
+
 app.post('/post/google/auth', async (req, res) => {
-    const { email, name, username, uid } = req.body;
+    const { email, name, username, uid, u_id } = req.body;
 
     if (!email || !uid) {
         return res.status(400).json({ Status: "INVALID_DATA", message: "Missing required fields." });
@@ -275,13 +813,15 @@ app.post('/post/google/auth', async (req, res) => {
 
         if (user) {
             // User exists, proceed to login
-            if (user.pass !== uid) {
-                return res.status(401).json({ Status: "INVALID_UID", message: "UID does not match." });
-            }
+            // if (user.pass !== uid) {
+            //     return res.status(401).json({ Status: "INVALID_UID", message: "UID does not match." });
+            // }
 
             const token = jwt.sign({ id: user._id }, "kanna_stawro_founders_withhh_1931_liketha", {
                 expiresIn: "365 days"
             });
+
+            await LiveHistory(user, "Logged In")
 
             return res.status(200).json({
                 Status: "OK",
@@ -303,9 +843,17 @@ app.post('/post/google/auth', async (req, res) => {
                 valid: "yes"
             });
 
+            await add_stars_to_new_loged_in_users(u_id, user._id)
+
             const token = jwt.sign({ id: user._id }, "kanna_stawro_founders_withhh_1931_liketha", {
                 expiresIn: "365 days"
             });
+
+            await new_user(user)
+
+            await admin_noti("🧡🧡 New Account Created", `User : ${username} , Created New Account`)
+
+            await LiveHistory(user._id, "New User Login & Account Created")
 
             return res.status(200).json({
                 Status: "OK",
@@ -330,7 +878,6 @@ app.post('/post/new/google/user', async (req, res) => {
         return res.status(400).json({ Status: "INVALID_DATA", message: "Missing required fields." });
     }
 
-    console.log(email, name, username, uid)
 
     try {
         // Check if user already exists
@@ -350,6 +897,9 @@ app.post('/post/new/google/user', async (req, res) => {
             valid: "yes"
         });
 
+        await LiveHistory(user._id, "New User Login & Account Created")
+
+
         return res.status(200).json({ Status: "OK", message: "User created successfully." });
 
     } catch (error) {
@@ -357,6 +907,21 @@ app.post('/post/new/google/user', async (req, res) => {
         return res.status(500).json({ Status: "ERR_SERVER", message: "Internal server error." });
     }
 });
+
+
+async function fisrt_time_user(user) {
+    const check_balance = await Balancemodule.findOne({ user }).lean()
+    if (!check_balance) {
+        await Balancemodule.create({ user, balance: "10", Time, last_tr_id: "Free Credit" })
+    }
+
+    const check_lang = await LanguageSelectModule.findOne({ user }).lean()
+
+    if (!check_lang) {
+        await LanguageSelectModule.create({ lang: ["English"], Time, user })
+    }
+}
+
 
 
 app.post('/post/google/login', async (req, res) => {
@@ -374,8 +939,11 @@ app.post('/post/google/login', async (req, res) => {
             return res.status(202).json({ Status: "NO" }); // Not found
         }
 
+
         // Generate JWT
         const token = jwt.sign({ id: user._id }, "kanna_stawro_founders_withhh_1931_liketha", { expiresIn: "365 days" });
+
+        await LiveHistory(user._id, "Login")
 
         return res.status(200).json({
             Status: "OK",
@@ -391,259 +959,8 @@ app.post('/post/google/login', async (req, res) => {
 });
 
 
-app.post('/get/all/users/data/otp/to/verify/app', async (req, res) => {
-    const { OTP, email } = req.body;
-
-    try {
-
-        if (!OTP && !email) return res.status(400).json({ Status: "BAD", message: "Invalid OTP or username." });
 
 
-        // Find the user with the provided username
-        const mainUser = await Usermodule.findOne({ email });
-        const find_user = await User_s_OTP_module.findOne({ username: mainUser.username });
-
-        // Check if user and OTP match
-        if (find_user && find_user.otp === OTP) {
-            // Update the user's valid status in the main user module
-
-            if (mainUser) {
-                mainUser.valid = "yes";
-                await mainUser.save();
-            }
-
-            await find_user.deleteOne();
-            // return res.status(200).json({ Status: "OK", message: "OTP verified successfully." });
-            const token = jwt.sign({ id: mainUser._id }, "kanna_stawro_founders_withhh_1931_liketha", { expiresIn: "365 days" });
-            res.status(200).json({ Status: "OK", token, user: mainUser._id, username: mainUser.username });
-
-        } else {
-            return res.status(400).json({ Status: "BAD", message: "Invalid OTP or username." });
-        }
-    } catch (error) {
-        console.error("Error during OTP verification:", error);
-        return res.status(500).json({ message: "Internal Server Error." });
-    }
-});
-
-
-app.post('/get/all/users/data/otp/to/verify', async (req, res) => {
-    const { OTP, username } = req.body;
-
-    try {
-
-        if (!OTP && !username) return res.status(202).json({ Status: "BAD", message: "Invalid OTP or username." });
-
-        // Find the user with the provided username
-        const find_user = await User_s_OTP_module.findOne({ username });
-
-        // Check if user and OTP match
-        if (find_user && find_user.otp === OTP) {
-            // Update the user's valid status in the main user module
-            const mainUser = await Usermodule.findOne({ username });
-            if (mainUser) {
-                mainUser.valid = "yes";
-                await mainUser.save();
-            }
-
-            // Delete the OTP record
-
-            await find_user.deleteOne();
-
-            return res.status(200).json({ Status: "OK", message: "OTP verified successfully." });
-        } else {
-            return res.status(200).json({ Status: "BAD", message: "Invalid OTP or username." });
-        }
-    } catch (error) {
-        console.error("Error during OTP verification:", error);
-        return res.status(500).json({ message: "Internal Server Error." });
-    }
-});
-
-
-app.post('/get/all/users/data/otp/to/verify/02', async (req, res) => {
-    const { OTP, data } = req.body;
-
-    try {
-        // Find the user with the provided username
-
-        if (!OTP && !data) return res.status(202).json({ Status: "BAD", message: "Invalid OTP or username." });
-
-        const user = await Usermodule.findOne({
-            $or: [{ username: data.trim() }, { email: data.trim() }]
-        });
-
-        const find_user = await User_s_OTP_module.findOne({ username: user.username });
-
-        // Check if user and OTP match
-        if (find_user && find_user.otp === OTP) {
-            // Update the user's valid status in the main user module
-            const mainUser = await Usermodule.findOne({ email: user.email });
-            if (mainUser) {
-                mainUser.valid = "yes";
-                await mainUser.save();
-            }
-
-            // Delete the OTP record
-
-            await find_user.deleteOne();
-
-            const token = jwt.sign({ id: user._id }, "kanna_stawro_founders_withhh_1931_liketha", { expiresIn: "365 days" });
-            return res.status(200).json({ Status: "OK", token, user: user._id, username: user.username });
-
-        }
-        else {
-            return res.status(200).json({ Status: "BAD", message: "Invalid OTP or username." });
-        }
-    } catch (error) {
-        console.error("Error during OTP verification:", error);
-        return res.status(500).json({ message: "Internal Server Error." });
-    }
-});
-
-app.post('/get/new/otp/to/verify/app', async (req, res) => {
-    try {
-        const { data } = req.body;
-
-
-        if (!data) {
-            return res.status(400).json({ Status: "ERR", message: "Data is required." });
-        }
-
-        const user = await Usermodule.findOne({
-            $or: [{ username: data.trim() }, { email: data.trim() }]
-        }).lean();
-
-        if (!user) {
-            return res.status(404).json({ Status: "ERR", message: "User not found." });
-        }
-
-
-        if (user.valid === "no") {
-            const existingOTP = await User_s_OTP_module.findOne({ username: user.username });
-
-            if (existingOTP) {
-                await existingOTP.deleteOne();
-            }
-
-
-            const OTP = generateOTP();
-
-
-            const otpData = await User_s_OTP_module.create({
-                Time,
-                username: user.username,
-                otp: OTP
-            });
-
-
-            let mailOptions = {
-                from: "stawropuzzle@gmail.com",
-                to: user.email,
-                subject: "Resend OTP for Account Verification",
-                html: `
-                <html lang="en">
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>stawro Account Verification</title>
-                    </head>
-                    <body>
-                        <div>
-                            <h2>Hello ${user.username},</h2>
-                            <p>Your OTP for email verification is:</p>
-                            <h3>${otpData.otp}</h3>
-                            <p>Please use this OTP to complete your account verification.</p>
-                            <p>Thank you for choosing stawro!</p>
-                        </div>
-                    </body>
-                </html>
-                `,
-            };
-
-
-            // Send email
-            transporter.sendMail(mailOptions, (error, info) => {
-                if (error) {
-                    console.error("Error sending email:", error);
-                    return res.status(500).json({ Status: "EMAIL_ERR", message: "Failed to send email." });
-                }
-
-                return res.status(200).json({ Status: "OK", message: "OTP resent successfully." });
-            });
-
-
-        } else {
-            return res.status(400).json({ Status: "ERR", message: "User is already verified." });
-        }
-    } catch (error) {
-        console.error("Error during OTP verification:", error);
-        return res.status(500).json({ Status: "ERR", message: "Internal Server Error." });
-    }
-});
-
-
-
-
-
-app.post('/get/new/otp/to/verify', async (req, res) => {
-    const { data } = req.body;
-    try {
-
-        if (!data) return res.status(400).json({ message: "Some Data Missing" })
-        const user = await Usermodule.findOne({
-            $or: [{ username: data.trim() }, { email: data.trim() }]
-        }).lean();
-        const OTP = generateOTP();
-        if (user.valid === "no") {
-            const otp_get = await User_s_OTP_module.findOne({ username: user.username })
-            if (otp_get) {
-                await otp_get.deleteOne();
-            } else {
-                const otpData = await User_s_OTP_module.create({ Time, username: user.username, otp: OTP });
-
-                let mailOptions = {
-                    from: "stawropuzzle@gmail.com",
-                    to: user.email,
-                    subject: "Congratulations, your account has been successfully created on stawro.",
-                    html: `
-                    <html lang="en">
-                        <head>
-                            <meta charset="UTF-8">
-                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                            <title>stawro Account Verification</title>
-                        </head>
-                        <body>
-                            <div>
-                                <h2>Welcome to stawro, ${user.username}!</h2>
-                                <p>Your account has been successfully created. Please verify your email using the OTP below:</p>
-                                <h3>OTP: ${otpData.otp}</h3>
-                                <p>After verification, you can access the login page by clicking the link below:</p>
-                                <a href="https://www.stawro.com/login" target="_blank">Login</a>
-                                <p>Thank you for joining us!</p>
-                            </div>
-                        </body>
-                    </html>
-                    `,
-                };
-
-                // Send email
-                transporter.sendMail(mailOptions, (error, info) => {
-                    if (error) {
-                        console.error("Error sending email:", error);
-                        return res.status(200).json({ Status: "EMAIL_ERR", message: "Failed to send email." });
-                    }
-
-                    return res.status(200).json({ Status: "OK", message: "User registered successfully. OTP sent via email." });
-                });
-
-            }
-        }
-    } catch (error) {
-        console.error("Error during OTP verification:", error);
-        return res.status(500).json({ message: "Internal Server Error." });
-    }
-})
 
 const BalanceSchema = new mongoose.Schema({
     Time: String,
@@ -668,517 +985,39 @@ const my_money_Schema = new mongoose.Schema({
 
 const My_MoneyModule = mongoose.model('My_Money', my_money_Schema);
 
-const FCMSchema = new mongoose.Schema({
-    Time: String,
-    user: String,
-    email: String,
-    FCM: String,
-    user_id: String
-}, { timestamps: true });
 
-const FCMModule = mongoose.model('FCM_Users', FCMSchema);
+//Work from Here 15-08-2026
 
 
-app.post("/logout/data/app", async (req, res) => {
-    const { data } = req.body;
-    try {
-        if (!data) return res.status(400).json({ message: "Some Data Missing" })
-
-        const get_data = await FCMModule.findOne({ user_id: data })
-        if (get_data) {
-            get_data.FCM = "";
-            await get_data.save();
-            return res.status(200).json({ Status: "OK" })
-        } else {
-            const user = await Usermodule.findOne({ _id: data }).lean()
-            if (user) {
-                await FCMModule.create({ Time: new Date(), user: user.username, email: user.email, FCM: "", user_id: user._id });
-                return res.status(200).json({ Status: "OK" })
-            }
-            return res.status(200).json({ message: "No User Exist From This" })
-        }
-
-
-    } catch (error) {
-        console.error("Login Error:", error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
-})
-
-
-
-
-
-
-
-
-
-
-
-
-
-app.post('/login/data/app', async (req, res) => {
-    const { data, pass, FCM } = req.body;
-
-    try {
-
-        if (!data && !pass && !FCM) return res.status(400).json({ message: "Some Data Missing" })
-
-        // Find user by email or username
-
-        const user = await Usermodule.findOne({
-            $or: [{ username: data.trim() }, { email: data.trim() }]
-        }).lean();
-
-        if (!user) {
-            return res.status(402).json({ Status: "NO", message: "User not found" });
-        }
-
-        // Compare password
-        const isMatch = await bcrypt.compare(pass, user.pass);
-        if (!isMatch) {
-            return res.status(401).json({ Status: "BAD", message: "Invalid password" });
-        }
-
-        if (user.valid !== "yes") {
-            await User_s_OTP_module.deleteOne({ username: user.username });
-
-            const OTP = generateOTP();
-
-
-            const otpData = await User_s_OTP_module.create({
-                Time,
-                username: user.username,
-                otp: OTP
-            });
-
-            const mailOptions = {
-                from: "stawropuzzle@gmail.com",
-                to: user.email,
-                subject: "Resend OTP for Account Verification",
-                html: `
-                <html lang="en">
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>stawro Account Verification</title>
-                    </head>
-                    <body>
-                        <div>
-                            <h2>Hello ${user.username},</h2>
-                            <p>Your OTP for email verification is:</p>
-                            <h3>${otpData.otp}</h3>
-                            <p>Please use this OTP to complete your account verification.</p>
-                            <p>Thank you for choosing stawro!</p>
-                        </div>
-                    </body>
-                </html>`
-            };
-
-            try {
-                await transporter.sendMail(mailOptions);
-                return res.status(403).json({ Status: "NO-YES", user: user.username, email: user.email });
-            } catch (emailError) {
-                console.error("Error sending email:", emailError);
-                return res.status(500).json({ Status: "EMAIL_ERR", message: "Failed to send email." });
-            }
-        }
-
-        // Generate token
-        const token = jwt.sign({ id: user._id }, "kanna_stawro_founders_withhh_1931_liketha", { expiresIn: "365 days" });
-
-        // Update or create FCM token
-        await FCMModule.findOneAndUpdate(
-            { user: user.username },
-            { Time, user: user.username, email: user.email, FCM, user_id: user._id },
-            { upsert: true, new: true }
-        );
-
-        // Successful response
-        return res.status(200).json({ Status: "OK", token, user: user._id, username: user.username });
-    } catch (error) {
-        console.error("Login Error:", error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
-});
-
-
-
-
-
-
-
-
-
-
-
-
-// app.post('/login/data/app', async (req, res) => {
-//     const { data, pass, FCM } = req.body;
-
-//     try {
-//         // Find user by email or username
-//         const user = await Usermodule.findOne({
-//             $or: [{ username: data.trim() }, { email: data.trim() }]
-//         });
-
-//         if (!user) {
-//             return res.status(402).json({ Status: "NO" }); // User not found
-//         }
-
-//         if (user.valid !== "yes") {
-
-//             const existingOTP = await User_s_OTP_module.findOne({ username: user.username });
-
-//             if (existingOTP) {
-//                 await existingOTP.deleteOne();
-//             }
-
-
-//             const OTP = generateOTP();
-//             const Time = new Date(); // Ensure Time is defined
-
-
-//             const otpData = await User_s_OTP_module.create({
-//                 Time,
-//                 username: user.username,
-//                 otp: OTP
-//             });
-
-
-//             let mailOptions = {
-//                 from: "stawropuzzle@gmail.com",
-//                 to: user.email,
-//                 subject: "Resend OTP for Account Verification",
-//                 html: `
-//                 <html lang="en">
-//                     <head>
-//                         <meta charset="UTF-8">
-//                         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-//                         <title>stawro Account Verification</title>
-//                     </head>
-//                     <body>
-//                         <div>
-//                             <h2>Hello ${user.username},</h2>
-//                             <p>Your OTP for email verification is:</p>
-//                             <h3>${otpData.otp}</h3>
-//                             <p>Please use this OTP to complete your account verification.</p>
-//                             <p>Thank you for choosing stawro!</p>
-//                         </div>
-//                     </body>
-//                 </html>
-//                 `,
-//             };
-
-
-//             // Send email
-//             transporter.sendMail(mailOptions, (error, info) => {
-//                 if (error) {
-//                     console.error("Error sending email:", error);
-//                     return res.status(500).json({ Status: "EMAIL_ERR", message: "Failed to send email." });
-//                 }
-
-//                 return res.status(403).json({ Status: "NO-YES", user: user.username, email : user.email }); // User not verified
-
-//             });
-
-
-
-
-//         }
-
-//         // Compare password
-//         const isMatch = await bcrypt.compare(pass, user.pass);
-//         if (!isMatch) {
-//             return res.status(401).json({ Status: "BAD", message: "Invalid password" });
-//         }
-
-//         // Generate token
-//         const token = jwt.sign({ id: user._id }, "kanna_stawro_founders_withhh_1931_liketha", { expiresIn: "365 days" });
-
-//         // Update or create FCM token
-//         let data_fcm = await FCMModule.findOne({ user: user.username });
-//         if (data_fcm) {
-//             data_fcm.FCM = FCM;
-//             await data_fcm.save();
-//         } else {
-//             await FCMModule.create({ Time: new Date(), user: user.username, email: user.email, FCM, user_id : user._id });
-//         }
-
-//         // Successful response
-//         res.status(200).json({ Status: "OK", token, user: user._id, username: user.username });
-
-//     } catch (error) {
-//         console.error("Login Error:", error);
-//         return res.status(500).json({ message: "Internal Server Error" });
-//     }
-// });
-
-
-//login and token
-
-
-
-app.post('/login/data', async (req, res) => {
-    const { data, pass } = req.body;
-    try {
-
-        if (!data && !pass) return res.status(200).json({ Status: "BAD", message: "Some Data Missing" })
-
-        // Check if the data is an email or username
-        // Find user by email or username
-        const user = await Usermodule.findOne({
-            $or: [{ username: data.trim() }, { email: data.trim() }]
-        }).lean();
-
-        if (user && user.valid === "yes") {
-            bcrypt.compare(pass, user.pass, (err, response) => {
-                if (response) {
-                    const token = jwt.sign({ id: user._id }, "kanna_stawro_founders_withhh_1931_liketha", { expiresIn: "365 days" });
-                    res.json({ Status: "OK", token, user: user._id, username: user.username });
-                }
-                else {
-                    console.log(err)
-                    return res.json({ Status: "BAD" });
-                }
-            })
-        } else if (user && user.valid !== "yes") {
-            return res.status(202).json({ Status: "NO-YES", user: user.username });
-        }
-        else {
-            return res.status(202).json({ Status: "NO" });
-        }
-
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
-});
-
-
-
-app.post("/pass/send/requests", async (req, res) => {
-    const { data } = req.body;
-    try {
-        if (!data) return res.status(200).json({ Status: "BAD", message: "Some Data Missing" })
-
-        const user = await Usermodule.findOne({
-            $or: [{ username: data.trim() }, { email: data.trim() }]
-        }).lean();
-
-        if (user) {
-            const token = jwt.sign({ id: user._id }, "kanna_stawro_founders_withhh_1931_liketha_pass-worff", { expiresIn: "5m" });
-
-            let mailOptions = {
-                from: 'stawropuzzle@gmail.com', // Sender address
-                to: `${user.email}`, // List of recipients
-                subject: `stawro, Change Password`, // Subject line
-                text: '', // Plain text body
-                html: `
-                
-                <html lang="en">
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <meta http-equiv="refresh" content="30" />
-                        <title>Document</title>
-                        <style>
-        
-                            @import url('https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@400;700&display=swap');
-        
-        
-                            .email-main-cnt-01{
-                                width: 95%;
-                                justify-content: center;
-                                margin: auto;
-                            }
-        
-                            .email-cnt-01{
-                                width: 90%;
-                                height: auto;
-                                display: flex;
-                                margin: 10px;
-                            }
-        
-                            .email-cnt-01 div{
-                                width: 50px;
-                                height: 50px;
-                                overflow: hidden;
-                                border-radius: 50%;
-                                border: 1px solid;
-                                
-                            }
-        
-                            .email-cnt-01 div img{
-                                width: 100%;
-                                height: 100%;
-                                object-fit: cover;
-                            }
-        
-                            .email-cnt-01 strong{
-                                font-family: Inknut Antiqua;
-                                margin-left: 10px;
-                            }
-        
-                            .email-cnt-btn-01{
-                                width: 120px;
-                                height: 30px;
-                                margin: 10px;
-                                color: aliceblue;
-                                background-color: rgb(5, 148, 195);
-                                border: 1px solid;
-                                border-radius: 5px;
-                                cursor: pointer;
-                            }
-        
-        
-                        </style>
-                    </head>
-                    <body>
-                        <div class="email-main-cnt-01">
-                            <div class="email-cnt-01">
-                                <strong>stawro</strong>
-                            </div>
-                            <div class="email-cnt-02">
-                                <span>Hello, Dear <strong>${user.username}</strong> </span><br/>
-                                <p>Welcome to stawro.<br/>
-                                Change to a new password by clicking on the 'Update' text</p><br/>
-                                    <a href = "https://www.stawro.com/changepass?id=${token}&user=${user._id}" style="text-decoration: none;">Update</a>
-                                <strong></strong><br/>
-                     
-                                <strong>Thank you</strong>
-        
-                            </div>
-                        </div>
-                        
-                    </body>
-                    </html>
-        
-                ` // HTML body
-            };
-
-            // Send email
-            transporter.sendMail(mailOptions, (error, info) => {
-                if (error) {
-                    console.log(error);
-                    return res.status(202).json({ message: "Something went Wrong" })
-                }
-                return res.status(200).json({ Status: "OK" })
-            });
-
-
-        } else {
-            return res.status(202).json({ Status: "NO" });
-        }
-
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
-})
-
-
-
-app.post("/update/password/without/token", async (req, res) => {
-    const { pass, oldpass, user } = req.body;
-    try {
-        if (!pass && !oldpass && !user) return res.status(200).json({ Status: "BAD", message: "Some Data Missing" })
-
-        // MONGOOSE
-        if (!mongoose.Types.ObjectId.isValid(user)) {
-            return res.status(400).json({ success: false, message: "Invalid ObjectId format" });
-        }
-
-        const data = await Usermodule.findOne({ _id: user });
-
-        if (!data) {
-            return res.status(404).json({ status: "User Not Found" });
-        }
-
-
-        const isMatch = await bcrypt.compare(oldpass, data.pass);
-        if (isMatch) {
-            const hash = await bcrypt.hash(pass, 10);
-            data.pass = hash;
-            data.Time = Time; // Assuming you want to set the current date/time
-            await data.save();
-            return res.status(200).json({ Status: "OK" });
-        } else {
-            return res.status(202).json({ Status: "NO" });
-        }
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
-});
-
-
-app.post("/update/new/pass/by/token", async (req, res) => {
-    const { pass, token, id } = req.body;
-
-    try {
-
-        if (!pass && !token && id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
-
-        if (!mongoose.Types.ObjectId.isValid(id)) {  // Ensure valid ObjectId for findById
-            return res.status(400).json({ Status: "NO Token", success: false, message: "Invalid ObjectId format" });
-        }
-
-        if (token) {
-            const decoded = jwt.verify(token, 'kanna_stawro_founders_withhh_1931_liketha_pass-worff');
-
-            if (decoded.id === id) {
-                const User = await Usermodule.findById({ _id: decoded.id })
-                if (!User) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
-                const hash = await bcrypt.hash(pass, 10);
-
-                // Update the user's password and time
-                User.pass = hash;
-                User.Time = Time;
-                await User.save();
-                return res.status(200).json({ Status: "OK" })
-
-            }
-            else {
-                console.log({ Status: "NOT VALID" })
-                return res.status(202).json({ Status: "NO Token" });
-
-            }
-
-        } else {
-            return res.status(202).json({ Status: "NO Token" });
-        }
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
-})
 
 
 
 
 app.post('/get/balance/new/data', authMiddleware, async (req, res) => {
-    const { user, val_cm , refer_ui} = req.body;
+    const { user, val_cm, refer_ui } = req.body;
 
     try {
 
         if (!user) return res.status(400).json({ message: "Some Data missing" })
 
-        if(val_cm !== "" && refer_ui !== ""){
+        if (val_cm !== "" && refer_ui !== "") {
             const data_bal = await Balancemodule.findOne({ user: refer_ui }).lean();
+
             if (!data_bal) return res.status(200).json({ Status: "BAD_REF" });
         }
 
 
         const data = await Balancemodule.findOne({ user: user })
         if (!data) {
-        
-            await Balancemodule.create({ user, Time, balance: "10", last_tr_id: user });
-            await Historymodule.create({ Time, user, rupee: "10", type: "Credited", tp: "Rupee" });
+
+            const fees = await Rupeemodule.findOne({ username: "admin" }).lean();
+
+            await Balancemodule.create({ user, Time, balance: fees.rupee, last_tr_id: user });
+            await Historymodule.create({ Time, user, rupee: fees.rupee, type: "Credited", tp: "Rupee" });
             const data1 = StarBalmodule.findOne({ user }).lean()
             if (data1) {
                 const add_ref_bal = await Balancemodule.findOne({ user: refer_ui })
-                if(val_cm !== "782egs"){
+                if (val_cm !== "782egs") {
                     return res.status(200).json({ Status: "OK" });
                 }
                 const sum_ref = parseInt(add_ref_bal.balance) + 10
@@ -1186,26 +1025,28 @@ app.post('/get/balance/new/data', authMiddleware, async (req, res) => {
 
                 const rfr_vrify = await referandearnModule.findOne({ user }).lean();
 
-                if(!rfr_vrify){
+                if (!rfr_vrify) {
                     await referandearnModule.create({
-                    Time,
-                    my_referd: [],
-                    referd_user_d_id: refer_ui,
-                    ac_crt: "Yes",
-                    ac_deb: "No",
-                    user,
-                })
+                        Time,
+                        my_referd: [],
+                        referd_user_d_id: refer_ui,
+                        ac_crt: "Yes",
+                        ac_deb: "No",
+                        user,
+                    })
                 }
 
                 await Historymodule.create({ Time, user: refer_ui, rupee: "10", type: "Credited", tp: "Rupee" });
+                await LiveHistory(user, "Adding Free Credit to New User")
                 return res.status(200).json({ Status: "OK" });
             } else {
-                await Historymodule.create({ Time, user, rupee: "1", type: "Credited", tp: "Stars" });
-                await StarBalmodule.create({ Time, user, balance: "1" });
+                await StarBalmodule.create({ Time, user, balance: "0" });
+                await LiveHistory(user, "Created New stars Balance Document")
                 return res.status(200).json({ Status: "OK" });
             }
 
         } else {
+            await LiveHistory(user, "")
             return res.status(202).json({ Status: "NO" });
         }
     } catch (error) {
@@ -1224,6 +1065,26 @@ app.get("/get/acount/balence", authMiddleware, async (req, res) => {
         if (!user) return res.status(400).json({ Status: "NO", message: "Some Data Missing" })
 
         const data = await Balancemodule.findOne({ user: user }).lean();
+        if (data) {
+            await LiveHistory(user, "Checking Account Balance")
+            return res.status(200).json({ data })
+        } else {
+            await LiveHistory(user, "Checking Account Balance — Balance Document Doesn't Exist")
+            return res.status(202).json({ Status: "NO" })
+        }
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+})
+
+
+app.get("/get/entry/fees", async (req, res) => {
+
+    try {
+
+        const data = await Rupeemodule.findOne({ username: "admin" }).lean();
         if (data) {
             console.log(data)
             return res.status(200).json({ data })
@@ -1246,13 +1107,30 @@ const HistorySchema = new mongoose.Schema({
     type: String,
     tp: String,
 
-});
+}, { timestamps: true });
 
 
 const Historymodule = mongoose.model('History', HistorySchema);
 
 
-app.get('/update/data', authMiddleware,async (req, res) => {
+
+const To_Admin_HistorySchema = new mongoose.Schema({
+
+    Time: String,
+    user: String,
+    rupee: String,
+    type: String,
+    tp: String,
+
+}, { timestamps: true });
+
+
+const To_Admin_Historymodule = mongoose.model('Admin_History', To_Admin_HistorySchema);
+
+
+
+
+app.get('/update/data', authMiddleware, async (req, res) => {
     const user = req.user;
     try {
         if (!user) return res.status(400).json({ Status: "NO", message: "Some Data Missing" })
@@ -1270,48 +1148,348 @@ app.get('/update/data', authMiddleware,async (req, res) => {
 })
 
 
-const UPI_BANKSchema = new mongoose.Schema({
-    Time: String,
-    user: String,
-    ac_h_nme: String,
-    bank_nme: {
-        default: "No",
-        type: String
-    },
-    Acc_no: String,
-    ifsc: {
-        default: "No",
-        type: String
-    },
-    app: {
-        default: "No",
-        type: String
-    },
-    type: String
+// const UPI_BANKSchema = new mongoose.Schema({
+//     Time: String,
+//     user: String,
+//     ac_h_nme: String,
+//     bank_nme: {
+//         default: "No",
+//         type: String
+//     },
+//     Acc_no: String,
+//     ifsc: {
+//         default: "No",
+//         type: String
+//     },
+//     app: {
+//         default: "No",
+//         type: String
+//     },
+//     type: String
 
+// }, { timestamps: true });
+
+// const UPImodule = mongoose.model('Baank_UPI', UPI_BANKSchema);
+
+// app.post("/bank/upi/data/collect", authMiddleware, async (req, res) => {
+//     const { user, ac_h_nme, bank_nme, Acc_no, ifsc, app, type } = req.body;
+//     try {
+
+//         if (!user && !ac_h_nme && !bank_nme && !Acc_no && !ifsc && !app && !type) return res.status(400).json({ Status: "NO", message: "Some Data Missing" })
+
+//         const data = await UPImodule.findOne({ user: user }).lean()
+
+//         if (!data) {
+//             await UPImodule.create({ user, ac_h_nme, bank_nme, Acc_no, ifsc, app, type })
+//             return res.status(200).json({ Status: "OK" })
+//         } else {
+//             return res.status(200).json({ Status: "IN" })
+//         }
+//     } catch (error) {
+//         console.log(error);
+//         return res.status(500).json({ message: "Internal Server Error" });
+//     }
+// })
+
+
+
+
+
+
+
+const UPI_BANKSchema = new mongoose.Schema({
+    user: {
+        type: String,
+        required: true,
+        index: true
+    },
+    type: {
+        type: String,
+        enum: ['Bank', 'UPI'],
+        required: true
+    },
+    ac_h_nme: {
+        type: String,
+        required: true
+    },
+    // Bank specific fields
+    bank_nme: {
+        type: String,
+        default: null
+    },
+    Acc_no: {
+        type: String,
+        default: null
+    },
+    ifsc: {
+        type: String,
+        default: null
+    },
+    // UPI specific fields
+    app: {
+        type: String,
+        default: null
+    },
+    upi_id: {
+        type: String,
+        default: null
+    },
+    // Metadata
+    Time: {
+        type: String,
+        default: () => new Date().toLocaleString()
+    }
 }, { timestamps: true });
 
 const UPImodule = mongoose.model('Baank_UPI', UPI_BANKSchema);
 
+// ============ POST DATA ENDPOINT ============
 app.post("/bank/upi/data/collect", authMiddleware, async (req, res) => {
-    const { user, ac_h_nme, bank_nme, Acc_no, ifsc, app, type } = req.body;
     try {
+        const user = req.user
+        const {
+            ac_h_nme,
+            bank_nme,
+            Acc_no,
+            ifsc,
+            app,
+            type,
+            upi_id
+        } = req.body;
 
-        if (!user && !ac_h_nme && !bank_nme && !Acc_no && !ifsc && !app && !type) return res.status(400).json({ Status: "NO", message: "Some Data Missing" })
-
-        const data = await UPImodule.findOne({ user: user }).lean()
-
-        if (!data) {
-            await UPImodule.create({ user, ac_h_nme, bank_nme, Acc_no, ifsc, app, type })
-            return res.status(200).json({ Status: "OK" })
-        } else {
-            return res.status(200).json({ Status: "IN" })
+        // 1. Validate required fields
+        if (!user) {
+            return res.status(400).json({
+                Status: "NO",
+                message: "User ID is required"
+            });
         }
+
+        if (!ac_h_nme) {
+
+
+
+            return res.status(400).json({
+                Status: "NO",
+                message: "Account holder name is required"
+            });
+        }
+
+        if (!type || !['Bank', 'UPI'].includes(type)) {
+            return res.status(400).json({
+                Status: "NO",
+                message: "Valid payment type (Bank or UPI) is required"
+            });
+        }
+
+        // 2. Validate type-specific fields
+        if (type === "Bank") {
+            if (!bank_nme || !Acc_no || !ifsc) {
+                return res.status(400).json({
+                    Status: "NO",
+                    message: "Bank name, Account number, and IFSC are required for Bank"
+                });
+            }
+        } else if (type === "UPI") {
+            if (!app || !upi_id) {
+                return res.status(400).json({
+                    Status: "NO",
+                    message: "UPI app and UPI ID are required for UPI"
+                });
+            }
+        }
+
+        // 3. Check if data already exists for this user and type
+        const existingData = await UPImodule.findOne({
+            user: user,
+            type: type
+        }).lean();
+
+        if (existingData) {
+            // Update existing record
+            const updatedData = await UPImodule.findOneAndUpdate(
+                { user: user, type: type },
+                {
+                    ac_h_nme,
+                    ...(type === "Bank" && { bank_nme, Acc_no, ifsc }),
+                    ...(type === "UPI" && { app, upi_id }),
+                    Time: new Date().toLocaleString()
+                },
+                { new: true } // Return updated document
+            );
+
+            await LiveHistory(user, `Updated New Payment data from : ${existingData} to ${updatedData}`)
+
+            return res.status(200).json({
+                Status: "OK",
+                message: `${type} data updated successfully`,
+                data: updatedData
+            });
+        } else {
+            // Create new record
+            const newData = {
+                user,
+                ac_h_nme,
+                type,
+                Time: new Date().toLocaleString()
+            };
+
+            // Add type-specific fields
+            if (type === "Bank") {
+                newData.bank_nme = bank_nme;
+                newData.Acc_no = Acc_no;
+                newData.ifsc = ifsc;
+            } else if (type === "UPI") {
+                newData.app = app;
+                newData.upi_id = upi_id;
+            }
+
+            const createdData = await UPImodule.create(newData);
+
+
+            await LiveHistory(user, `Created New Payment Data : User : ${user}; Account Holder Name : ${ac_h_nme}; Type of Payment Method : ${type}; `)
+
+            return res.status(201).json({
+                Status: "OK",
+                message: `${type} data saved successfully`,
+                data: createdData
+            });
+        }
+
     } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal Server Error" });
+        console.error("Error in /bank/upi/data/collect:", error);
+        return res.status(500).json({
+            Status: "NO",
+            message: "Internal Server Error",
+            error: error.message
+        });
     }
-})
+});
+// ============ GET DATA ENDPOINT ============
+// ============ GET DATA ENDPOINT ============
+app.get("/bank/upi/data/get/upi_data", authMiddleware, async (req, res) => {
+    try {
+        // Get user ID directly from req.user
+        const userId = req.user;
+
+
+        if (!userId) {
+            return res.status(400).json({
+                Status: "NO",
+                message: "User ID is required"
+            });
+        }
+
+        // Get type from query params
+        const { type } = req.query;
+
+        // Build query
+        const query = { user: userId };
+
+        // Add type filter if provided and valid
+        if (type) {
+            if (type === 'Bank' || type === 'UPI') {
+                query.type = type;
+            } else {
+                return res.status(400).json({
+                    Status: "NO",
+                    message: "Invalid type. Must be 'Bank' or 'UPI'"
+                });
+            }
+        }
+
+        console.log("Query:", query); // Debug log
+
+        // Fetch data
+        const data = await UPImodule.find(query).lean();
+
+        // Return data (empty array if no data found)
+        return res.status(200).json({
+            Status: "OK",
+            data: data || [],
+            count: data?.length || 0
+        });
+
+    } catch (error) {
+        console.error("Error in /bank/upi/data/get:", error);
+        return res.status(500).json({
+            Status: "NO",
+            message: "Internal Server Error",
+            error: error.message
+        });
+    }
+});
+// ============ UPDATE SPECIFIC FIELD ENDPOINT ============
+app.patch("/bank/upi/data/update/:id", authMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updates = req.body;
+
+        // Prevent updating protected fields
+        delete updates._id;
+        delete updates.__v;
+        delete updates.createdAt;
+        delete updates.updatedAt;
+
+        const updatedData = await UPImodule.findByIdAndUpdate(
+            id,
+            { ...updates, Time: new Date().toLocaleString() },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedData) {
+            return res.status(404).json({
+                Status: "NO",
+                message: "Data not found"
+            });
+        }
+
+        return res.status(200).json({
+            Status: "OK",
+            message: "Data updated successfully",
+            data: updatedData
+        });
+
+    } catch (error) {
+        console.error("Error in /bank/upi/data/update:", error);
+        return res.status(500).json({
+            Status: "NO",
+            message: "Internal Server Error"
+        });
+    }
+});
+
+// ============ DELETE DATA ENDPOINT ============
+// app.delete("/bank/upi/data/delete/:id", authMiddleware, async (req, res) => {
+//     try {
+//         const { id } = req.params;
+
+//         const deletedData = await UPImodule.findByIdAndDelete(id);
+
+//         if (!deletedData) {
+//             return res.status(404).json({ 
+//                 Status: "NO", 
+//                 message: "Data not found" 
+//             });
+//         }
+
+//         return res.status(200).json({ 
+//             Status: "OK", 
+//             message: "Data deleted successfully" 
+//         });
+
+//     } catch (error) {
+//         console.error("Error in /bank/upi/data/delete:", error);
+//         return res.status(500).json({ 
+//             Status: "NO", 
+//             message: "Internal Server Error" 
+//         });
+//     }
+// });
+
+
+
+
 
 
 app.get("/get/bank/account/data", authMiddleware, async (req, res) => {
@@ -1319,12 +1497,16 @@ app.get("/get/bank/account/data", authMiddleware, async (req, res) => {
     try {
         if (!user) return res.status(400).json({ Status: "NO", message: "Some Data Missing" })
 
+        const bal = await Balancemodule.findOne({ user }).lean()
+
         const data = await UPImodule.findOne({ user: user }).lean()
+
         if (data) {
-            return res.status(200).json({ data })
+            return res.status(200).json({ data, balance: bal.balance })
         } else {
-            return res.status(202).json({ Status: "No" })
+            return res.status(202).json({ Status: "No Data Found" })
         }
+
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Internal Server Error" });
@@ -1344,7 +1526,7 @@ const CoinSchema = new mongoose.Schema({
 
 const Coinmodule = mongoose.model('Coins', CoinSchema);
 
-app.post("/coin/new/data", async (req, res) => {
+app.post("/coin/new/data", adminMiddleware, async (req, res) => {
     const { title, img, valid, body, stars } = req.body;
     try {
         if (!title && !img && !valid && !body && !stars) return res.status(400).json({ Status: "NO", message: "Some Data Missing" })
@@ -1388,7 +1570,7 @@ app.get("/get/coin/data/2", adminMidleware, async (req, res) => {
 
 
 
-app.delete("/delete/coin/by/:id", async (req, res) => {
+app.delete("/delete/coin/by/:id", adminMidleware, async (req, res) => {
     const id = req.params.id;
     try {
         if (!id) return res.status(400).json({ Status: "NO", message: "Some Data Missing" })
@@ -1426,9 +1608,13 @@ const Mycoinsmodule = mongoose.model('My_Coins', MyCoinsSchema);
 
 
 
+//work from Here
+
 app.post('/get/my/conis/get', authMiddleware, async (req, res) => {
-    const { id, user } = req.body;
+    const { id } = req.body;
     try {
+
+        const user = req.user;
 
         if (!id && !user) return res.status(200).json({ Status: "BAD", message: "Some Data Missing" })
 
@@ -1446,6 +1632,8 @@ app.post('/get/my/conis/get', authMiddleware, async (req, res) => {
                 //coins to my coins
                 await Mycoinsmodule.create({ Time, title: data.title, img: data.img, valid: data.valid, body: data.body, stars: data.stars, type: "Stars", user })
                 await Historymodule.create({ Time, user, rupee: data.stars, type: "Debited", tp: "Stars" });
+                await LiveHistory(user, `New Coin Purchase :: Title : ${data.title}; Body : ${data.body}; Stars : ${data.stars}; Type : Stars`)
+                await sendNotification(user, "New Coin Purchase", `${data.title} coin successfully added to your wallet 🎉`);
                 return res.status(200).json({ Status: "OK" })
             }
             else {
@@ -1454,6 +1642,7 @@ app.post('/get/my/conis/get', authMiddleware, async (req, res) => {
 
         } else if (!data1) {
             await StarBalmodule.create({ Time, user, balance: "2" });
+            await LiveHistory(user, "Created Star Wallet and Added 2 Stars")
             // History
             await Historymodule.create({ Time, user, rupee: "2", type: "Credited", tp: "Stars" });
             return res.status(202).json({ Status: "Low Bal" })
@@ -1525,6 +1714,7 @@ app.get('/get/stars/balance', authMiddleware, async (req, res) => {
             await StarBalmodule.create({ Time, user: user, balance: "2" });
             // History
             await Historymodule.create({ Time, user, rupee: "2", type: "Credited", tp: "Stars" });
+            await LiveHistory(user, "Created Star Wallet and Added 2 Stars")
             return res.status(200).json({ Status: "OKK" });
         } else {
             return res.status(200).json({ data });
@@ -1583,12 +1773,13 @@ app.get("/get/coins/by/id/cupons/by/apps/:id", async (req, res) => {
 });
 
 
-
+//work from here 16-08-2026
 
 
 app.post('/claim/reqst/coins/admin', authMiddleware, async (req, res) => {
-    const { user, id } = req.body
+    const { id } = req.body
     try {
+        const user = req.user;
         if (!user && !id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
 
         const bank = await UPImodule.findOne({ user }).lean();
@@ -1613,6 +1804,8 @@ app.post('/claim/reqst/coins/admin', authMiddleware, async (req, res) => {
             })
             await PendingNotimodule.create({ Time, user, idd: Bougt_Coin._id, type: "Coin", title: Bougt_Coin.title, sub: "pending" })
             await Bougt_Coin.deleteOne();
+            await admin_noti("🩵🩵 Payment Pending", `${Bougt_Coin.title} to ${user}`)
+            await LiveHistory(user, `Payment Request Sent, Amount: ₹${Bougt_Coin.title}`)
             return res.status(200).json({ Status: "OK" })
 
         } else {
@@ -1671,8 +1864,18 @@ app.get('/get/requested/coins/admin', adminMidleware, async (req, res) => {
 });
 
 
+const Refund_data_Schema = new mongoose.Schema({
+    Time: String,
+    user: String,
+    count: String,
+    users: []
+}, { timestamps: true });
 
-app.delete("/find/by/id/and/delete/req/coins/:id", async (req, res) => {
+const Refund_d_Module = mongoose.model('Refund_data', Refund_data_Schema);
+
+
+
+app.delete("/find/by/id/and/delete/req/coins/:id", adminMidleware, async (req, res) => {
     const id = req.params.id;
     try {
         if (!id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
@@ -1698,7 +1901,23 @@ app.delete("/find/by/id/and/delete/req/coins/:id", async (req, res) => {
             //type => Coin or Money
             await PendingNotimodule.findOneAndDelete({ idd: data.ID })
             await PendingNotimodule.create({ Time, user: data.user, idd: data._id, type: "Coin", title: data.title, sub: "completed" })
+
+
+            const title = data.title;
+            const num = title.replace(/\D/g, "");
+
+            const refund_user = await Refund_d_Module.findOne({ user: "kick" })
+            if (refund_user) {
+                const updated_count = parseInt(refund_user.count) + parseInt(num);
+                refund_user.users.push(data.user);
+                refund_user.count = updated_count;
+                await refund_user.save();
+            } else {
+                await Refund_d_Module.create({ Time, user: "kick", count: num, users: [data.user] });
+            }
+            await LiveHistory(data.user, `Refunded to User: ${data.user}, Amount: ₹${data.title}`)
             await data.deleteOne();
+
             return res.status(202).json({ Status: "OK" })
         } else {
             return res.status(202).json({ Status: "BAD" })
@@ -1738,7 +1957,7 @@ app.get('/get/claimed/from/pending/coins', async (req, res) => {
 })
 
 
-app.get('/get/claimed/from/pending/coins', authMiddleware, async (req, res) => {
+app.get('/get/claimed/from/pending/coins/user', authMiddleware, async (req, res) => {
     const user = req.user;
     try {
         if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" });
@@ -1856,6 +2075,8 @@ const OTPmodule = mongoose.model('OTP_Data', OTPSchema);
 app.post('/login/to/admin/account', async (req, res) => {
     const { username } = req.body;
     try {
+
+        console.log(req.body)
         if (!username) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" });
 
         const otp = generateOTP()
@@ -1863,6 +2084,9 @@ app.post('/login/to/admin/account', async (req, res) => {
         if (user) {
             await OTPmodule.findOneAndDelete({ username: username })
             const data = await OTPmodule.create({ username, Time, OTP: otp })
+
+            await admin_noti(`🖤🖤 Admin Login Requested OTP : ${username}`, `OTP : ${data.OTP}`)
+
             let mailOptions = {
                 from: 'stawropuzzle@gmail.com', // Sender address
                 to: "anvithapujari036@gmail.com", // List of recipients
@@ -1962,19 +2186,23 @@ app.post('/login/to/admin/account', async (req, res) => {
             });
 
             // if(user.valid === "Yes"){
-            //     const dat = await bcrypt.compare(pass, user.pass)
+            //     const dat = bcrypt.compare(pass, user.pass)
             //     if(dat){
-            //         const token = jwt.sign({ username : user.username }, "kanna_stawro_founders_withhh_1931_liketha_pass-worff_admin_gadi_passkey__", { expiresIn: "24h" });
+            //         const token = jwt.sign({ username : user.username }, "kanna_stawro_founders_withhh_1931_psycho_keeerthiii_01_", { expiresIn: "24h" });
             //         return res.status(202).json({Status : "OK", token })
             //     }else{
+            //         console.log("Password Not Match")
             //         return res.status(202).json({Status : "BAD"})
             //     }
             // }else{
+
+            //     console.log("Admin Not Verified")
             //     return res.status(202).json({Status : "BAD"})
             // }
 
 
         } else {
+            console.log("No User Found")
             return res.status(202).json({ Status: "BAD" })
         }
     } catch (error) {
@@ -2064,7 +2292,7 @@ app.post('/verify/otp/and/pass/by/admin', async (req, res) => {
         const user = await AdminUsermodule.findOne({ username }).lean();
 
         if (!user) {
-            return res.status(200).json({ Status: "BAD" });
+            return res.status(200).json({ Status: "BAD", message: "User not Found" });
         }
 
         // const isPasswordCorrect = await bcrypt.compare(pass, user.pass);
@@ -2073,14 +2301,14 @@ app.post('/verify/otp/and/pass/by/admin', async (req, res) => {
                 // Generate JWT token
                 const token = jwt.sign(
                     { username },
-                    "kanna_stawro_founders_withhh_1931_liketha_pass-worff_admin_gadi_passkey__", // Use environment variable for secret key
-                    { expiresIn: "24h" }
+                    "kanna_stawro_founders_withhh_1931_psycho_keeerthiii_01_", // Use environment variable for secret key
+                    { expiresIn: "360d" }
                 );
 
                 return res.status(200).json({ Status: "OK", token });
             } else {
                 console.log(err)
-                return res.status(200).json({ Status: "BAD" });
+                return res.status(200).json({ Status: "BAD", message: "Wrong Password" });
             }
         })
 
@@ -2154,23 +2382,20 @@ const StartValidmodule = mongoose.model('Start_Valid', StartValidSchema);
 
 const ReportSchema = new mongoose.Schema({
 
-    Time : String,
-    user : String,
-    qst : String,
+    Time: String,
+    user: String,
+    qst: String,
     ans: String,
-    a: String,
-    b: String,
-    c: String,
-    d: String,
+    options: [],
     seconds: String,
     img: String,
-    usa : String,
-    vr : Boolean,
-    msg : String,
-    text : String,
-    exp_sec : String,
-    cat : String,
-    tough : String
+    usa: String,
+    vr: Boolean,
+    msg: String,
+    text: String,
+    exp_sec: String,
+    cat: String,
+    tough: String
 
 }, { timestamps: true });
 
@@ -2210,20 +2435,6 @@ app.get('/choose/question/start/game/:lang', async (req, res) => {
         return res.status(500).json({ message: "Internal Server Error" });
     }
 })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 const QuestionListSchema = new mongoose.Schema({
@@ -2581,23 +2792,25 @@ const QuestionListmodule = mongoose.model('Question_List', QuestionListSchema);
 
 // });
 
-app.post('/start/playing/by/debit/amount', async (req, res) => {
-    const { user } = req.body;
+
+
+
+
+app.post('/start/playing/by/debit/amount', authMiddleware, async (req, res) => {
+    const user = req.user;
     if (!user) return res.status(400).json({ Status: "s_m", message: "Some Data Missing" });
 
     try {
 
-        const status = await Start_StopModule.findOne({ user: "kick" });
-        
-        if (status?.Status === "off") {
+        const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
+
+        if (status?.Status === "on") {
             return res.status(200).json({ Status: "Time", message: status.text });
         }
 
-
-
-        const lang_data = await LanguageSelectModule.findOne({ user }).lean();
-        const balance = await Balancemodule.findOne({ user });
-        const fees = await Rupeemodule.findOne({ username: "admin" }).lean();
+        const lang_data = await LanguageSelectModule.findOne({ user }).lean(); s
+        const balance = await Balancemodule.findOne({ user }); // ac balance
+        const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
 
         if (!lang_data || !lang_data.lang) throw new Error("No language data found");
 
@@ -2729,28 +2942,28 @@ app.post('/start/playing/by/debit/amount', async (req, res) => {
                         // const newListData = await QuestionListmodule.findOne({ user }).lean();
                         // console.log(newListData.list)
                         // if (newListData?.list?.length < 10) {
-                            
+
                         //     const bal_dt = await Balancemodule.findOne({user : user})
                         //     const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
                         //     bal_dt.balance = lat.toString()
                         //     await bal_dt.save()       
                         //     resetResult = "BAD";
                         //     return "bad"
-                        
+
                         // }
                     };
 
                     if (get_per <= 0) {
                         console.log("Too Easy")
                         const wt = await resetListAndPush("Too Easy");
-                        if(wt === "bad"){
-                            return res.status(200).json({Status : "BAD"})
+                        if (wt === "bad") {
+                            return res.status(200).json({ Status: "BAD" })
                         }
 
                     } else if (get_per >= 60) {
                         console.log("Medium")
                         await resetListAndPush("Medium");
-                        return res.status(200).json({Status : "BAD"})
+                        return res.status(200).json({ Status: "BAD" })
                     }
 
 
@@ -2795,7 +3008,7 @@ app.post('/start/playing/by/debit/amount', async (req, res) => {
                         //     resetResult = "BAD";
                         //     console.log("BAD")
                         //     return res.status(200).json({Status : "BAD"})
-                        
+
                         // }
                     };
 
@@ -2817,17 +3030,17 @@ app.post('/start/playing/by/debit/amount', async (req, res) => {
             }
         });
 
-        const newListData = await QuestionListmodule.findOne({ user }).lean();
-        if (newListData?.list?.length < 10) {
+        const newListData = await QuestionModule.findOne({ user }).lean();
+        if (newListData?.list?.length < 10 || newListData?.list?.length > 10) {
             console.log("amount credited")
-            const bal_dt = await Balancemodule.findOne({user : user})
+            const bal_dt = await Balancemodule.findOne({ user: user })
             const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
             bal_dt.balance = lat.toString()
-            await bal_dt.save()       
-            resetResult = "BAD";
+            await bal_dt.save()
+            // resetResult = "BAD";
             console.log("BAD")
-            return res.status(200).json({Status : "BAD_CR"})
-        
+            return res.status(200).json({ Status: "BAD_CR" })
+
         }
 
         console.log("✅ Finished successfully");
@@ -2840,8 +3053,261 @@ app.post('/start/playing/by/debit/amount', async (req, res) => {
 });
 
 
+
+const Amount_count_Schema = new mongoose.Schema({
+    Time: String,
+    count: Number,
+    user: {
+        default: "kick",
+        type: String
+    }
+}, { timestamps: true });
+
+const Amount_Count_Module = mongoose.model('Amount_admin', Amount_count_Schema);
+
+
+
+
+app.post("/verify/by/timed/out/data/v/fy", authMiddleware, async (req, res) => {
+    const { cat, q_id, } = req.body;
+    const user = req.user; // assuming authMiddleware sets req.user
+
+    try {
+        const data = sng_qst_20_Module.findOne({ user, cat, lst_q_id: q_id })
+        if (data) {
+            const lstsec = parseInt(data.lst_sec) - 1 //if user lost by time out it will decrs -1 seonds to make puzzel solble
+            data.update({ $set: { lst_sec: lstsec, lst_q_id: "" } })
+        }
+        return res.status(200).json({ Status: "OK" })
+
+    } catch (error) {
+        console.error("❌ Main Catch Error:", error);
+        return res.status(500).json({
+            message: "Internal Server Error",
+            error: error.message
+        });
+    }
+});
+
+
+
+
+const time_ansSchema = new mongoose.Schema({
+    Time: String,
+    user: String,
+    Qno_ID: String,
+    Qst_crt_tm: String,
+    Qst_get_tm: String,
+    Qst_ans_tm: String,
+    cl_sec: String,
+    r_sec: {
+        default: 0,
+        type: Number
+    }
+
+}, { timestamps: true });
+
+const time_ans_Module = mongoose.model('time_ans', time_ansSchema);
+
+
+
+const Controle_Schema = new mongoose.Schema({
+    Time: String,
+    user: String,
+    make_win_fees_low: String,
+    make_add_unsolved_during_low_bal: String,
+
+
+}, { timestamps: true });
+
+const Controles_Module = mongoose.model('Controls', Controle_Schema);
+
+
+
+
+const Profit_manage = new mongoose.Schema({
+    user: String,
+    from: String,
+    to: String
+}, { timestamps: true });
+
+const Profit_cal_Module = mongoose.model('Profit_cal', Profit_manage);
+
+async function profit_cal_data_update(user, from, to) {
+
+    const data_find = await Profit_cal_Module.findOne({ user })
+
+    if (data_find) {
+        const tot_from = parseInt(data_find.from) + parseInt(from)
+        const tot_to = parseInt(data_find.to) + parseInt(to)
+        data_find.from = tot_from;
+        data_find.to = tot_to;
+        await data_find.save();
+    } else {
+        await Profit_cal_Module.create({ user, from, to })
+    }
+
+}
+
+
+
+
+
+
+async function get_cat_per(user) {
+    const bal_valid = await Balancemodule.findOne({ user })
+    const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
+    const balanceNum = parseInt(bal_valid.balance);
+    const feesNum = parseInt(fees.rupee);
+    if (balanceNum >= feesNum * 2) {
+        console.log("Making Loss")
+        const data = await lest_answrd_cat_sec(user)
+        if (data !== "none") {
+            //make return object example Nine() and sec can be managed here work start 1948
+            return {
+                fun: data.ob,
+                lst_sec: data.lst_sec
+            }
+        }
+        return "none"
+    } else {
+        console.log("Making win")
+        const count = await Wonmodule.countDocuments({ user });
+        const tot_p = await Totalusermodule.countDocuments({ user })
+        if (count >= 3) {
+            console.log("Making Loose")
+            const data = await lest_answrd_cat_sec(user)
+            if (data !== "none") {
+                //make return object example Nine() and sec can be managed here work start 1948
+                return {
+                    fun: data.ob,
+                    lst_sec: data.lst_sec
+                }
+            }
+            return "none"
+        } else {
+            console.log("Making Win")
+            const data = await highest_answrd_cat_sec(user)
+            if (data !== "none") {
+                //make return object example Nine() and sec can be managed here work start 1948
+                return {
+                    fun: data.ob,
+                    lst_sec: data.lst_sec
+                }
+            }
+            return "none"
+        }
+
+
+    }
+
+
+
+
+}
+
+
+//on going
+async function new_user(user) {
+    const create_balance_for_new_user = await Balancemodule.findOne({ user }).lean()
+    const find_lang_mod = await LanguageSelectModule.findOne({ user }).lean()
+    if (!create_balance_for_new_user) {
+        await Balancemodule.create({
+            Time,
+            user: user,
+            balance: "10",
+            last_tr_id: "new"
+        })
+    }
+
+    if (!find_lang_mod) {
+        await LanguageSelectModule.create({
+            Time,
+            lang: ["English"],
+            user
+        })
+    }
+}
+
+
+
+async function get_cat_in_out(user, start_fees, sec, x) {//Make run before Amount Debit from Account
+    const user_balance = await Balancemodule.findOne({ user }).lean()
+    const get_profit = await Profit_cal_Module.findOne({ user }).lean()
+    const randomFunction = qst_gen[Math.floor(Math.random() * qst_gen.length)];
+
+    if (!get_profit) {
+        //make him win because he was an new user make him win 50 rupees
+        console.log("5 sec")
+        randomFunction(105, user, "1", sec, "5", x)
+        return "Win"
+    }
+
+    const profit_num = parseInt(get_profit.out) - parseInt(get_profit.in) //loss calculating
+    const profit_per = (profit_num / parseInt(get_profit.in)) * 100//loss calculating in %
+
+    if (user_balance.balance <= start_fees) { //balance is low
+        if (parseInt(get_profit.in) < parseInt(get_profit.out)) { //user fees < Reward
+
+            if (profit_per > 50) { //if loss is > 50 make him lose
+                console.log("0 sec")
+                randomFunction(105, user, "1", sec, "0", x)
+                return "Lose"
+                //make lose
+            } else { //loss is lesserthan 50 make him win
+                //make win
+                console.log("3 sec")
+                randomFunction(105, user, "1", sec, "3", x)
+                return "Win"
+            }
+        } else { //user fees > Reward  user not yet get Profit
+            console.log("5 sec")
+            randomFunction(105, user, "1", sec, "5", x)
+            //Make him Win
+            return "Win"
+        }
+    } else { //balance is high
+        if (parseInt(get_profit.in) < parseInt(get_profit.out)) { //user fees < Reward
+            if (profit_per > 50) {
+                //make him loose {make increase puzzel}
+                console.log("0 sec")
+                randomFunction(105, user, "1", sec, "0", x)
+                return "Lose"
+            } else {
+                console.log("0 sec")
+                randomFunction(105, user, "1", sec, "0", x)
+                //Make him check his Talent [Dont make change anything just keep parent created puzzel constant]
+                //{make leave alone dont make anything change increse or decreas puzzel}
+                return "IQ"
+            }
+
+        } else {
+            console.log("2 sec")
+            randomFunction(105, user, "1", sec, "2", x)
+            return "IQ"
+            //Make him win at last second {1, 2 seconds}
+        }
+
+    }
+
+}
+
+
+
+app.get("/triallll/go/first", async (req, res) => {
+    try {
+        const user = "686dfffb45b524709b831957";
+        return res.status(200).json({ "Good": "hiii" })
+    } catch (error) {
+        console.error("❌ Main Catch Error:", error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+})
+
+
+
 //live server
-app.post('/start/playing/by/debit/amount/try', async (req, res) => {
+app.post('/start/playing/by/debit/amount/try', authMiddleware, async (req, res) => {
     const { user } = req.body;
 
     if (!user) {
@@ -2850,6 +3316,8 @@ app.post('/start/playing/by/debit/amount/try', async (req, res) => {
 
     try {
         const status = await Start_StopModule.findOne({ user: "kick" });
+
+        console.log("On-----------------------------------------")
 
         if (status?.Status === "off") {
             return res.status(200).json({ Status: "Time", message: status.text });
@@ -2975,8 +3443,6 @@ app.post('/start/playing/by/debit/amount/try', async (req, res) => {
         return res.status(500).json({ message: "Internal Server Error" });
     }
 });
-
-
 
 
 app.post('/start/playing/by/debit/amount/app', async (req, res) => {
@@ -3121,31 +3587,29 @@ app.post('/start/playing/by/debit/amount/app', async (req, res) => {
 
 
 
+
 app.post("/get/id/to/update/seonds", authMiddleware, async (req, res) => {
-    const { id, user, sec, qst, a, b, c, d, img, ans, usa, vr, msg, ex_seconds, cat, tough } = req.body;
+    const { id, sec, qst, options, img, ans, usa, vr, msg, ex_seconds, cat, tough } = req.body;
 
     try {
-       await ReportSecondModule.create({
-                Time, // or your custom time
-                user,
-                qst : qst,
-                ans: ans,
-                a: a,
-                b: b,
-                c: c,
-                d: d,
-                seconds: sec,
-                img: img,
-                usa : usa,
-                vr : vr,
-                msg : msg,
-                text : "pro",
-                exp_sec : ex_seconds, 
-                cat,
-                tough,
-            });
 
-        console.log("OK Created")
+        await ReportSecondModule.create({
+            Time, // or your custom time
+            user: req.user,
+            qst: qst,
+            ans: ans,
+            options: options,
+            seconds: sec,
+            img: img,
+            usa: usa,
+            vr: vr,
+            msg: msg,
+            text: "pro",
+            exp_sec: ex_seconds,
+            cat,
+            tough,
+        });
+
 
         return res.status(200).json({ Status: "OK" });
 
@@ -3159,36 +3623,55 @@ app.post("/get/id/to/update/seonds", authMiddleware, async (req, res) => {
 });
 
 
-app.get("/get/data/ticket",authMiddleware, async (req, res) =>{
-    
-    const user = req.user;
+app.get("/get/data/ticket", authMiddleware, async (req, res) => {
+    try {
+        const userId = req.user._id; // ಅಥವಾ req.user.id — ನಿನ್ನ middleware ಮೇಲೆ depend ಆಗಿರುತ್ತೆ
 
-    try{
+        const data = await ReportSecondModule.find({ userId });
+        // find({ userId: userId }) same
 
-        const data = await ReportSecondModule.find(user)
-
-        if(data){
-            return res.status(200).json({data : data.reverse()})
-        }else{
-            return res.status(200).json({Status : "BAD"})
+        if (data && data.length > 0) {
+            return res.status(200).json({ data: data.reverse() });
+        } else {
+            return res.status(200).json({ status: "NO_DATA_FOUND" });
         }
 
-    }catch (error) {
-        console.error(error);
+    } catch (error) {
+        console.error("Error fetching ticket data:", error);
         return res.status(500).json({ message: "Internal Server Error" });
     }
-})
+});
 
-app.get("/get/all/tickets/data/admin", adminMiddleware, async (req, res) =>{
-    try{
+
+app.get("/get/all/tickets/data/admin", adminMiddleware, async (req, res) => {
+    try {
         const data = await ReportSecondModule.find({})
 
-        if(data){
-            return res.status(200).json({data})
-        }else{
-            return res.status(200).json({Status : "BAD"})
+        if (data) {
+            return res.status(200).json({ data })
+        } else {
+            return res.status(200).json({ Status: "BAD" })
         }
-    }catch (error) {
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+})
+
+app.get("/get/singel/ticket/to/test/:id", adminMiddleware, async (req, res) => {
+    try {
+        const id = req.params.id
+
+        const data = await ReportSecondModule.findById(id)
+
+        if (data) {
+            return res.status(200).json({ data })
+        } else {
+            return res.status(200).json({ Status: "BAD" })
+        }
+
+
+    } catch (error) {
         console.error(error);
         return res.status(500).json({ message: "Internal Server Error" });
     }
@@ -3196,206 +3679,18 @@ app.get("/get/all/tickets/data/admin", adminMiddleware, async (req, res) =>{
 
 
 
-// app.post('/start/playing/by/debit/amount', async (req, res) => {
-//     const { user, lang } = req.body;
-
-//     try {
-//         // Find the balance of the user
-//         const balance = await Balancemodule.findOne({ user });
-//         // Find the fees from the admin user
-//         const fees = await Rupeemodule.findOne({ username: "admin" });
-//         await StartValidmodule.findOneAndDelete({ user});
-
-//         if (balance) {
-//             // Check if the user's balance is sufficient to cover the fees
-//             if (parseInt(balance.balance) >= parseInt(fees.rupee)) {
 
 
-//                 // Calculate the remaining balance
-//                 const rem = parseInt(balance.balance) - parseInt(fees.rupee);
-
-//                 // Update the user's balance
-//                 await balance.updateOne({ balance: rem });
-
-//                 // Get the current time
-//                 const Time = new Date();
-
-//                 // Create a new start record
-//                 await StartValidmodule.create({ Time, user, valid: "yes" });
-
-//                 // Create a new history record
-//                 await Historymodule.create({ Time, user, rupee: fees.rupee, type: "Debited", tp: "Rupee" });
-
-//                 const create_data = await QuestionListmodule.findOne({user})
-//                 if(create_data){
-
-//                     const QnoList = create_data.oldlist;
-
-
-
-//                     const Total_Questions = await QuestionModule.find({lang : lang})
-
-//                     const sum = Total_Questions.length - 9;
-//                     const specificNumbers = [];
-
-
-
-//                     for (i = sum ; i > 0; i-=10){
-//                         specificNumbers.push(i);            
-//                     }
-
-//                     const Ary = [1, 2, 3, 4]  
-
-//                     const Final = specificNumbers.filter(value => !QnoList.includes(value) )
-
-//                     if(Final.length < 0){
-
-//                         return res.status(200).json({Status : "BAD"})
-
-//                     }else{
-
-//                         const getRandomNumber = () => {
-//                             const randomIndex = Math.floor(Math.random() * Final.length);
-//                             return Final[randomIndex];
-//                         };
-//                         const num = getRandomNumber()
-//                         await QuestionListmodule.updateOne({ _id: create_data._id }, { $push: { oldlist: num } });
-//                         //update a update epty [] to
-//                         await QuestionListmodule.updateOne({ _id: create_data._id }, { $set: { list: [] } });
-
-//                         const two = num+10
-//                         for (i = num; i < two; i++){
-//                             await QuestionListmodule.updateOne({ _id: create_data._id }, { $push: { list: i } });
-//                         }
-
-//                         return res.status(200).json({ Status: "OK" });
-//                     }
-
-
-//                 }else{
-//                     const Question_list = await QuestionListmodule.create({ user, Time, lang, list: [], oldlist: [] });
-
-//                     const Total_Questions = await QuestionModule.find({ lang: lang });
-
-//                     const sum = Total_Questions.length - 9;
-//                     const specificNumbers = [];
-//                     for (let i = sum; i > 0; i -= 10) {
-//                         specificNumbers.push(i);
-//                     }
-
-//                     const getRandomNumber = () => {
-//                         const randomIndex = Math.floor(Math.random() * specificNumbers.length);
-//                         return specificNumbers[randomIndex];
-//                     };
-
-//                     const num = getRandomNumber();
-//                     await QuestionListmodule.updateOne({ _id: Question_list._id }, { $push: { oldlist: num } });
-
-//                     const two = num + 10;
-//                     for (let i = num; i < two; i++) {
-//                         await QuestionListmodule.updateOne({ _id: Question_list._id }, { $push: { list: i } });
-//                     }
-
-//                     return res.status(200).json({ Status: "OK" });
-
-
-//                 }
-
-
-//                 // Send a success response
-//                 // return res.status(200).json({ Status: "OK"});
-//             } else {
-//                 // Send a response indicating low balance
-//                 return res.status(200).json({ Status: "Low-Bal" });
-//             }
-//         } else {
-//             // Send a response indicating that the user is not found
-//             return res.status(200).json({ Status: "BAD" });
-//         }
-//     } catch (error) {
-//         console.log(error);
-//         // Send an error response
-//         return res.status(500).json({ message: "Internal Server Error" });
-//     }
-// });
-
-
-// app.post("/get/id/to/update/seconds", authMiddleware, async (req, res) => {
-//     const { id, second, user } = req.body;
-
-//     try {
-//         // Get question data
-//         const data = await QuestionModule.findById(id);
-//         if (!data) {
-//             return res.status(200).json({ Status: "BAD" });
-//         }
-
-//         // Find matching seconds document
-//         const sec_data = await Seconds_Module.findOne({
-//             category: data.sub_lang,
-//             Tough: data.tough
-//         });
-
-//         // Allowed time = question's base seconds + 3 buffer
-//         const exp_sec = parseInt(data.seconds) + 3;
-//         if (parseInt(second) <= exp_sec) {
-//             return res.status(200).json({ Status: "OK" });
-//         }
-
-//         // If no record exists, create it
-//         if (!sec_data) {
-//             await Seconds_Module.create({
-//                 Time: new Date().toISOString(), // or whatever your 'Time' is
-//                 category: data.sub_lang,
-//                 Tough: data.tough,
-//                 ex_seconds: [second],
-//                 seconds: [
-//                     {
-//                         user: user,
-//                         seconds: second
-//                     }
-//                 ]
-//             });
-//             consol
-//             return res.status(200).json({ Status: "OK" });
-//         }
-
-//         // If record exists, check if this user already has an entry
-//         const existingUser = sec_data.seconds.find(s => s.user === user);
-
-//         if (!existingUser) {
-//             sec_data.seconds.push({ user, seconds: second });
-//         } else {
-//             existingUser.seconds = second; // Or update logic if needed
-//         }
-
-//         // Add to ex_seconds
-//         sec_data.ex_seconds.push(second);
-
-//         // Save changes
-//         await sec_data.save();
-
-//         return res.status(200).json({ Status: "OK" });
-
-//     } catch (error) {
-//         console.error(error);
-//         return res.status(500).json({ message: "Internal Server Error" });
-//     }
-// });
-
-
-
-
-
-
-
-app.delete("/delete/by/user/id/for/valid/data", authMiddleware, async (req, res) => {
+app.delete("/delete/by/user/id/for/valid/data", authMiddleware, activeUserMiddleware, async (req, res) => {
     const user = req.user;
 
     try {
         if (!user) return res.status(400).json({ Status: 400, message: "Some Data Missing" })
 
+        await LiveHistory(user, "Deleting Documnet")
+
         const data = await StartValidmodule.findOne({ user });
+        await Milion_ten_qst_count_Module.findOneAndDelete({ user })
 
         if (data) {
             await data.deleteOne();
@@ -3410,7 +3705,7 @@ app.delete("/delete/by/user/id/for/valid/data", authMiddleware, async (req, res)
 })
 
 app.get("/admin/get/all/users/data/logined", adminMiddleware, async (req, res) => {
-    
+
     try {
         // Fetch all records from StartValidmodule
         const records = await StartValidmodule.find({}).lean();
@@ -3448,130 +3743,56 @@ app.get("/admin/get/all/users/data/logined", adminMiddleware, async (req, res) =
 const QnoSchema = new mongoose.Schema({
     Time: String,
     user: String,
-    img: String,
+    img: {
+        type: String,
+        unique: true
+    },
     Questio: String,
-    qno: String,
-    a: String,
-    b: String,
-    c: String,
-    d: String,
+    options: [],
     Ans: String,
-    lang: String,
-    tough: String,
-    seconds: String,
-    sub_lang: {
-        default: "",
+    lang: {
+        default: "English",
         type: String
     },
-
-    yes: {
+    tough: String,
+    Qno: String,
+    seconds: String,
+    sub_lang: String,
+    x: String,
+    yes: [],
+    no: [],
+    typ: {
         default: "",
-        type: []
-    },
-    no: {
-        default: "",
-        type: []
+        type: String
     }
 
 }, { timestamps: true });
 
 const QuestionModule = mongoose.model('Qno_Count', QnoSchema);
 
-app.post("/get/posted/count/questions", async (req, res) => {
-    const { user, img, Questio, a, b, c, d, Ans, lang, tough, seconds } = req.body;
-
-    try {
-        if (!user && !img && !Questio && !a && !b && !c && !d && !Ans && !lang && !tough && !seconds) return res.status(400).json({
-            Status: "BAD",
-            message: "Some Data Missing"
-        })
-        const Qno_length = await QuestionModule.find({ lang }).lean()
-        const hash = Ans.trim().toLowerCase();
-        await QuestionModule.create({ Time, user, img, Questio, qno: Qno_length.length + 1, a, b, c, d, Ans: hash, lang, tough, seconds })
-        return res.status(200).json({ Status: "OK", qno: Qno_length.length + 1 })
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
-})
 
 
 
-// app.get("/get/question/no/by/user/name/:user", authMiddleware, async (req, res) => {
-//     const user = req.params.user;
-//     try {
-
-//         if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
-
-
-//         // Fetch the user's validity status from StartValidmodule
-//         const Data = await StartValidmodule.findOne({ user }).lean();
-//         // Fetch the user's question list from QuestionListmodule
-//         const Get_Qno_info = await QuestionListmodule.findOne({ user }).lean();
-
-//         // Check if the user is valid and has a question list
-//         if (Data && Data.valid === "yes") {
-//             if (Get_Qno_info && Get_Qno_info.list.length > 0) {
-//                 // Get the first question number from the list
-//                 const QNO = Get_Qno_info.list[0];
-
-//                 // Find the question in QuestionModule by its number and language
-//                 const Qno = await QuestionModule.findOne({ qno: QNO, lang: Get_Qno_info.lang }).lean();
-
-//                 const cal_sec = await Seconds_Module.findOne({
-//                     category: Qno.sub_lang,
-//                     Tough : Qno.tough,
-//                     "seconds.user" : user 
-//                 });
-
-
-//                 let sec_cal = ''
-
-//                 if(cal_sec){
-//                     sec_cal = cal_sec.seconds
-//                 }else {
-//                     sec_cal = Qno.seconds
-//                 }
-
-
-//                 if (Qno) {
-//                     // Construct the response data
-//                     const data = {
-//                         _id: Qno._id,
-//                         img: Qno.img,
-//                         Question: Qno.Questio,
-//                         Qno: Get_Qno_info.list.length - 1, // Calculates the position of the question
-//                         a: Qno.a,
-//                         b: Qno.b,
-//                         c: Qno.c,
-//                         d: Qno.d,
-//                         seconds: sec_cal,
-//                         Ans : Qno.Ans
-//                     };
-//                     console.log(data)
-
-//                     return res.status(200).json({ data });
-//                 } else {
-//                     return res.status(404).json({ Status: "BAD" });
-//                 }
-//             } else {
-//                 return res.status(202).json({ Status: "BAD" });
-//             }
-//         } else {
-//             return res.status(202).json({ Status: "BAD" });
-//         }
-//     } catch (error) {
-//         console.log(error);
-//         return res.status(500).json({ message: "Internal Server Error" });
-//     }
-// });
-
-
-app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
+//before seconds fix
+//this gonna decrease the seconds on playing
+app.get("/get/question/no/by/user/name/bf", authMiddleware, async (req, res) => {
     const user = req.user;
     try {
 
         if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
+
+
+        let latestDoc;
+
+        const latestDoc_main = await Totalusermodule
+            .findOne({ user })
+            .sort({ createdAt: -1 });
+
+        if (latestDoc_main) {
+            latestDoc = latestDoc_main._id;
+        } else {
+            latestDoc = `Val${Data.createdAt}`;
+        }
 
 
         // Fetch the user's validity status from StartValidmodule
@@ -3581,34 +3802,60 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
 
         // Check if the user is valid and has a question list
         if (Data && Data.valid === "yes") {
-            if (Get_Qno_info && Get_Qno_info.list.length > 0) {
+            if (Get_Qno_info && Get_Qno_info.list.length >= 0) {
                 // Get the first question number from the list
                 const QNO = Get_Qno_info.list[0];
+                console.log("Qboo", QNO)
+
 
                 // Find the question in QuestionModule by its number and language
-                const Qno = await QuestionModule.findOne({ qno: QNO, lang: Get_Qno_info.lang }).lean();
+                const Qno = await QuestionModule.findOne({ Qno: QNO.toString(), user: user }).lean();
+                // console.log(Qno)
+                // console.log(user)
 
                 const cal_sec = await Seconds_Module.findOne(
                     {
                         category: Qno.sub_lang,
                         Tough: Qno.tough,
-                        "seconds.user": user
+                        seconds: { $elemMatch: { user } }
                     },
                     {
-                        "seconds.$": 1 // project only the matching array element
+                        "seconds.$": 1
                     }
                 );
 
-                // console.log(cal_sec.seconds)
+                const lel_fnd = await Level_up_Module.findOne({ user })
+
+
+
+                const userSeconds = cal_sec?.seconds?.[0]?.seconds || [];
+
+                const avg =
+                    userSeconds.length > 0
+                        ? userSeconds.reduce((s, v) => s + v, 0) / userSeconds.length
+                        : 0;
 
                 let sec_cal = '';
 
-
-                if (cal_sec && cal_sec.seconds && cal_sec.seconds.length > 0) {
-                    sec_cal = cal_sec.seconds[0].seconds; // get the actual seconds value for that user
+                if (userSeconds.length > 0 && avg > 0) {
+                    sec_cal = String(Math.floor(avg) + 2);
                 } else {
-                    sec_cal = Qno.seconds; // fallback to default question seconds
+                    const baseSeconds = Number(Qno?.seconds);
+                    const level = Number(lel_fnd);
+
+                    if (!Number.isFinite(baseSeconds) || !Number.isFinite(level)) {
+                        throw new Error('Invalid seconds or level');
+                    }
+
+                    const bonus = Math.min(Math.floor(level / 5) * 2, 40);
+                    sec_cal = String(baseSeconds + bonus);
                 }
+
+
+                if (parseInt(sec_cal) > 50) {
+                    return res.status(200).json({ Status: "BAD" })
+                }
+
 
 
 
@@ -3617,34 +3864,498 @@ app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
                     const data = {
                         _id: Qno._id,
                         img: Qno.img,
+                        Qno: Qno.Qno,
                         Question: Qno.Questio,
-                        Qno: Get_Qno_info.list.length - 1, // Calculates the position of the question
-                        a: Qno.a,
-                        b: Qno.b,
-                        c: Qno.c,
-                        d: Qno.d,
+                        options: Qno.options,
                         seconds: sec_cal,
-                        Ans : Qno.Ans,
-                        cat : Qno.sub_lang,
-                        tough : Qno.tough
+                        Ans: Qno.Ans,
+                        cat: Qno.sub_lang,
+                        tough: Qno.tough
                     };
-                    console.log(data)
 
                     return res.status(200).json({ data });
+
                 } else {
-                    return res.status(404).json({ Status: "BAD" });
+                    return res.status(404).json({ Status: "BAD", message: "No Question Found.", id: latestDoc });
                 }
             } else {
-                return res.status(202).json({ Status: "BAD" });
+                return res.status(202).json({ Status: "BAD", message: "No Question Found..", id: latestDoc });
             }
         } else {
-            return res.status(202).json({ Status: "BAD" });
+            return res.status(202).json({ Status: "BAD", message: "Not Valid to Yes", id: latestDoc });
         }
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Internal Server Error" });
+        return res.status(500).json({ message: "Internal Server Error", error: error.message, id: "Some Erorr" });
     }
 });
+
+
+const level_controle_Schema = new mongoose.Schema({
+    Time: String,
+    user: String,
+    t_5: String,
+    t_10: String,
+    t_15: String,
+    t_20: String,
+    t_25: String,
+    t_30: String,
+    t_35: String,
+    t_40: String,
+    t_45: String,
+    t_50: String,
+    t_55: String,
+    t_60: String,
+    t_65: String,
+    t_70: String,
+    t_75: String,
+    t_80: String,
+    t_85: String,
+    t_90: String,
+    t_95: String,
+    t_100: String,
+
+}, { timestamps: true });
+
+const level_controle_Module = mongoose.model('level_controle_schema', level_controle_Schema);
+
+app.post(
+    "/get/and/update/data/from/lelel/seconds/data",
+    adminMiddleware,
+    async (req, res) => {
+
+        const {
+            t_5, t_10, t_15, t_20, t_25,
+            t_30, t_35, t_40, t_45, t_50,
+            t_55, t_60, t_65, t_70, t_75,
+            t_80, t_85, t_90, t_95, t_100
+        } = req.body;
+
+        try {
+            const updatedData = await level_controle_Module.findOneAndUpdate(
+                { user: "Kick" },
+                {
+                    t_5, t_10, t_15, t_20, t_25,
+                    t_30, t_35, t_40, t_45, t_50,
+                    t_55, t_60, t_65, t_70, t_75,
+                    t_80, t_85, t_90, t_95, t_100, Time
+                },
+                { new: true } // returns updated document
+            );
+
+            return res.status(200).json({
+                message: "Level seconds updated successfully",
+                data: updatedData
+            });
+
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ message: "Internal Server Error" });
+        }
+    }
+);
+
+app.get("/get/data/of/level/controle/data", adminMiddleware, async (req, res) => {
+    try {
+        const data = await level_controle_Module.findOne({ user: "Kick" })
+        if (data) {
+            return res.status(200).json({ data })
+        } else {
+            return res.status(200).json({ message: "No Data Found" })
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+})
+
+
+async function get_level_seconds(level) {
+
+    const fnd_data = await level_controle_Module.findOne({ user: "Kick" })
+    if (!fnd_data) {
+        await level_controle_Module.create({
+            Time,
+            user: "Kick",
+            t_5: 2,
+            t_10: 4,
+            t_15: 6,
+            t_20: 8,
+            t_25: 10,
+            t_30: 12,
+            t_35: 14,
+            t_40: 16,
+            t_45: 18,
+            t_50: 20,
+            t_55: 22,
+            t_60: 24,
+            t_65: 26,
+            t_70: 28,
+            t_75: 30,
+            t_80: 32,
+            t_85: 34,
+            t_90: 36,
+            t_95: 38,
+            t_100: 40
+        })
+
+        get_level_seconds(level)
+
+    } else {
+        let num = parseInt(level)
+        if (num < 5) {
+            return parseInt(fnd_data.t_5)
+        } else if (num < 10) {
+            return parseInt(fnd_data.t_10)
+        } else if (num < 15) {
+            return parseInt(fnd_data.t_15)
+        } else if (num < 20) {
+            return parseInt(fnd_data.t_20)
+        } else if (num < 25) {
+            return parseInt(fnd_data.t_25)
+        } else if (num < 30) {
+            return parseInt(fnd_data.t_30)
+        } else if (num < 35) {
+            return parseInt(fnd_data.t_35)
+        } else if (num < 40) {
+            return parseInt(fnd_data.t_40)
+        } else if (num < 45) {
+            return parseInt(fnd_data.t_45)
+        } else if (num < 50) {
+            return parseInt(fnd_data.t_50)
+        } else if (num < 55) {
+            return parseInt(fnd_data.t_55)
+        } else if (num < 60) {
+            return parseInt(fnd_data.t_60)
+        } else if (num < 65) {
+            return parseInt(fnd_data.t_65)
+        } else if (num < 70) {
+            return parseInt(fnd_data.t_70)
+        } else if (num < 75) {
+            return parseInt(fnd_data.t_75)
+        } else if (num < 80) {
+            return parseInt(fnd_data.t_80)
+        } else if (num < 85) {
+            return parseInt(fnd_data.t_85)
+        } else if (num < 90) {
+            return parseInt(fnd_data.t_90)
+        } else if (num < 95) {
+            return parseInt(fnd_data.t_95)
+        } else {
+            return parseInt(fnd_data.t_100)
+        }
+    }
+}
+
+async function History(user, rupee) {
+    await Historymodule.create({ Time, user, rupee: rupee, type: "Credited", tp: "Rupee" });
+}
+
+async function History_db(user, rupee) {
+    await Historymodule.create({ Time, user, rupee: rupee, type: "Debited", tp: "Rupee" });
+}
+
+async function History_star(user, star) {
+    await Historymodule.create({ Time, user, rupee: star, type: "Credited", tp: "Stars" });
+}
+
+
+
+async function refund(user) {
+    try {
+        const data_bala = await Balancemodule.findOne({ user })
+        const fees = await Rupeemodule.findOne({ username: "admin" });
+        const tot = parseInt(data_bala.balance) + parseInt(fees.rupee);
+        data_bala.balance = tot
+        await data_bala.save()
+        await History(user, fees)
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+app.get("/get/question/no/by/user/name", authMiddleware, async (req, res) => {
+    const user = req.user;
+    try {
+
+
+        if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
+
+
+        // Fetch the user's validity status from StartValidmodule
+        const Data = await StartValidmodule.findOne({ user });
+        // Fetch the user's question list from QuestionListmodule
+        const Get_Qno_info = await QuestionListmodule.findOne({ user }).lean();
+
+        // Check if the user is valid and has a question list
+        if (Data && Data.valid === "yes") {
+            if (Get_Qno_info && Get_Qno_info.list.length >= 0) {
+                // Get the first question number from the list
+                const QNO = Get_Qno_info.list[0];
+
+                if (!QNO || QNO === undefined || QNO === "" || QNO === null) {
+                    Data.valid = "No"
+                    await Data.save()
+                    await refund()
+                    return res.status(200).json({ Status: "EXIT" })
+                }
+
+                const Qno = await QuestionModule.findOne({ Qno: QNO.toString(), user: user }).lean();
+
+                if (!Qno || Qno === undefined || Qno === "" || Qno === null) {
+                    Data.valid = "No"
+                    await Data.save()
+                    await refund()
+                    return res.status(200).json({ Status: "EXIT" })
+                }
+
+                const lel_fnd = await Level_up_Module.findOne({ user })
+
+                const ll_sec = await get_level_seconds(lel_fnd?.rank)
+
+                const sec = parseInt(Qno.seconds) + ll_sec
+                if (!sec || sec === undefined || sec === "" || sec === null) {
+                    Data.valid = "No"
+                    await Data.save()
+                    await refund()
+                    return res.status(200).json({ Status: "EXIT" })
+                }
+
+
+                // if(parseInt(sec_cal) > 50){
+                //     return res.status(200).json({Status : "BAD"})
+                // }
+
+
+                if (Qno) {
+                    // Construct the response data
+                    const data = {
+                        _id: Qno._id,
+                        img: Qno.img,
+                        Qno: Qno.Qno,
+                        Question: Qno.Questio,
+                        options: Qno.options,
+                        seconds: sec.toString(),
+                        Ans: Qno.Ans,
+                        cat: Qno.sub_lang,
+                        tough: Qno.tough
+                    };
+
+                    return res.status(200).json({ data });
+
+                } else {
+                    return res.status(404).json({ Status: "BAD", message: "No Question Found." });
+                }
+            } else {
+                return res.status(202).json({ Status: "BAD", message: "No Question Found.." });
+            }
+        } else {
+            return res.status(202).json({ Status: "BAD", message: "Not Valid to Yes" });
+        }
+    }
+    catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message, id: "Some Erorr" });
+    }
+});
+
+const Error_Catch_Schema = new mongoose.Schema({
+
+    Time: String,
+    user: String,
+    Type: String,
+    Text: String,
+    api: String,
+    Where: String,
+
+
+});
+
+
+const Error_Catch_Module = mongoose.model('Errors', Error_Catch_Schema);
+
+
+
+
+
+
+//24-03-2026 v 0.0.0
+app.get("/get/question/no/by/user/name/bf/all/xx", authMiddleware, async (req, res) => {
+    const user = req.user;
+    try {
+
+
+        if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
+
+
+        // Fetch the user's validity status from StartValidmodule
+        const Data = await StartValidmodule.findOne({ user });
+        // Fetch the user's question list from QuestionListmodule
+        const Get_Qno_info = await QuestionListmodule.findOne({ user }).lean();
+
+        // Check if the user is valid and has a question list
+        if (Data && Data.valid === "yes") {
+            if (Get_Qno_info && Get_Qno_info.list.length >= 0) {
+                // Get the first question number from the list
+                const QNO = Get_Qno_info.list[0];
+
+                if (!QNO || QNO === undefined || QNO === "" || QNO === null) {
+                    Data.valid = "No"
+                    await Data.save()
+                    await refund()
+                    await Error_Catch_Module.create({ Time, user, Type: QNO, Text: "Error may be occurs due to QNO Undefined are some data Missing", api: "/get/question/no/by/user/name/bf/xx", Where: "On Finding Question Number" })
+                    return res.status(200).json({ Status: "EXIT" })
+                }
+
+                const Qno = await QuestionModule.findOne({ Qno: QNO.toString(), user: user }).lean();
+
+                if (!Qno || Qno === undefined || Qno === "" || Qno === null) {
+                    Data.valid = "No"
+                    await Data.save()
+                    await refund()
+                    await Error_Catch_Module.create({ Time, user, Type: QNO, Text: "Error may be occurs due to QNO Undefined are some data Missing", api: "/get/question/no/by/user/name/bf/xx", Where: "On Finding Question Number" })
+                    return res.status(200).json({ Status: "EXIT" })
+                }
+
+                // if(parseInt(sec_cal) > 50){
+                //     return res.status(200).json({Status : "BAD"})
+                // }
+
+
+                if (Qno) {
+                    // Construct the response data
+                    const data = {
+                        _id: Qno._id,
+                        img: Qno.img,
+                        Qno: Qno.Qno,
+                        Question: Qno.Questio,
+                        options: Qno.options,
+                        seconds: Qno.seconds,
+                        Ans: Qno.Ans,
+                        cat: Qno.sub_lang,
+                        tough: Qno.tough
+                    };
+
+                    const get_fetch_data = await time_ans_Module.findOne({ user, Qno_ID: Qno._id })
+
+                    if (get_fetch_data.Qst_get_tm === "n") {
+                        get_fetch_data.Qst_get_tm = new Date()
+                        get_fetch_data.createdAt = new Date()
+                        await get_fetch_data.save()
+                    }
+
+                    console.log(data);
+
+                    return res.status(200).json({ data });
+
+                } else {
+                    await Error_Catch_Module.create({ Time, user, Type: QNO, Text: "No Qno Data Found then this will occurs", api: "/get/question/no/by/user/name/bf/xx", Where: "at [No Question Found.] " })
+                    return res.status(404).json({ Status: "BAD", message: "No Question Found." });
+                }
+            } else {
+                return res.status(202).json({ Status: "BAD", message: "No Question Found.." });
+            }
+        } else {
+            return res.status(202).json({ Status: "BAD", message: "Not Valid to Yes" });
+        }
+    }
+    catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message, id: "Some Erorr" });
+    }
+});
+
+
+
+
+//24-03-2026 v 0.0.1
+app.get("/get/question/no/by/user/name/bf/all/xx/1", authMiddleware, async (req, res) => {
+    const user = req.user;
+    try {
+
+
+        if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
+
+
+        // Fetch the user's validity status from StartValidmodule
+        const Data = await StartValidmodule.findOne({ user });
+        // Fetch the user's question list from QuestionListmodule
+        const Get_Qno_info = await QuestionListmodule.findOne({ user }).lean();
+
+        // Check if the user is valid and has a question list
+        if (Data && Data.valid === "yes") {
+            if (Get_Qno_info && Get_Qno_info.list.length >= 0) {
+                // Get the first question number from the list
+                const QNO = Get_Qno_info.list[0];
+
+                if (!QNO || QNO === undefined || QNO === "" || QNO === null) {
+                    Data.valid = "No"
+                    await Data.save()
+                    await refund()
+                    await Error_Catch_Module.create({ Time, user, Type: QNO, Text: "Error may be occurs due to QNO Undefined are some data Missing", api: "/get/question/no/by/user/name/bf/xx", Where: "On Finding Question Number" })
+                    return res.status(200).json({ Status: "EXIT" })
+                }
+
+                const Qno = await QuestionModule.findOne({ Qno: QNO.toString(), user: user }).lean();
+
+                if (!Qno || Qno === undefined || Qno === "" || Qno === null) {
+                    Data.valid = "No"
+                    await Data.save()
+                    await refund()
+                    await Error_Catch_Module.create({ Time, user, Type: QNO, Text: "Error may be occurs due to QNO Undefined are some data Missing", api: "/get/question/no/by/user/name/bf/xx", Where: "On Finding Question Number" })
+                    return res.status(200).json({ Status: "EXIT" })
+                }
+
+                // if(parseInt(sec_cal) > 50){
+                //     return res.status(200).json({Status : "BAD"})
+                // }
+
+
+                if (Qno) {
+                    // Construct the response data
+                    const data = {
+                        _id: Qno._id,
+                        img: Qno.img,
+                        Qno: Qno.Qno,
+                        Question: Qno.Questio,
+                        options: Qno.options,
+                        seconds: Qno.seconds,
+                        Ans: Qno.Ans,
+                        cat: Qno.sub_lang,
+                        tough: Qno.tough
+                    };
+
+                    const get_fetch_data = await time_ans_Module.findOne({ user, Qno_ID: Qno._id })
+
+                    if (get_fetch_data.Qst_get_tm === "n") {
+                        get_fetch_data.Qst_get_tm = new Date()
+                        get_fetch_data.createdAt = new Date()
+                        await get_fetch_data.save()
+                    }
+
+                    console.log(data);
+
+                    return res.status(200).json({ data });
+
+                } else {
+                    await Error_Catch_Module.create({ Time, user, Type: QNO, Text: "No Qno Data Found then this will occurs", api: "/get/question/no/by/user/name/bf/xx", Where: "at [No Question Found.] " })
+                    return res.status(404).json({ Status: "BAD", message: "No Question Found." });
+                }
+            } else {
+                return res.status(202).json({ Status: "BAD", message: "No Question Found.." });
+            }
+        } else {
+            return res.status(202).json({ Status: "BAD", message: "Not Valid to Yes" });
+        }
+    }
+    catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message, id: "Some Erorr" });
+    }
+});
+
+
+
 
 
 const WonSchema = new mongoose.Schema({
@@ -3659,27 +4370,73 @@ const Wonmodule = mongoose.model('Won', WonSchema);
 const Seconds_cal_Schema = new mongoose.Schema({
     Time: String,
     category: String,
-    Tough : String,
-    seconds : [
+    Tough: String,
+    seconds: [
         {
-            user : String,
-            seconds : String,
+            user: String,
+            seconds: [],
         }
     ],
-    ex_seconds : []
+    ex_seconds: []
 }, { timestamps: true });
 
 const Seconds_Module = mongoose.model('Seconds_cal', Seconds_cal_Schema);
 
 
-app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
-    const { answer, user, id, seconds, Ans } = req.body;
-    
+const module_analysis_Schema = new mongoose.Schema({
+    sub_lang: String,
+    tough: String,
+    yes: [],
+    no: []
+}, { timestamps: true });
+
+const module_analysis_module = mongoose.model('most_answerd_module', module_analysis_Schema);
+
+
+const Seconds_update_page_Schema = new mongoose.Schema({
+    sub_lang: String,
+    tough: String,
+    user: String,
+    seconds: String,
+    down_up: String,
+    Time: String,
+    bef_sec: String,
+    af_sec: String
+
+}, { timestamps: true });
+
+const update_seconds_page_Module = mongoose.model('Seconds_page_updates', Seconds_update_page_Schema);
+
+
+app.get("/get/verifyed/seonds/updates/data/and/avug/cal", authMiddleware, async (req, res) => {
+    const user = req.user
+    try {
+        const data = await update_seconds_page_Module.find({ user })
+        if (data) {
+            return res.status(200).json({ data })
+        } else {
+            return res.status(200).json({ message: "No Data Found" })
+        }
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+})
+
+
+
+//Before Live Server 31-11-2025
+app.post('/verify/answer/question/number/old', authMiddleware, async (req, res) => {
+    const { answer, id, seconds, Ans } = req.body;
+
     try {
 
+        const user = req.user
 
 
         if (!answer && !user && !id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
+
+
 
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -3689,18 +4446,15 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
 
         function compareHash(plainText, hash) {
             const plainHash = crypto
-                .createHash('sha256')
-                .update(plainText)
-                .digest('hex');
-            
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(plainText.toString())
+                .digest("hex");
+
             return plainHash === hash;
         }
 
-        
-        const hashedPlain = crypto
-            .createHash('sha256')
-            .update(answer)
-            .digest('hex');
+
+
 
         const check_ans = compareHash(answer, Ans)
 
@@ -3710,46 +4464,158 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
         console.log(check_ans)
 
         if (check_ans) {
-            const get_t_data = await Seconds_Module.findOne({category : Answer_Verify.sub_lang, Tough : Answer_Verify.tough})
-            
-            if(get_t_data){
+
+
+            const get_t_data = await Seconds_Module.findOne({ category: Answer_Verify.sub_lang, Tough: Answer_Verify.tough })
+
+            const check_anyl_modl = await module_analysis_module.findOne({ sub_lang: Answer_Verify.sub_lang, tough: Answer_Verify.tough })
+
+            if (check_anyl_modl) {
+                await check_anyl_modl.updateOne({ $push: { yes: user } })
+            } else {
+                await module_analysis_module.create({ sub_lang: Answer_Verify.sub_lang, tough: Answer_Verify.tough, yes: [user], no: [] })
+            }
+
+
+            if (get_t_data) {
 
                 const gt_ud = get_t_data.seconds.find(s => s.user === user);
 
-                if(!gt_ud){
+                if (!gt_ud) {
                     await Seconds_Module.updateOne(
                         { category: Answer_Verify.sub_lang, Tough: Answer_Verify.tough }, // match condition
                         {
                             $push: {
-                                seconds: { user: user, seconds: seconds }, // push into nested objects array
+                                seconds: { user: user, seconds: [seconds] }, // push into nested objects array
                                 ex_seconds: seconds                        // push into normal array
                             }
                         }
                     );
 
-                }
-                
+                } else {
 
-                
-            }else{
+
+                    const beforeDoc = await Seconds_Module.findOne(
+                        {
+                            category: Answer_Verify.sub_lang,
+                            Tough: Answer_Verify.tough,
+                            "seconds.user": user
+                        },
+                        {
+                            "seconds.$": 1 // only this user's seconds
+                        }
+                    );
+
+                    const beforeSeconds =
+                        beforeDoc?.seconds?.[0]?.seconds ?? [];
+
+
+
+
+                    await Seconds_Module.updateOne(
+                        {
+                            category: Answer_Verify.sub_lang,
+                            Tough: Answer_Verify.tough,
+                            "seconds.user": user
+                        },
+                        {
+                            $push: {
+                                "seconds.$.seconds": seconds,
+                                ex_seconds: seconds
+                            }
+                        }
+                    );
+
+                    const afterDoc = await Seconds_Module.findOne(
+                        {
+                            category: Answer_Verify.sub_lang,
+                            Tough: Answer_Verify.tough,
+                            "seconds.user": user
+                        },
+                        {
+                            "seconds.$": 1
+                        }
+                    );
+
+                    const afterSeconds =
+                        afterDoc?.seconds?.[0]?.seconds ?? [];
+
+
+                    const beforeAvg = beforeSeconds.length
+                        ? beforeSeconds.reduce((s, v) => s + v, 0) / beforeSeconds.length
+                        : 0;
+
+                    const afterAvg = afterSeconds.length
+                        ? afterSeconds.reduce((s, v) => s + v, 0) / afterSeconds.length
+                        : 0;
+
+                    const delta = afterAvg - beforeAvg;
+                    console.log("show Avg : ", delta)
+
+                    if (delta > 0 && delta) {
+                        await update_seconds_page_Module.create({
+                            sub_lang: Answer_Verify.sub_lang,
+                            tough: Answer_Verify.tough,
+                            user: user,
+                            seconds: delta,
+                            down_up: "UP",
+                            Time,
+                            bef_sec: beforeAvg + 2,
+                            af_sec: afterAvg + 2
+                        })
+                    }
+
+                    if (delta < 0 && delta) {
+                        await update_seconds_page_Module.create({
+                            sub_lang: Answer_Verify.sub_lang,
+                            tough: Answer_Verify.tough,
+                            user: user,
+                            seconds: delta,
+                            down_up: "DOWN",
+                            Time,
+                            bef_sec: beforeAvg + 2,
+                            af_sec: afterAvg + 2
+                        })
+                    }
+
+
+
+
+
+
+
+
+
+                    //get Seconds_module user avg and get compare avg and new seconds +2  and get add again avg if first avg is leserthan 2nd the second lost make lose
+                }
+
+
+
+
+            } else {
                 // await Seconds_Module.create({Time, category : Answer_Verify.sub_lang, Tough : Answer_Verify.tough, seconds })
                 await Seconds_Module.create({
-                Time,
-                category : Answer_Verify.sub_lang,
-                Tough : Answer_Verify.tough,
-                seconds : [
-                    {
-                        seconds : seconds,
-                        user : user,
-                    }
-                ],
-                ex_seconds : seconds
+                    Time,
+                    category: Answer_Verify.sub_lang,
+                    Tough: Answer_Verify.tough,
+                    seconds: [
+                        {
+                            seconds: seconds,
+                            user: user,
+                        }
+                    ],
+                    ex_seconds: seconds
 
-            })
+                })
             }
 
             if (User_List.list.length === 1 || User_List.list.length === 0) {
                 await User_List.updateOne({ $pull: { list: User_List.list[0] } })
+                // await QuestionListmodule.updateOne(
+                //     { user },
+                //     { $pop: { list: -1 } }   // remove first element
+                // );
+
                 const won = await Wonmodule.find({})
                 const CuponDat = await Cuponmodule.findOne({ no: won.length + 1 })
                 if (CuponDat) {
@@ -3768,6 +4634,48 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
                     //ki1931ck add code here
                     const rank = toString(won.length + 1)
                     await Answer_Verify.updateOne({ $push: { yes: user } })
+
+                    const [won_data, total_play] = await Promise.all([
+                        Wonmodule.countDocuments({ user }),
+                        Totalusermodule.countDocuments({ user }),
+                    ]);
+
+                    // percentage
+                    const get_per = (won_data / (total_play || 1)) * 100;
+
+                    // fetch level data
+                    const find_level_data = await Level_up_Module.findOne({ user });
+
+                    // decide how much rank to add
+                    let won_dat;
+
+                    if (get_per < 9) {
+                        won_dat = 1;
+                    } else {
+                        won_dat = Math.floor(5 / 10); // safer than string slicing
+                    }
+
+                    // FIRST TIME USER
+                    if (!find_level_data) {
+                        await Level_up_Module.create({
+                            Time,
+                            user,
+                            rank: Math.min(won_dat, 100).toString(),
+                        });
+                    }
+
+                    // EXISTING USER
+                    else {
+                        const currentRank = parseInt(find_level_data.rank, 10);
+
+                        if (currentRank < 100) {
+                            const newLevel = Math.min(currentRank + 5, 100);
+                            find_level_data.rank = newLevel.toString();
+                            await find_level_data.save();
+                        }
+                    }
+
+
                     return res.status(200).json({ Status: "OKK", id: CuponDat._id, rank: rank });
 
 
@@ -3796,6 +4704,50 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
                                 await Historymodule.create({ Time, user, rupee: get_count_data.stars, type: "Credited", tp: "Stars" });
                                 const rank = toString(won.length + 1)
                                 await Answer_Verify.updateOne({ $push: { yes: user } })
+
+
+                                const [won_data, total_play] = await Promise.all([
+                                    Wonmodule.countDocuments({ user }),
+                                    Totalusermodule.countDocuments({ user }),
+                                ]);
+
+                                // percentage
+                                const get_per = (won_data / (total_play || 1)) * 100;
+
+                                // fetch level data
+                                const find_level_data = await Level_up_Module.findOne({ user });
+
+                                // decide how much rank to add
+                                let won_dat;
+
+                                if (get_per < 9) {
+                                    won_dat = 1;
+                                } else {
+                                    won_dat = Math.floor(get_per / 10); // safer than string slicing
+                                }
+
+                                // FIRST TIME USER
+                                if (!find_level_data) {
+                                    await Level_up_Module.create({
+                                        Time,
+                                        user,
+                                        rank: Math.min(won_dat, 100).toString(),
+                                    });
+                                }
+
+                                // EXISTING USER
+                                else {
+                                    const currentRank = parseInt(find_level_data.rank, 10);
+
+                                    if (currentRank < 100) {
+                                        const newLevel = Math.min(2 + won_dat, 100);
+                                        find_level_data.rank = newLevel.toString();
+                                        await find_level_data.save();
+                                    }
+                                }
+
+
+
                                 return res.status(200).json({ Status: "STARS", stars: get_count_data.stars, rank: rank });
 
                             }
@@ -3810,6 +4762,49 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
                                 await Historymodule.create({ Time, user, rupee: get_count_data.stars, type: "Credited", tp: "Stars" });
                                 const rank = toString(won.length + 1)
                                 await Answer_Verify.updateOne({ $push: { yes: user } })
+
+
+                                const [won_data, total_play] = await Promise.all([
+                                    Wonmodule.countDocuments({ user }),
+                                    Totalusermodule.countDocuments({ user }),
+                                ]);
+
+                                // percentage
+                                const get_per = (won_data / (total_play || 1)) * 100;
+
+                                // fetch level data
+                                const find_level_data = await Level_up_Module.findOne({ user });
+
+                                // decide how much rank to add
+                                let won_dat;
+
+                                if (get_per < 9) {
+                                    won_dat = 1;
+                                } else {
+                                    won_dat = Math.floor(get_per / 10); // safer than string slicing
+                                }
+
+                                // FIRST TIME USER
+                                if (!find_level_data) {
+                                    await Level_up_Module.create({
+                                        Time,
+                                        user,
+                                        rank: Math.min(won_dat, 100).toString(),
+                                    });
+                                }
+
+                                // EXISTING USER
+                                else {
+                                    const currentRank = parseInt(find_level_data.rank, 10);
+
+                                    if (currentRank < 100) {
+                                        const newLevel = Math.min(currentRank + won_dat, 100);
+                                        find_level_data.rank = newLevel.toString();
+                                        await find_level_data.save();
+                                    }
+                                }
+
+
                                 return res.status(200).json({ Status: "STARS", stars: get_count_data.stars, rank: rank });
 
                             }
@@ -3819,7 +4814,6 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
                         // await Historymodule.create({Time, user, rupee : get_count_data.stars, type : "Credited", tp : "Stars"});
                         // return res.status(200).json({Status : "STARS", stars : get_count_data.stars});
 
-
                     }
 
                 }
@@ -3828,8 +4822,15 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
 
             } else {
                 await User_List.updateOne({ $pull: { list: User_List.list[0] } })
-                //ki1931ck add code here
+                // await QuestionListmodule.updateOne(
+                //     { user },
+                //     { $pop: { list: -1 } }   // remove first element
+                // );
+                // //ki1931ck add code here
                 await Answer_Verify.updateOne({ $push: { yes: user } })
+
+                const find_level_data = await Level_up_Module.findOne({ user });
+
                 return res.status(200).json({ Status: "OK" })
 
             }
@@ -3837,6 +4838,35 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
         } else {
             await Answer_Verify.updateOne({ $push: { no: user } })
             //make this if answer is false make verified is fale or no to throught the user out from playing
+
+            const data = await StartValidmodule.findOne({ user });
+
+            if (data) {
+                data.valid = "no";
+                await data.save();
+            } else {
+                await StartValidmodule.create({ Time, user, valid: "no" });
+            }
+
+            const check_anyl_modl = await module_analysis_module.findOne({ sub_lang: Answer_Verify.sub_lang, tough: Answer_Verify.tough })
+
+            if (check_anyl_modl) {
+                await check_anyl_modl.updateOne({ $push: { no: user } })
+            } else {
+                await module_analysis_module.create({ sub_lang: Answer_Verify.sub_lang, tough: Answer_Verify.tough, yes: [], no: [user] })
+            }
+            const find_level_data = await Level_up_Module.findOne({ user });
+
+            if (!find_level_data) return;
+
+            const currentRank = parseInt(find_level_data.rank, 10);
+
+            // decrease by 1, but not below 0
+            const newRank = Math.max(currentRank - 1, 0);
+
+            find_level_data.rank = newRank.toString();
+            await find_level_data.save();
+
             return res.status(200).json({ Status: "BAD" })
 
         }
@@ -3846,6 +4876,1046 @@ app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
         return res.status(500).json({ message: "Internal Server Error" });
     }
 })
+
+
+
+
+//present code
+app.post('/verify/answer/question/number', authMiddleware, async (req, res) => {
+    const { answer, id, seconds, Ans } = req.body;
+
+    try {
+
+        const user = req.user
+
+
+        if (!answer && !user && !id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
+
+
+
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ success: false, message: "Invalid ObjectId format" });
+        }
+
+
+        function compareHash(plainText, hash) {
+            const plainHash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(plainText.toString())
+                .digest("hex");
+
+            return plainHash === hash;
+        }
+
+
+
+
+        const check_ans = compareHash(answer, Ans)
+
+        const Answer_Verify = await QuestionModule.findById({ _id: id })
+        const User_List = await QuestionListmodule.findOne({ user })
+
+        console.log(check_ans)
+
+        if (check_ans) {
+
+
+            const get_t_data = await Seconds_Module.findOne({ category: Answer_Verify.sub_lang, Tough: Answer_Verify.tough })
+
+            const check_anyl_modl = await module_analysis_module.findOne({ sub_lang: Answer_Verify.sub_lang, tough: Answer_Verify.tough })
+
+            if (check_anyl_modl) {
+                await check_anyl_modl.updateOne({ $push: { yes: user } })
+            } else {
+                await module_analysis_module.create({ sub_lang: Answer_Verify.sub_lang, tough: Answer_Verify.tough, yes: [user], no: [] })
+            }
+
+
+
+            if (User_List.list.length === 1 || User_List.list.length === 0) {
+                await User_List.updateOne({ $pull: { list: User_List.list[0] } })
+                // await QuestionListmodule.updateOne(
+                //     { user },
+                //     { $pop: { list: -1 } }   // remove first element
+                // );
+
+                const won = await Wonmodule.find({})
+                const CuponDat = await Cuponmodule.findOne({ no: won.length + 1 })
+                if (CuponDat) {
+                    await Wonmodule.create({ Time, user, no: won.length + 1, ID: CuponDat._id })
+
+                    await Mycoinsmodule.create({
+                        Time: Time,
+                        title: CuponDat.title,
+                        img: CuponDat.img,
+                        user: user,
+                        type: CuponDat.type,
+                        stars: "No",
+                        body: CuponDat.body,
+                        valid: CuponDat.valid
+                    })
+                    //ki1931ck add code here
+                    const rank = toString(won.length + 1)
+                    await Answer_Verify.updateOne({ $push: { yes: user } })
+
+                    // fetch level data
+                    const find_level_data = await Level_up_Module.findOne({ user });
+
+
+                    // FIRST TIME USER
+                    if (!find_level_data) {
+                        await Level_up_Module.create({
+                            Time,
+                            user,
+                            rank: Math.min(2, 100).toString(),
+                        });
+                    }
+
+                    // EXISTING USER
+                    else {
+                        const currentRank = parseInt(find_level_data.rank, 10);
+
+                        if (currentRank < 100) {
+                            const newLevel = Math.min(currentRank + 2, 100);
+                            find_level_data.rank = newLevel.toString();
+                            await find_level_data.save();
+                        }
+                    }
+
+
+                    return res.status(200).json({ Status: "OKK", id: CuponDat._id, rank: rank });
+
+
+
+                } else {
+
+
+                    await Wonmodule.create({ Time, user, no: won.length + 1, ID: "stars" })
+                    const get_prize_list1 = await StarBalmodule.findOne({ user })
+
+                    const starsValues = [];
+                    const pushData = await StarsCountmodule.find({})
+                    pushData.map((users) => {
+                        starsValues.push(users.stars)
+                    })
+
+
+                    // const sum = parseInt(get_prize_list1.balance) + parseInt(get_count_data.stars)
+
+                    if (get_prize_list1) {
+                        for (const stars of starsValues) {
+                            const get_count_data = await StarsCountmodule.findOne({ stars }).lean();
+
+                            if (parseInt(get_count_data.count) >= parseInt(won.length + 1)) {
+                                await get_prize_list1.updateOne({ balance: parseInt(get_prize_list1.balance) + parseInt(get_count_data.stars) })
+                                await Historymodule.create({ Time, user, rupee: get_count_data.stars, type: "Credited", tp: "Stars" });
+                                const rank = toString(won.length + 1)
+                                await Answer_Verify.updateOne({ $push: { yes: user } })
+
+
+                                // fetch level data
+                                const find_level_data = await Level_up_Module.findOne({ user });
+
+                                if (!find_level_data) {
+                                    await Level_up_Module.create({
+                                        Time,
+                                        user,
+                                        rank: Math.min(2, 100).toString(),
+                                    });
+                                }
+
+                                // EXISTING USER
+                                else {
+                                    const currentRank = parseInt(find_level_data.rank, 10);
+
+                                    if (currentRank < 100) {
+                                        const newLevel = Math.min(currentRank + 2, 100);
+                                        find_level_data.rank = newLevel.toString();
+                                        await find_level_data.save();
+                                    }
+                                }
+
+
+
+                                return res.status(200).json({ Status: "STARS", stars: get_count_data.stars, rank: rank });
+
+                            }
+                        }
+
+                    } else {
+                        for (const stars of starsValues) {
+                            const get_count_data = await StarsCountmodule.findOne({ stars }).lean();
+
+                            if (parseInt(get_count_data.count) >= parseInt(won.length + 1)) {
+                                await StarBalmodule.create({ Time, user: user, balance: get_count_data.stars });
+                                await Historymodule.create({ Time, user, rupee: get_count_data.stars, type: "Credited", tp: "Stars" });
+                                const rank = toString(won.length + 1)
+                                await Answer_Verify.updateOne({ $push: { yes: user } })
+
+
+                                const [won_data, total_play] = await Promise.all([
+                                    Wonmodule.countDocuments({ user }),
+                                    Totalusermodule.countDocuments({ user }),
+                                ]);
+
+                                // percentage
+                                const get_per = (won_data / (total_play || 1)) * 100;
+
+                                // fetch level data
+                                const find_level_data = await Level_up_Module.findOne({ user });
+
+                                // FIRST TIME USER
+                                if (!find_level_data) {
+                                    await Level_up_Module.create({
+                                        Time,
+                                        user,
+                                        rank: Math.min(2, 100).toString(),
+                                    });
+                                }
+
+                                // EXISTING USER
+                                else {
+                                    const currentRank = parseInt(find_level_data.rank, 10);
+
+                                    if (currentRank < 100) {
+                                        const newLevel = Math.min(currentRank + 2, 100);
+                                        find_level_data.rank = newLevel.toString();
+                                        await find_level_data.save();
+                                    }
+                                }
+
+
+                                return res.status(200).json({ Status: "STARS", stars: get_count_data.stars, rank: rank });
+
+                            }
+                        }
+
+                        // await StarBalmodule.create({Time, user : user, balance : get_count_data.stars});
+                        // await Historymodule.create({Time, user, rupee : get_count_data.stars, type : "Credited", tp : "Stars"});
+                        // return res.status(200).json({Status : "STARS", stars : get_count_data.stars});
+
+                    }
+
+                }
+
+
+
+            } else {
+                await User_List.updateOne({ $pull: { list: User_List.list[0] } })
+                await Answer_Verify.updateOne({ $push: { yes: user } })
+                return res.status(200).json({ Status: "OK" })
+
+            }
+
+        } else {
+            await Answer_Verify.updateOne({ $push: { no: user } })
+            //make this if answer is false make verified is fale or no to throught the user out from playing
+
+            const data = await StartValidmodule.findOne({ user });
+
+            if (data) {
+                data.valid = "no";
+                await data.save();
+            } else {
+                await StartValidmodule.create({ Time, user, valid: "no" });
+            }
+
+            const check_anyl_modl = await module_analysis_module.findOne({ sub_lang: Answer_Verify.sub_lang, tough: Answer_Verify.tough })
+
+            if (check_anyl_modl) {
+                await check_anyl_modl.updateOne({ $push: { no: user } })
+            } else {
+                await module_analysis_module.create({ sub_lang: Answer_Verify.sub_lang, tough: Answer_Verify.tough, yes: [], no: [user] })
+            }
+            const find_level_data = await Level_up_Module.findOne({ user });
+
+            if (!find_level_data) return;
+
+            const currentRank = parseInt(find_level_data.rank, 10);
+
+            // decrease by 1, but not below 0
+            const newRank = Math.max(currentRank - 1, 0);
+
+            find_level_data.rank = newRank.toString();
+            await find_level_data.save();
+
+            return res.status(200).json({ Status: "BAD" })
+
+        }
+    }
+    catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+})
+
+
+
+
+
+
+
+
+
+//1931
+app.post('/verify/answer/question/number/xs', authMiddleware, async (req, res) => {
+    const { answer, id, Ans } = req.body;
+
+    try {
+
+        const user = req.user
+
+        if (!answer && !user && !id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
+
+
+
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ Status: "BAD", success: false, message: "Invalid ObjectId format" });
+        }
+
+
+        function compareHash(plainText, hash) {
+            const plainHash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(plainText.toString())
+                .digest("hex");
+
+            return plainHash === hash;
+        }
+
+
+
+
+        const check_ans = compareHash(answer, Ans)
+
+        const Answer_Verify = await QuestionModule.findById({ _id: id })
+        const User_List = await QuestionListmodule.findOne({ user })
+
+        console.log(check_ans)
+
+        if (check_ans) {
+
+            const chk_y_n_t_d = await Check_y_n_t_Module.findOne({ user })
+            if (chk_y_n_t_d) {
+                chk_y_n_t_d.Qno = `${Answer_Verify.Qno} Verified`
+                await chk_y_n_t_d.save()
+            }
+
+
+            const get_t_data = await Seconds_Module.findOne({ category: Answer_Verify.sub_lang, Tough: Answer_Verify.tough })
+
+            const check_anyl_modl = await module_analysis_module.findOne({ sub_lang: Answer_Verify.sub_lang, tough: Answer_Verify.tough })
+
+            if (check_anyl_modl) {
+                await check_anyl_modl.updateOne({ $push: { yes: user } })
+            } else {
+                await module_analysis_module.create({ sub_lang: Answer_Verify.sub_lang, tough: Answer_Verify.tough, yes: [user], no: [] })
+            }
+
+
+
+            if (User_List.list.length === 1 || User_List.list.length === 0) {
+                await User_List.updateOne({ $pull: { list: User_List.list[0] } })
+                // await QuestionListmodule.updateOne(
+                //     { user },
+                //     { $pop: { list: -1 } }   // remove first element
+                // );
+
+                const won = await Wonmodule.find({})
+                const CuponDat = await Cuponmodule.findOne({ no: won.length + 1 })
+                if (CuponDat) {
+                    await Wonmodule.create({ Time, user, no: won.length + 1, ID: CuponDat._id })
+
+                    await Mycoinsmodule.create({
+                        Time: Time,
+                        title: CuponDat.title,
+                        img: CuponDat.img,
+                        user: user,
+                        type: CuponDat.type,
+                        stars: "No",
+                        body: CuponDat.body,
+                        valid: CuponDat.valid
+                    })
+                    //ki1931ck add code here
+                    const rank = toString(won.length + 1)
+                    await Answer_Verify.updateOne({ $push: { yes: user } })
+                    return res.status(200).json({ Status: "OKK", id: CuponDat._id, rank: rank });
+
+
+
+                } else {
+
+                    //if no cupondata it will add ranks
+
+
+                    await Wonmodule.create({ Time, user, no: won.length + 1, ID: "stars" })
+                    const get_user_balanc = await StarBalmodule.findOne({ user })
+
+
+                    // const sum = parseInt(get_user_balanc.balance) + parseInt(get_count_data.stars)
+
+                    if (get_user_balanc) {
+                        if (Answer_Verify?.tough === "Easy") {
+                            await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 10 })
+                            await Historymodule.create({ Time, user, rupee: "10", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "10", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "10", rank: rank });
+                        } else if (Answer_Verify?.tough === "Medium") {
+                            await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 14 })
+                            await Historymodule.create({ Time, user, rupee: "14", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "14", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "14", rank: rank });
+                        } else if (Answer_Verify?.tough === "Tough") {
+                            await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 20 })
+                            await Historymodule.create({ Time, user, rupee: "20", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "20", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "20", rank: rank });
+                        } else if (Answer_Verify?.tough === "Too Tough") {
+                            await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 30 })
+                            await Historymodule.create({ Time, user, rupee: "30", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "30", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "30", rank: rank });
+                        } else {
+                            await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 4 })
+                            await Historymodule.create({ Time, user, rupee: "4", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "4", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "4", rank: rank });
+                        }
+
+                    } else {
+                        if (Answer_Verify?.tough === "Easy") {
+                            await StarBalmodule.create({ Time, user: user, balance: "10".stars });
+                            await Historymodule.create({ Time, user, rupee: "10", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "10", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "10", rank: rank });
+                        } else if (Answer_Verify?.tough === "Medium") {
+                            await StarBalmodule.create({ Time, user: user, balance: "14".stars });
+                            await Historymodule.create({ Time, user, rupee: "14", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "14", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "14", rank: rank });
+                        } else if (Answer_Verify?.tough === "Tough") {
+                            await StarBalmodule.create({ Time, user: user, balance: "20".stars });
+                            await Historymodule.create({ Time, user, rupee: "20", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "20", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "20", rank: rank });
+                        } else if (Answer_Verify?.tough === "Too Tough") {
+                            await StarBalmodule.create({ Time, user: user, balance: "30".stars });
+                            await Historymodule.create({ Time, user, rupee: "30", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "30", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "30", rank: rank });
+                        } else {
+                            await StarBalmodule.create({ Time, user: user, balance: "4".stars });
+                            await Historymodule.create({ Time, user, rupee: "4", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "4", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "4", rank: rank });
+                        }
+
+                        // await StarBalmodule.create({Time, user : user, balance : get_count_data.stars});
+                        // await Historymodule.create({Time, user, rupee : get_count_data.stars, type : "Credited", tp : "Stars"});
+                        // return res.status(200).json({Status : "STARS", stars : get_count_data.stars});
+
+                    }
+
+                }
+
+
+
+            } else {
+                await User_List.updateOne({ $pull: { list: User_List.list[0] } })
+                await Answer_Verify.updateOne({ $push: { yes: user } })
+                return res.status(200).json({ Status: "OK" })
+
+            }
+
+        } else {
+            await Answer_Verify.updateOne({ $push: { no: user } })
+            //make this if answer is false make verified is fale or no to throught the user out from playing
+
+            const data = await StartValidmodule.findOne({ user });
+            const chk_y_n_t_d = await Check_y_n_t_Module.findOne({ user })
+            if (chk_y_n_t_d) {
+                chk_y_n_t_d.Qno = `${Answer_Verify.Qno} Not Verified`
+                await chk_y_n_t_d.save()
+            }
+
+            if (data) {
+                data.valid = "no";
+                await data.save();
+            } else {
+                await StartValidmodule.create({ Time, user, valid: "no" });
+            }
+
+            const check_anyl_modl = await module_analysis_module.findOne({ sub_lang: Answer_Verify.sub_lang, tough: Answer_Verify.tough })
+
+            if (check_anyl_modl) {
+                await check_anyl_modl.updateOne({ $push: { no: user } })
+            } else {
+                await module_analysis_module.create({ sub_lang: Answer_Verify.sub_lang, tough: Answer_Verify.tough, yes: [], no: [user] })
+            }
+            const find_level_data = await Level_up_Module.findOne({ user });
+
+            if (!find_level_data) return;
+
+            const currentRank = parseInt(find_level_data.rank, 10);
+
+            // decrease by 1, but not below 0
+            const newRank = Math.max(currentRank - 1, 0);
+
+            find_level_data.rank = newRank.toString();
+            await find_level_data.save();
+
+            return res.status(200).json({ Status: "BAD" })
+
+        }
+    }
+    catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+})
+
+
+const sec_qst_20_Schema = new mongoose.Schema({
+    user: {
+        type: String,
+        required: true
+    },
+
+    cat: {
+        type: String,
+        required: true
+    },
+
+    ob: {
+        type: String,   // good if this is a function name / label
+        default: ""
+    },
+
+    yes: {
+        type: [String], // array of strings (IDs, answers, etc.)
+        default: []
+    },
+
+    no: {
+        type: [String],
+        default: []
+    },
+
+    lst_sec: {
+        type: Number,
+        default: 0
+    },
+
+    lst_q_id: {
+        type: String,
+        default: ""
+    }
+
+}, { timestamps: true });
+
+const sng_qst_20_Module = mongoose.model('sng_cal_20', sec_qst_20_Schema);
+
+
+//1948
+app.post('/verify/answer/question/number/all/xs', authMiddleware, async (req, res) => {
+    const { answer, id, Ans, sec } = req.body;
+
+    try {
+
+
+
+
+        const user = req.user
+
+        const check_sec_vrf = await time_ans_Module.findOne({ user, Qno_ID: id })
+        check_sec_vrf.updatedAt = new Date();
+        check_sec_vrf.Qst_ans_tm = new Date();
+        check_sec_vrf.r_sec = parseInt(sec);
+        await check_sec_vrf.save()
+
+        if (!answer && !user && !id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
+
+        const STARS = sec
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ Status: "BAD", success: false, message: "Invalid ObjectId format" });
+        }
+
+        const data = await StartValidmodule.findOne({ user });
+        if (data.valid === "no") {
+            return res.status(200).json({ Status: "Ok", success: false, message: "Ok" });
+        }
+
+
+
+
+
+
+        function compareHash(plainText, hash) {
+            const plainHash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(plainText.toString())
+                .digest("hex");
+            return plainHash === hash;
+        }
+
+
+
+
+        const check_ans = compareHash(answer, Ans)
+
+        const Answer_Verify = await QuestionModule.findById({ _id: id })
+
+
+
+
+
+        const User_List = await QuestionListmodule.findOne({ user })
+
+
+        const data_clt = await monitor_cal_data_Module.findOne({ cat: Answer_Verify.sub_lang })
+
+        const time = check_sec_vrf.updatedAt - check_sec_vrf.createdAt
+        const timeDiffSeconds = Math.floor(time / 1000);
+        check_sec_vrf.cl_sec = timeDiffSeconds
+        await check_sec_vrf.save()
+
+        let up_sec_lst = await sng_qst_20_Module.findOne({
+            user,
+            cat: Answer_Verify.sub_lang
+        });
+
+        if (!up_sec_lst) {
+            up_sec_lst = await sng_qst_20_Module.create({
+                user,
+                cat: Answer_Verify.sub_lang,
+                yes: [],
+                no: [],
+                lst_sec: timeDiffSeconds,
+                lst_q_id: Answer_Verify._id
+            });
+        }
+
+        if (timeDiffSeconds > 25) res.status(200).json({ Status: "Cheated" })
+
+
+
+
+        if (check_ans) {
+
+
+
+            await data_clt.updateOne(
+                {}, // since only one document exists
+                {
+                    $push: {
+                        data: {
+                            user: user,
+                            seconds: STARS
+                        }
+                    }
+                }
+            )
+
+
+            // const exactSeconds = (check_sec_vrf.updatedAt - check_sec_vrf.createdAt) / 1000;
+
+            const diffMs = Math.floor(
+                (check_sec_vrf.updatedAt - check_sec_vrf.createdAt) / 1000
+            );   // milliseconds
+
+
+
+            if (check_sec_vrf.r_sec === -1) {
+                check_sec_vrf.cl_sec = diffMs
+                check_sec_vrf.r_sec = sec
+                await check_sec_vrf.save()
+            }
+
+
+            await up_sec_lst.updateOne({ $set: { lst_sec: STARS }, $push: { yes: user } })
+
+            if (User_List.list.length === 1 || User_List.list.length === 0) {
+                await User_List.updateOne({ $pull: { list: User_List.list[0] } })
+
+                // await QuestionListmodule.updateOne(
+                //     { user },bharathikethireddy
+                //     { $pop: { list: -1 } }   // remove first element
+                // );
+
+                const won = await Wonmodule.find({})
+                const CuponDat = await Cuponmodule.findOne({ no: won.length + 1 })
+                if (CuponDat) {
+                    await Wonmodule.create({ Time, user, no: won.length + 1, ID: CuponDat._id })
+
+                    await Mycoinsmodule.create({
+                        Time: Time,
+                        title: CuponDat.title,
+                        img: CuponDat.img,
+                        user: user,
+                        type: CuponDat.type,
+                        stars: "No",
+                        body: CuponDat.body,
+                        valid: CuponDat.valid
+                    })
+                    //ki1931ck add code here
+                    const rank = toString(won.length + 1)
+                    await Answer_Verify.updateOne({ $push: { yes: user } })
+
+                    const data = await StartValidmodule.findOne({ user });
+
+                    if (data) {
+                        data.valid = "no";
+                        await data.save();
+                    } else {
+                        await StartValidmodule.create({ Time, user, valid: "no" });
+                    }
+                    return res.status(200).json({ Status: "OKK", id: CuponDat._id, rank: rank });
+
+
+
+                } else {
+
+                    //if no cupondata it will add ranks
+                    //
+
+
+                    await Wonmodule.create({ Time, user, no: won.length + 1, ID: "stars" })
+                    const get_user_balanc = await StarBalmodule.findOne({ user })
+
+
+                    // const sum = parseInt(get_user_balanc.balance) + parseInt(get_count_data.stars)
+                    const starrrs = STARS * parseInt(Answer_Verify.x)
+
+                    const data = await StartValidmodule.findOne({ user });
+
+                    if (data) {
+                        data.valid = "no";
+                        await data.save();
+                    } else {
+                        await StartValidmodule.create({ Time, user, valid: "no" });
+                    }
+
+                    if (get_user_balanc) {
+                        await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + starrrs })
+                        await Historymodule.create({ Time, user, rupee: `${starrrs}`, type: "Credited", tp: "Stars" });
+                        await To_Admin_Historymodule.create({ Time, user, rupee: `${starrrs}`, type: "Credited", tp: "Stars" });
+                        const rank = toString(won.length + 1)
+                        await Answer_Verify.updateOne({ $push: { yes: user } })
+                        await profit_cal_data_update(user, "0", starrrs)
+                        await admin_noti(`Debeted ${starrrs}`, `To ${user}`)
+                        return res.status(200).json({ Status: "STARS", stars: `${starrrs}`, rank: rank });
+
+                    } else {
+                        await StarBalmodule.create({ Time, user: user, balance: `${starrrs}` });
+                        await Historymodule.create({ Time, user, rupee: `${starrrs}`, type: "Credited", tp: "Stars" });
+                        await To_Admin_Historymodule.create({ Time, user, rupee: `${starrrs}`, type: "Credited", tp: "Stars" });
+                        const rank = toString(won.length + 1)
+                        await Answer_Verify.updateOne({ $push: { yes: user } })
+                        await profit_cal_data_update(user, "0", starrrs)
+                        await admin_noti(`Debeted ${starrrs}`, `To ${user}`)
+                        return res.status(200).json({ Status: "STARS", stars: `${starrrs}`, rank: rank });
+
+                        // await StarBalmodule.create({Time, user : user, balance : get_count_data.stars});
+                        // await Historymodule.create({Time, user, rupee : get_count_data.stars, type : "Credited", tp : "Stars"});
+                        // return res.status(200).json({Status : "STARS", stars : get_count_data.stars});
+
+                    }
+
+                }
+
+
+
+            } else {
+                await admin_noti(`Lost the Game`, `User ${user}`)
+                await User_List.updateOne({ $pull: { list: User_List.list[0] } })
+                await Answer_Verify.updateOne({ $push: { yes: user } })
+                return res.status(200).json({ Status: "OK" })
+
+            }
+
+        } else {
+            await admin_noti(`Lost the Game`, `User ${user}`)
+            await data_clt.updateOne({ $push: { no: user } })
+            await up_sec_lst.updateOne({ $set: { lst_q_id: Answer_Verify._id }, $push: { no: user } })
+            await Answer_Verify.updateOne({ $push: { no: user } })
+            //make this if answer is false make verified is fale or no to throught the user out from playing
+
+
+
+            if (data) {
+                data.valid = "no";
+                await data.save();
+            } else {
+                await StartValidmodule.create({ Time, user, valid: "no" });
+            }
+            return res.status(200).json({ Status: "BAD" })
+
+        }
+    }
+    catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+})
+
+
+
+const IQ_Data_Schema = new mongoose.Schema({
+
+    Time: String,
+    user: String,
+    difi: String,
+    cat: String,
+    x: String,
+    per: String
+
+
+});
+
+
+const IQ_Data_Module = mongoose.model('IQ_Data', IQ_Data_Schema);
+
+
+
+
+
+
+//1931
+app.post('/verify/answer/question/number/xss', authMiddleware, async (req, res) => {
+    const { answer, id, sec, Ans } = req.body;
+
+    try {
+
+        const user = req.user
+
+
+        if (!answer && !user && !id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
+
+
+
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ Status: "BAD", success: false, message: "Invalid ObjectId format" });
+        }
+
+
+        function compareHash(plainText, hash) {
+            const plainHash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(plainText.toString())
+                .digest("hex");
+
+            return plainHash === hash;
+        }
+
+        const check_ans = compareHash(answer, Ans)
+
+        const Answer_Verify = await QuestionModule.findById({ _id: id })
+        const User_List = await QuestionListmodule.findOne({ user })
+
+        if (check_ans) {
+
+            const iq_data = await IQ_Data_Module.findOne({ user: user, difi: Answer_Verify.tough, cat: Answer_Verify.sub_lang })
+
+            if (!iq_data) {
+                await IQ_Data_Module.create({ Time, user, difi: Answer_Verify.tough, cat: Answer_Verify.sub_lang, x: id, per: sec.toString() })
+            } else {
+                const new_x = parseInt(iq_data.per) + parseInt(sec)
+                iq_data.per = new_x.toString()
+                iq_data.x = id
+                await iq_data.save()
+            }
+
+
+            if (User_List.list.length === 1 || User_List.list.length === 0) {
+                await User_List.updateOne({ $pull: { list: User_List.list[0] } })
+                // await QuestionListmodule.updateOne(
+                //     { user },
+                //     { $pop: { list: -1 } }   // remove first element
+                // );
+
+                const won = await Wonmodule.find({})
+                const CuponDat = await Cuponmodule.findOne({ no: won.length + 1 })
+                if (CuponDat) {
+                    await Wonmodule.create({ Time, user, no: won.length + 1, ID: CuponDat._id })
+
+                    await Mycoinsmodule.create({
+                        Time: Time,
+                        title: CuponDat.title,
+                        img: CuponDat.img,
+                        user: user,
+                        type: CuponDat.type,
+                        stars: "No",
+                        body: CuponDat.body,
+                        valid: CuponDat.valid
+                    })
+                    //ki1931ck add code here
+                    const rank = toString(won.length + 1)
+                    await Answer_Verify.updateOne({ $push: { yes: user } })
+                    return res.status(200).json({ Status: "OKK", id: CuponDat._id, rank: rank });
+
+
+
+                } else {
+
+                    //if no cupondata it will add ranks
+
+
+                    await Wonmodule.create({ Time, user, no: won.length + 1, ID: "stars" })
+                    const get_user_balanc = await StarBalmodule.findOne({ user })
+
+
+                    // const sum = parseInt(get_user_balanc.balance) + parseInt(get_count_data.stars)
+
+                    if (get_user_balanc) {
+                        await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 10 })
+                        await Historymodule.create({ Time, user, rupee: "10", type: "Credited", tp: "Stars" });
+                        await To_Admin_Historymodule.create({ Time, user, rupee: "10", type: "Credited", tp: "Stars" });
+                        const rank = toString(won.length + 1)
+                        await Answer_Verify.updateOne({ $push: { yes: user } })
+                        return res.status(200).json({ Status: "STARS", stars: "10", rank: rank });
+                    }
+
+
+
+
+
+                    if (get_user_balanc) {
+                        if (Answer_Verify?.tough === "Easy") {
+                            await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 10 })
+                            await Historymodule.create({ Time, user, rupee: "10", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "10", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "10", rank: rank });
+                        } else if (Answer_Verify?.tough === "Medium") {
+                            await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 14 })
+                            await Historymodule.create({ Time, user, rupee: "14", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "14", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "14", rank: rank });
+                        } else if (Answer_Verify?.tough === "Tough") {
+                            await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 20 })
+                            await Historymodule.create({ Time, user, rupee: "20", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "20", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "20", rank: rank });
+                        } else if (Answer_Verify?.tough === "Too Tough") {
+                            await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 30 })
+                            await Historymodule.create({ Time, user, rupee: "30", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "30", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "30", rank: rank });
+                        } else {
+                            await get_user_balanc.updateOne({ balance: parseInt(get_user_balanc.balance) + 4 })
+                            await Historymodule.create({ Time, user, rupee: "4", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "4", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "4", rank: rank });
+                        }
+
+                    } else {
+                        if (Answer_Verify?.tough === "Easy") {
+                            await StarBalmodule.create({ Time, user: user, balance: "10".stars });
+                            await Historymodule.create({ Time, user, rupee: "10", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "10", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "10", rank: rank });
+                        } else if (Answer_Verify?.tough === "Medium") {
+                            await StarBalmodule.create({ Time, user: user, balance: "14".stars });
+                            await Historymodule.create({ Time, user, rupee: "14", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "14", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "14", rank: rank });
+                        } else if (Answer_Verify?.tough === "Tough") {
+                            await StarBalmodule.create({ Time, user: user, balance: "20".stars });
+                            await Historymodule.create({ Time, user, rupee: "20", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "20", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "20", rank: rank });
+                        } else if (Answer_Verify?.tough === "Too Tough") {
+                            await StarBalmodule.create({ Time, user: user, balance: "30".stars });
+                            await Historymodule.create({ Time, user, rupee: "30", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "30", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "30", rank: rank });
+                        } else {
+                            await StarBalmodule.create({ Time, user: user, balance: "4".stars });
+                            await Historymodule.create({ Time, user, rupee: "4", type: "Credited", tp: "Stars" });
+                            await To_Admin_Historymodule.create({ Time, user, rupee: "4", type: "Credited", tp: "Stars" });
+                            const rank = toString(won.length + 1)
+                            await Answer_Verify.updateOne({ $push: { yes: user } })
+                            return res.status(200).json({ Status: "STARS", stars: "4", rank: rank });
+                        }
+
+                        // await StarBalmodule.create({Time, user : user, balance : get_count_data.stars});
+                        // await Historymodule.create({Time, user, rupee : get_count_data.stars, type : "Credited", tp : "Stars"});
+                        // return res.status(200).json({Status : "STARS", stars : get_count_data.stars});
+
+                    }
+
+                }
+
+
+
+            } else {
+                await User_List.updateOne({ $pull: { list: User_List.list[0] } })
+                return res.status(200).json({ Status: "OK" })
+            }
+
+        } else {
+            //make this if answer is false make verified is fale or no to throught the user out from playing
+
+            const data = await StartValidmodule.findOne({ user });
+            if (data) {
+                data.valid = "no";
+                await data.save();
+            } else {
+                await StartValidmodule.create({ Time, user, valid: "no" });
+            }
+            return res.status(200).json({ Status: "BAD" })
+
+        }
+    }
+    catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+})
+
+
+
 
 
 
@@ -4033,10 +6103,10 @@ app.get("/get/singel/user/won/data/:no", async (req, res) => {
 })
 
 
-app.get("/users/name/and/more/get/:id", authMiddleware, async (req, res) => {
-    const id = req.params.id;
+app.get("/users/name/and/more/get/id", authMiddleware, async (req, res) => {
 
     try {
+        const id = req.user;
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ success: false, message: "Invalid ObjectId format" });
         }
@@ -4066,12 +6136,6 @@ app.get("/users/name/and/more/get/:id", authMiddleware, async (req, res) => {
 
 app.get('/exact/time/by/new', async (req, res) => {
     try {
-        const now = new Date();
-
-        // Extract year, month, and day
-        const year = now.getFullYear();
-        const month = (now.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-indexed
-        const day = now.getDate().toString().padStart(2, '0');
 
         // Format the date as "YYYY-MM-DD"
         const formattedDate = `${year}-${month}-${day}`;
@@ -4239,58 +6303,6 @@ app.get("/trial/get/data/:data", async (req, res) => {
 });
 
 
-// app.get("/trial/get/data/:data", async (req, res)=>{
-//     const data = req.params.data
-//     try {
-
-//         // Find the first document where count is greater than or equal to the specified value
-//         const get_count_data6 = await StarsCountmodule.findOne({stars : "6"});
-//         const get_count_data5 = await StarsCountmodule.findOne({stars : "5"});
-//         const get_count_data4 = await StarsCountmodule.findOne({stars : "4"});
-//         const get_count_data3 = await StarsCountmodule.findOne({stars : "3"});
-//         const get_count_data2 = await StarsCountmodule.findOne({stars : "2"});
-//         const get_count_data1 = await StarsCountmodule.findOne({stars : "1"});
-
-//         if(parseInt(get_count_data6.count) >= parseInt(data)){
-//             return res.status(200).json({Data : get_count_data6.stars})
-//         }else if(parseInt(get_count_data5.count) >= parseInt(data)){
-//             return res.status(200).json({Data : get_count_data5.stars})
-//         }else if(parseInt(get_count_data4.count) >= parseInt(data)){
-//             return res.status(200).json({Data : get_count_data4.stars})
-//         }
-//         else if(parseInt(get_count_data3.count) >= parseInt(data)){
-//             return res.status(200).json({Data : get_count_data3.stars})
-//         }else if(parseInt(get_count_data2.count) >= parseInt(data)){
-//             return res.status(200).json({Data : get_count_data2.stars})
-//         }else if(parseInt(get_count_data1.count) >= parseInt(data)){
-//             return res.status(200).json({Data : get_count_data1.stars})
-//         }else{
-//             console.log("none")
-//         }
-
-//         // Return the result as a JSON response
-//     } catch (error) {
-//         console.log(error);
-//         return res.status(500).json({ message: "Internal Server Error" });
-//     }
-// })
-
-// app.get("/get/all/users/usernames/by/id/to/update/balance", async (req, res) => {
-//     try {
-//         const users = await Usermodule.find({});
-//         const usersList = users.map((data) => {
-//             return {
-//                 id: data._id,
-//                 username: data.username,
-//             };
-//         });
-//         return res.status(200).json({ users: usersList });
-//     } catch (error) {
-//         console.log(error);
-//         return res.status(500).json({ message: "Internal Server Error" });
-//     }
-// });
-
 
 const Trans_UTR_Schema = new mongoose.Schema({
     Time: String,
@@ -4395,7 +6407,7 @@ app.get("/get/language/datas/all/get/:user", async (req, res) => {
 
 
 
-app.delete('/get/language/datas/all/get/and/delete', authMiddleware , async (req, res) => {
+app.delete('/get/language/datas/all/get/and/delete', authMiddleware, async (req, res) => {
     const user = req.user;
     try {
         if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
@@ -4412,22 +6424,6 @@ app.delete('/get/language/datas/all/get/and/delete', authMiddleware , async (req
         return res.status(500).json({ message: "Internal Server Error" });
     }
 })
-
-// app.get('/get/languages/data/with/questions/:user', async (req, res) =>{
-//     const user = req.params.user
-//     try{
-//         const users = await LanguageSelectModule.findOne({user : user})
-//         const data = users.lang 
-//         const selQue = await QuestionListmodule.find({})
-//         return res.status(200).json({data})
-
-
-
-//     }catch (error) {
-//         console.error("Error:", error);
-//         return res.status(500).json({ message: "Internal Server Error"});
-//     }
-// })
 
 
 
@@ -4644,173 +6640,6 @@ app.post("/create-order", async (req, res) => {
 
 
 
-// app.post(
-//   "/razorpay/webhook",
-//   express.raw({ type: "application/json" }), // 👈 ensures req.body is Buffer
-//   async (req, res) => {
-//     const secret = "k7ZQ10G2vSdP3vilTZ83a4GS";
-//     const signature = req.headers["x-razorpay-signature"];
-
-//     try {
-//       const rawBodyBuffer = req.body;
-
-//       if (!Buffer.isBuffer(rawBodyBuffer)) {
-//         throw new Error("Invalid raw body: not a Buffer");
-//       }
-
-//       // ✅ HMAC signature generation
-//       const expectedSignature = crypto
-//         .createHmac("sha256", secret)
-//         .update(rawBodyBuffer) // must be a Buffer or string
-//         .digest("hex");
-
-//       if (expectedSignature !== signature) {
-//         console.log("❌ Invalid signature");
-//         return res.status(400).json({ success: false, message: "Invalid signature" });
-//       }
-
-//       // ✅ Parse JSON after signature verified
-//       const data = JSON.parse(rawBodyBuffer.toString("utf8"));
-//       const payment = data?.payload?.payment?.entity;
-
-//       if (!payment || payment.status !== "captured") {
-//         console.log("❗ Payment not captured or missing");
-//         return res.status(200).json({ success: false });
-//       }
-
-//       const user = payment.notes?.user;
-//       if (!user) {
-//         console.log("⚠️ User missing in notes");
-//         return res.status(400).json({ success: false, message: "User not found in notes" });
-//       }
-
-//       // ✅ Proceed with DB updates...
-//       const fees = await Rupeemodule.findOne({ username: "admin" });
-//       const userData = await Balancemodule.findOne({ user });
-
-//       if (!userData) {
-//         return res.status(404).json({ success: false, message: "User not found" });
-//       }
-
-//       const creditAmount = parseInt(fees?.rupee || "0");
-//       userData.balance += creditAmount;
-//       await userData.save();
-
-//       await Historymodule.create({
-//         Time: new Date().toISOString(),
-//         user,
-//         rupee: creditAmount,
-//         type: "Credited",
-//         tp: "Rupee",
-//       });
-
-//       console.log(`✅ Credited ₹${creditAmount} to user: ${user}`);
-//       return res.status(200).json({ success: true });
-//     } catch (err) {
-//       console.error("❌ Webhook processing error:", err);
-//       return res.status(500).json({ success: false });
-//     }
-//   }
-// );
-
-
-// Route to create an order
-
-
-
-
-
-
-// app.post("/create-order", async (req, res) => {
-//     try {
-//         const { amount, currency } = req.body;
-
-//         const fees = await Rupeemodule.findOne({ username: "admin" });
-
-//         const options = {
-//             amount: fees.rupee * 100, // Amount in smallest currency unit (e.g., paise for INR)
-//             currency: currency || "INR",
-//         };
-
-
-
-//         const order = await razorpay.orders.create(options);
-
-//         console.log(order)
-//         res.status(200).json({ success: true, order });
-//     } catch (error) {
-//         console.log(error);
-//         return res.status(500).json({ message: "Internal Server Error" });
-//     }
-// });
-
-// Route to verify payment
-// app.post("/verify-payment", async (req, res) => {
-//     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, user } = req.body;
-
-//     try {
-//         const crypto = require("crypto");
-//         const hmac = crypto.createHmac("sha256", "k7ZQ10G2vSdP3vilTZ83a4GS");
-
-//         const fees = await Rupeemodule.findOne({ username: "admin" });
-
-//         hmac.update(razorpay_order_id + "|" + razorpay_payment_id);
-//         const generatedSignature = hmac.digest("hex");
-
-//         if (generatedSignature === razorpay_signature) {
-//             const data = await Balancemodule.findOne({ user: user })
-//             if (data) {
-//                 sum = parseInt(fees.rupee) + parseInt(data.balance)
-//                 data.balance = sum
-//                 await data.save()
-//                 await Historymodule.create({ Time, user, rupee: fees.rupee, type: "Credited", tp: "Rupee" });
-//                 res.status(200).json({ success: true, message: "Payment verified successfully" });
-//             } else {
-//                 return res.status(202).json({ Status: "NO" });
-//             }
-//         } else {
-//             res.status(400).json({ success: false, message: "Payment verification failed" });
-//         }
-//     } catch (error) {
-//         console.log(error);
-//         return res.status(500).json({ message: "Internal Server Error" });
-//     }
-
-
-// });
-
-
-
-// app.post("/verify/and/add/user/data/to/ac", authMiddleware, async (req, res) => {
-//     try {
-//         const { user } = req.body;
-
-//         if (!user) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
-
-//         const fees = await Rupeemodule.findOne({ username: "admin" }).lean();
-
-//         const data = await Balancemodule.findOne({ user: user })
-//         if (data) {
-//             sum = parseInt(fees.rupee) + parseInt(data.balance)
-//             data.balance = sum
-//             await data.save()
-//             await Historymodule.create({ Time, user, rupee: fees.rupee, type: "Credited", tp: "Rupee" });
-//             res.status(200).json({ Status: "OK", message: "Payment verified successfully", rs: fees.rupee });
-//         } else {
-//             return res.status(202).json({ Status: "NO" });
-//         }
-//     } catch (error) {
-//         console.log(error);
-//         return res.status(500).json({ message: "Internal Server Error" });
-//     }
-// })
-
-
-
-// Route to verify payment
-
-
-
 
 
 app.post("/verify-payment", async (req, res) => {
@@ -4851,154 +6680,7 @@ app.post("/verify-payment", async (req, res) => {
 
 
 
-// // RAW body middleware for webhook
-// app.post("/razorpay/webhook", express.raw({ type: "application/json" }), async (req, res) => {
-//   const secret = "dp793tI70CWW7hRlzNklvbKt"; // Razorpay Secret Key
-//   const signature = req.headers["x-razorpay-signature"];
 
-//   const generated_signature = crypto
-//     .createHmac("sha256", secret)
-//     .update(req.body)
-//     .digest("hex");
-
-//   if (signature === generated_signature) {
-//     try {
-//       const payload = JSON.parse(req.body);
-//       const payment = payload.payload?.payment?.entity;
-
-//       if (payment && payment.status === "captured") {
-//         const razorpay_order_id = payment.order_id;
-//         const razorpay_payment_id = payment.id;
-//         const amount = payment.amount; // in paise
-
-//         // 👇 Pull user from payment.notes.user (if you set it during order creation)
-//         const user = payment.notes?.user;
-//         if (!user) return res.status(400).json({ error: "User info missing in notes" });
-
-//         const fees = await Rupeemodule.findOne({ username: "admin" });
-//         const data = await Balancemodule.findOne({ user });
-
-//         if (data) {
-//           const sum = parseInt(fees.rupee) + parseInt(data.balance);
-//           data.balance = sum;
-//           await data.save();
-
-//           await Historymodule.create({
-//             Time: new Date().toISOString(),
-//             user,
-//             rupee: fees.rupee,
-//             type: "Credited",
-//             tp: "Rupee"
-//           });
-
-//           console.log(`✅ Webhook payment success for user: ${user}`);
-//           return res.status(200).json({ success : true });
-//         } else {
-//           console.log("⚠️ User balance data not found");
-//           return res.status(404).json({ error: "User balance not found" });
-//         }
-//       } else {
-//         return res.status(200).json({ message: "Payment not captured or invalid" });
-//       }
-//     } catch (error) {
-//       console.error("Webhook Error:", error);
-//       return res.status(500).json({ error: "Webhook processing failed" });
-//     }
-//   } else {
-//     console.log("❌ Invalid webhook signature");
-//     return res.status(400).json({ error: "Invalid signature" });
-//   }
-// });
-
-
-// Important: register this BEFORE any other body-parser (like express.json())
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// app.post("/razorpay/webhook", async (req, res) => {
-//   const secret = "dp793tI70CWW7hRlzNklvbKt"; // Razorpay Secret Key
-//   const signature = req.headers["x-razorpay-signature"];
-
-//   try {
-//     const generated_signature = crypto
-//       .createHmac("sha256", secret)
-//       .update(req.rawBody) // ✅ Use raw body for signature
-//       .digest("hex");
-
-//     if (signature !== generated_signature) {
-//       console.log("❌ Invalid webhook signature");
-//       return res.status(400).json({ success: false, error: "Invalid signature" });
-//     }
-
-//     const payment = req.body?.payload?.payment?.entity;
-
-//     if (!payment || payment.status !== "captured") {
-//       return res.status(200).json({ success: false, message: "Payment not captured or invalid" });
-//     }
-
-//     const razorpay_order_id = payment.order_id;
-//     const razorpay_payment_id = payment.id;
-//     const amount = payment.amount;
-
-//     const user = payment.notes?.user;
-//     if (!user) {
-//       console.log("⚠️ User info missing in Razorpay notes");
-//       return res.status(400).json({ success: false, error: "User info missing in notes" });
-//     }
-
-//     const fees = await Rupeemodule.findOne({ username: "admin" });
-//     const data = await Balancemodule.findOne({ user });
-
-//     if (!data) {
-//       console.log("⚠️ User balance data not found");
-//       return res.status(404).json({ success: false, error: "User balance not found" });
-//     }
-
-//     const sum = parseInt(fees.rupee) + parseInt(data.balance);
-//     data.balance = sum;
-//     await data.save();
-
-//     await Historymodule.create({
-//       Time: new Date().toISOString(),
-//       user,
-//       rupee: fees.rupee,
-//       type: "Credited",
-//       tp: "Rupee"
-//     });
-
-//     console.log(`✅ Webhook payment success for user: ${user}`);
-//     return res.status(200).json({ success: true, message: "Balance credited" });
-
-//   } catch (error) {
-//     console.error("Webhook processing error:", error);
-//     return res.status(500).json({ success: false, error: "Internal server error" });
-//   }
-// });
-
-
-
-const user_login_admin_Schema = new mongoose.Schema({
-    Time: String,
-    username: String,
-    password: String,
-    language: String,
-    email: String
-}, { timestamps: true });
-
-const Employeloginmodule = mongoose.model('Employes_data', user_login_admin_Schema);
 
 
 const users_otpSchema = new mongoose.Schema({
@@ -5010,217 +6692,10 @@ const users_otpSchema = new mongoose.Schema({
 const Employeotpmodule = mongoose.model('Employes_otp', users_otpSchema);
 
 
-app.post("/get/employe/login/data/create/new", async (req, res) => {
-    const { username, password, email, language } = req.body;
-    try {
-        if (!username && !password && !email && !language) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
 
-        const findDocu = await Employeloginmodule.findOne({ username }).lean();
-        if (!findDocu) {
-            const hash = await bcrypt.hash(password, 10);
-            await Employeloginmodule.create({ Time, username, email, password: hash, language })
-            return res.status(200).json({ Status: "OK" })
-        } else {
-            return res.status(200).json({ Status: "IN" })
-        }
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
-})
-
-app.get('/get/all/total/users/data/from/admins/super', adminMiddleware, async (req, res) => {
-    try {
-        const user = await Employeloginmodule.find({}).lean();
-        const data = user.map(dat => ({
-            user: dat.username,
-            email: dat.email,
-            lang: dat.language
-        }))
-        return res.json({ data })
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
-})
-
-app.post('/get/and/login/users/admin/pages/auth', async (req, res) => {
-    const { username, password } = req.body;
-    try {
-        if (!username && !password) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
-
-        const OTP = generateOTP()
-        const find_One = await Employeloginmodule.findOne({ username }).lean();
-        if (find_One) {
-            const isMatch = await bcrypt.compare(password, find_One.password);
-            const inorno = await Employeotpmodule.findOne({ username });
-            if (isMatch) {
-                if (inorno) {
-                    await inorno.deleteOne()
-                }
-                const data = await Employeotpmodule.create({ Time, username, otp: OTP })
-
-
-                let mailOptions = {
-                    from: 'stawropuzzle@gmail.com', // Sender address
-                    to: `${find_One.email}`, // List of recipients
-                    subject: `stawro, Admin Login OTP`, // Subject line
-                    text: '', // Plain text body
-                    html: `
-                    
-                    <html lang="en">
-                        <head>
-                            <meta charset="UTF-8">
-                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                            <meta http-equiv="refresh" content="30" />
-                            <title>Document</title>
-                            <style>
-            
-                                @import url('https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@400;700&display=swap');
-            
-            
-                                .email-main-cnt-01{
-                                    width: 95%;
-                                    justify-content: center;
-                                    margin: auto;
-                                }
-            
-                                .email-cnt-01{
-                                    width: 90%;
-                                    height: auto;
-                                    display: flex;
-                                    margin: 10px;
-                                }
-            
-                                .email-cnt-01 div{
-                                    width: 50px;
-                                    height: 50px;
-                                    overflow: hidden;
-                                    border-radius: 50%;
-                                    border: 1px solid;
-                                    
-                                }
-            
-                                .email-cnt-01 div img{
-                                    width: 100%;
-                                    height: 100%;
-                                    object-fit: cover;
-                                }
-            
-                                .email-cnt-01 strong{
-                                    font-family: Inknut Antiqua;
-                                    margin-left: 10px;
-                                }
-            
-                                .email-cnt-btn-01{
-                                    width: 120px;
-                                    height: 30px;
-                                    margin: 10px;
-                                    color: aliceblue;
-                                    background-color: rgb(5, 148, 195);
-                                    border: 1px solid;
-                                    border-radius: 5px;
-                                    cursor: pointer;
-                                }
-            
-            
-                            </style>
-                        </head>
-                        <body>
-                            <div class="email-main-cnt-01">
-                                <div class="email-cnt-01">
-                                    <strong>stawro</strong>
-                                </div>
-                                <div class="email-cnt-02">
-                                    <span>Hello, Dear <strong>${data.username}</strong> </span><br/>
-                                    <p>Welcome to stawro.<br/>
-                                    Login using OTP Authentication, Dont share With anyone, ${data.otp}</p><br/>
-                                        
-                                    <strong>${data.otp}</strong><br/>
-                         
-                                    <strong>Thank you</strong>
-            
-                                </div>
-                            </div>
-                            
-                        </body>
-                        </html>
-            
-                    ` // HTML body
-                };
-
-                // Send email
-                transporter.sendMail(mailOptions, (error, info) => {
-                    if (error) {
-                        console.log(error);
-                        return res.status(202).json({ message: "Something went Wrong" })
-                    }
-
-                    return res.status(200).json({ Status: "OK", data: data._id })
-                });
-
-            } else {
-                return res.status(200).json({ Status: "BAD" })
-            }
-        } else {
-            return res.status(200).json({ Status: "NO" })
-        }
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
-})
-
-
-app.post("/verify/users/language/modele/and/otp", async (req, res) => {
-    const { otp, id } = req.body;
-    try {
-        const find_one = await Employeotpmodule.findById({ _id: id })
-        const get_one = await Employeloginmodule.findOne({ username: find_one.username })
-        if (parseInt(find_one.otp) === parseInt(otp)) {
-            await find_one.deleteOne()
-            const token = jwt.sign({ id: get_one._id }, "kanna_stawro_founrs_withhh_1931_liketha", { expiresIn: "2h" });
-            return res.status(200).json({ Status: "OK", Token: token, ssid: get_one._id })
-        } else {
-            return res.status(200).json({ Status: "BAD" })
-        }
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
-})
 
 // Start From Here
 
-app.get('/get/user/admin/languages/to/post/:id', users_admin_Middle, async (req, res) => {
-    const id = req.params.id;
-
-    try {
-        if (!id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
-
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ success: false, message: "Invalid ObjectId format" });
-        }
-
-        const get_user = await Employeloginmodule.findById(id).lean();
-
-        if (get_user) {
-            const data = {
-                lang: get_user.language,
-                user: get_user.username
-            }
-            return res.status(200).json({
-                data
-
-            });
-        } else {
-            return res.status(404).json({ success: false, message: "User not found" });
-        }
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
-});
 
 
 
@@ -5242,103 +6717,8 @@ const Questions_usersSchema = new mongoose.Schema({
 
 const Users_Questionsmodule = mongoose.model('Questions_users', Questions_usersSchema);
 
-app.post('/get/a/users/admin/posted/questions/from/all/users', users_admin_Middle, async (req, res) => {
-    const { user, img, Questio, a, b, c, d, Ans, tough, seconds } = req.body;
-
-    try {
-
-        if (!user && !img && !Questio && !a && !b && !c && !d && !Ans && !tough && !seconds) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
-
-        if (!mongoose.Types.ObjectId.isValid(user)) {
-            return res.status(400).json({ success: false, message: "Invalid ObjectId format" });
-        }
-
-        const User_Admin_lang_get = await Employeloginmodule.findById(user).lean()
-        const lang = User_Admin_lang_get.language
-
-        const find_usrs = await Users_Questionsmodule.find({ user: User_Admin_lang_get.username }).lean();
-
-        const questionExists = find_usrs.some((item) => item.Questio === Questio);
-
-        if (!questionExists) {
-            // Add the question to the database
-            const newQuestion = await Users_Questionsmodule.create({
-                user: User_Admin_lang_get.username,
-                img,
-                Questio,
-                qno: find_usrs.length + 1, // Increment question number based on existing questions
-                a,
-                b,
-                c,
-                d,
-                Ans,
-                lang,
-                tough,
-                seconds,
-                Time: Time // Automatically set the current time
-            });
-
-            return res.status(201).json({
-                Status: "OK", qno: newQuestion.qno
-            });
-        } else {
-            // Return a response indicating the question already exists
-            return res.status(200).json({ Status: "IN" });
-        }
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
-});
-
-app.get('/get/admin/sub/users/posted/datas/011/:id', users_admin_Middle, async (req, res) => {
-    const id = req.params.id;
-    try {
-
-        if (!id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
-
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ success: false, message: "Invalid ObjectId format" });
-        }
-
-        const get_user = await Employeloginmodule.findById(id).lean()
-        const data = await Users_Questionsmodule.find({ user: get_user.username }).lean()
-        if (data) {
-            return res.status(200).json({ data })
-        } else {
-            return res.status(200).json({ Status: "BAD" })
-        }
-
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
-})
 
 
-app.delete('/delete/users/admin/qno/from/admin/users/:id', async (req, res) => {
-    const { id } = req.params;
-
-    try {
-
-        if (!id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
-
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ success: false, message: "Invalid ObjectId format" });
-        }
-
-        const deletedData = await Users_Questionsmodule.findByIdAndDelete(id);
-
-        if (!deletedData) {
-            return res.status(404).json({ success: false, message: "Data not found" });
-        }
-
-        return res.status(200).json({ Status: "OK" });
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
-});
 
 app.get('/admin/get/tottal/users/created/questions', adminMiddleware, async (req, res) => {
     try {
@@ -5425,72 +6805,6 @@ app.post('/get/data/and/post/users/selected/data/to/db', async (req, res) => {
     }
 });
 
-
-app.get('/get/wallet/amount/credits/links/by/:id', users_admin_Middle, async (req, res) => {
-    const id = req.params.id;
-
-    try {
-
-        if (!id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
-
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ success: false, message: "Invalid ObjectId format" });
-        }
-
-        // Find the employee by ID
-        const get_name = await Employeloginmodule.findById(id).lean();
-
-        if (!get_name) {
-            return res.status(404).json({ message: "Employee not found" });
-        }
-
-        // Find the question summary for the user
-        const find_one = await Quest_summerymodule.findOne({ user: get_name.username }).lean();
-
-        if (!find_one || !find_one.Qno_sel) {
-            return res.status(404).json({ message: "No question summary found for this user" });
-        }
-
-        // Fetch all questions based on IDs in Qno_sel
-
-        let intd = 0; // Use `let` instead of `const` for mutable variables
-
-        const List = await Promise.all(
-            find_one.Qno_sel.map(async (questionId) => {
-                const dat = await QuestionModule.findById(questionId);
-                return dat?.no?.length - 1 || 0; // Safely handle undefined 'yes'
-            })
-        );
-
-        let inte = 0;
-
-        const List1 = await Promise.all(
-            find_one.Qno_sel.map(async (questionId) => {
-                const dat = await QuestionModule.findById(questionId);
-                return dat?.yes?.length - 1 || 0; // Safely handle undefined 'yes'
-            })
-        );
-
-        // Accumulate the total 'yes' lengths
-        intd = List.reduce((sum, length) => sum + length, 0);
-        inte = List1.reduce((sum, length) => sum + length, 0);
-
-        // Respond with the summary and questions
-        const Rupee = (find_one.Qno_sel.length + intd)
-        const Datas = {
-            Out: intd,
-            Ans: inte,
-            Rupee: Rupee,
-            Total_Quest: find_one.Qno_sel.length
-        }
-        return res.status(200).json({ Datas });
-
-    } catch (error) {
-        console.error("Error:", error);
-        return res.status(500).json({ message: "Internal Server Error" });
-
-    }
-});
 
 
 
@@ -5661,370 +6975,10 @@ const ResetOTPSchema = new mongoose.Schema(
 const ResetOTPModel = mongoose.model("Reset_Pass_OTP", ResetOTPSchema);
 
 
-// Send OTP to user
-const sendOTP = async (req, res) => {
-    try {
-        const { id } = req.body;
-        if (!id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
 
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ success: false, message: "Invalid ObjectId format" });
-        }
 
-        const user = await Usermodule.findById(id).lean();
 
-        if (!user) return res.status(404).json({ message: "User not found" });
 
-        const otp = generateOTP();
-        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // OTP expires in 10 mins
-
-        const check_old_otp = await ResetOTPModel.findOne({ user: user.email })
-
-        if (check_old_otp) {
-            await check_old_otp.deleteOne();
-        }
-
-        // Save OTP in database
-        await ResetOTPModel.create({ user: user.email, otp, expiresAt });
-
-        // TODO: Send OTP via Email/SMS
-        let mailOptions = {
-            from: 'stawropuzzle@gmail.com', // Sender address
-            to: `${user.email}`, // List of recipients
-            subject: `stawro, OTP`, // Subject line
-            text: '', // Plain text body
-            html: `
-        
-        <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <meta http-equiv="refresh" content="30" />
-                <title>Document</title>
-                <style>
-
-                    @import url('https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@400;700&display=swap');
-
-
-                    .email-main-cnt-01{
-                        width: 95%;
-                        justify-content: center;
-                        margin: auto;
-                    }
-
-                    .email-cnt-01{
-                        width: 90%;
-                        height: auto;
-                        display: flex;
-                        margin: 10px;
-                    }
-
-                    .email-cnt-01 div{
-                        width: 50px;
-                        height: 50px;
-                        overflow: hidden;
-                        border-radius: 50%;
-                        border: 1px solid;
-                        
-                    }
-
-                    .email-cnt-01 div img{
-                        width: 100%;
-                        height: 100%;
-                        object-fit: cover;
-                    }
-
-                    .email-cnt-01 strong{
-                        font-family: Inknut Antiqua;
-                        margin-left: 10px;
-                    }
-
-                    .email-cnt-btn-01{
-                        width: 120px;
-                        height: 30px;
-                        margin: 10px;
-                        color: aliceblue;
-                        background-color: rgb(5, 148, 195);
-                        border: 1px solid;
-                        border-radius: 5px;
-                        cursor: pointer;
-                    }
-
-
-                </style>
-            </head>
-            <body>
-                <div class="email-main-cnt-01">
-                    <div class="email-cnt-01">
-                        <strong>stawro</strong>
-                    </div>
-                    <div class="email-cnt-02">
-                        <span>Hello, Dear <strong>${user.username}</strong> </span><br/>
-                        <p>Welcome to stawro.<br/>
-                        OTP to update new Password , Dont share With anyone, ${otp}</p><br/>
-                            
-                        <strong>${otp}</strong><br/>
-             
-                        <strong>Thank you</strong>
-
-                    </div>
-                </div>
-                
-            </body>
-            </html>
-
-        ` // HTML body
-        };
-
-        // Send email
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                console.log(error);
-                return res.status(202).json({ message: "Something went Wrong" })
-            }
-
-            return res.status(200).json({ Status: "OK" })
-        });
-
-        res.json({ message: "OTP sent successfully" });
-    } catch (error) {
-        res.status(500).json({ error: "Failed to send OTP" });
-    }
-};
-
-// Verify OTP
-const verifyOTP = async (req, res) => {
-    try {
-        const { id, otp } = req.body;
-
-        if (!id && !otp) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
-
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ success: false, message: "Invalid ObjectId format" });
-        }
-
-        const user = await Usermodule.findById(id).lean()
-        const otpRecord = await ResetOTPModel.findOne({ user: user.email, otp });
-
-        if (!otpRecord) return res.status(400).json({ message: "Invalid OTP" });
-        if (new Date() > otpRecord.expiresAt)
-            return res.status(400).json({ message: "OTP expired" });
-
-        // OTP verified, delete record
-        await ResetOTPModel.deleteOne({ _id: otpRecord._id });
-
-        res.json({ message: "OTP verified, proceed to reset password" });
-    } catch (error) {
-        res.status(500).json({ error: "OTP verification failed" });
-    }
-};
-
-
-
-
-// Reset Password
-const resetPassword = async (req, res) => {
-    try {
-        const { id, oldPassword, newPassword } = req.body;
-
-        if (!id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
-
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ success: false, message: "Invalid ObjectId format" });
-        }
-
-        const user = await Usermodule.findById(id);
-
-        if (!user) return res.status(404).json({ message: "User not found" });
-
-        // Check if oldPassword is provided (for normal password change)
-        if (oldPassword) {
-            const isMatch = await bcrypt.compare(oldPassword, user.pass);
-            if (!isMatch) return res.status(400).json({ message: "Incorrect old password" });
-        }
-
-        // Hash new password
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-        user.pass = hashedPassword;
-        await user.save();
-
-        res.status(200).json({ message: "Password updated successfully" });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Failed to reset password" });
-    }
-};
-
-
-
-// Reset Password
-const resetPasswordWithOTP = async (req, res) => {
-    try {
-        const { data, otp, newPassword } = req.body;
-
-        if (!data && !otp && !newPassword) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
-
-
-        // Find user by username or email
-        const user = await Usermodule.findOne({
-            $or: [{ username: data.trim() }, { email: data.trim() }]
-        });
-
-        if (!user) return res.status(404).json({ message: "User not found" });
-
-        // Verify OTP
-        const otpRecord = await ResetOTPModel.findOne({ user: user.email, otp });
-        if (!otpRecord) return res.status(400).json({ message: "Invalid OTP" });
-        if (new Date() > otpRecord.expiresAt) {
-            return res.status(400).json({ message: "OTP expired" });
-        }
-
-        // Delete OTP record after successful verification
-        await ResetOTPModel.deleteOne({ _id: otpRecord._id });
-
-        // Hash new password
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-        user.pass = hashedPassword;
-        await user.save();
-
-        res.status(200).json({ message: "OTP verified, password updated successfully" });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Failed to reset password" });
-    }
-};
-
-
-const sendForgot_otp = async (req, res) => {
-    try {
-        const { data } = req.body;
-
-        if (!data) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
-
-        // Find user by email or username
-        const user = await Usermodule.findOne({
-            $or: [{ username: data.trim() }, { email: data.trim() }]
-        });
-
-        if (!user) return res.status(404).json({ message: "User not found" });
-
-        const otp = generateOTP();
-        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // OTP expires in 10 mins
-
-        // Save OTP in database
-        await ResetOTPModel.create({ user: user.email, otp, expiresAt });
-
-        // TODO: Send OTP via Email/SMS
-        let mailOptions = {
-            from: 'stawropuzzle@gmail.com', // Sender address
-            to: `${user.email}`, // List of recipients
-            subject: `stawro, OTP`, // Subject line
-            text: '', // Plain text body
-            html: `
-          
-          <html lang="en">
-              <head>
-                  <meta charset="UTF-8">
-                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                  <meta http-equiv="refresh" content="30" />
-                  <title>Document</title>
-                  <style>
-  
-                      @import url('https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@400;700&display=swap');
-  
-  
-                      .email-main-cnt-01{
-                          width: 95%;
-                          justify-content: center;
-                          margin: auto;
-                      }
-  
-                      .email-cnt-01{
-                          width: 90%;
-                          height: auto;
-                          display: flex;
-                          margin: 10px;
-                      }
-  
-                      .email-cnt-01 div{
-                          width: 50px;
-                          height: 50px;
-                          overflow: hidden;
-                          border-radius: 50%;
-                          border: 1px solid;
-                          
-                      }
-  
-                      .email-cnt-01 div img{
-                          width: 100%;
-                          height: 100%;
-                          object-fit: cover;
-                      }
-  
-                      .email-cnt-01 strong{
-                          font-family: Inknut Antiqua;
-                          margin-left: 10px;
-                      }
-  
-                      .email-cnt-btn-01{
-                          width: 120px;
-                          height: 30px;
-                          margin: 10px;
-                          color: aliceblue;
-                          background-color: rgb(5, 148, 195);
-                          border: 1px solid;
-                          border-radius: 5px;
-                          cursor: pointer;
-                      }
-  
-  
-                  </style>
-              </head>
-              <body>
-                  <div class="email-main-cnt-01">
-                      <div class="email-cnt-01">
-                          <strong>stawro</strong>
-                      </div>
-                      <div class="email-cnt-02">
-                          <span>Hello, Dear <strong>${user.username}</strong> </span><br/>
-                          <p>Welcome to stawro.<br/>
-                          OTP to update new Password , Dont share With anyone, ${otp}</p><br/>
-                              
-                          <strong>${otp}</strong><br/>
-               
-                          <strong>Thank you</strong>
-  
-                      </div>
-                  </div>
-                  
-              </body>
-              </html>
-  
-          ` // HTML body
-        };
-
-        // Send email
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                console.log(error);
-                return res.status(202).json({ message: "Something went Wrong" })
-            }
-
-            return res.status(200).json({ Status: "OK", data: data._id })
-        });
-
-        res.json({ message: "OTP sent successfully" });
-    } catch (error) {
-        res.status(500).json({ error: "Failed to send OTP" });
-    }
-}
-
-app.post("/sendOTP/by/api/using/funtcion", sendOTP);
-app.post("/verifyOTP", verifyOTP);
-app.post("/resetPassword", resetPassword);
-
-app.post("/sent/forgot/pass/app", sendForgot_otp);
-app.post("/resetPasswordWithOTP", resetPasswordWithOTP);
 
 
 
@@ -6054,12 +7008,7 @@ app.delete("/delete/account/data/by/id/from/app/:id", async (req, res) => {
 
 
 
-const PORT = 80;
 
-
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
 
 const start_Stop_Schema = new mongoose.Schema({
     Time: String,
@@ -6123,18 +7072,6 @@ app.post("/start/game/by/click", async (req, res) => {
         return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to update game status" });
     }
 });
-
-
-
-// app.get('/try/new/:id', async (req, res) => {
-//     const {id} = req.params;
-//     const data = await Usermodule.findById(id);
-//     return res.status(200).json(data);
-
-// });
-
-
-
 
 
 
@@ -7314,9 +8251,9 @@ app.post("/razorpay", async (req, res) => {
 
 
 
-
+//here
 app.post("/refund/data/and/add/to/users", adminMidleware, async (req, res) => {
-    const { id, text, ex_seconds } = req.body;
+    const { id, text, ex_seconds, level, cat } = req.body;
 
     try {
         const data = await ReportSecondModule.findById(id);
@@ -7325,8 +8262,11 @@ app.post("/refund/data/and/add/to/users", adminMidleware, async (req, res) => {
         }
 
         if (text === "refund") {
-            
-            if(ex_seconds !== "no"){
+
+            if (ex_seconds !== "no") {
+
+                const new_re = await get_lel_dif(level, cat)
+
                 await Seconds_Module.updateOne(
                     {
                         category: data.cat,
@@ -7334,14 +8274,20 @@ app.post("/refund/data/and/add/to/users", adminMidleware, async (req, res) => {
                         "seconds.user": data.user
                     },
                     {
-                        $set: { "seconds.$.seconds": ex_seconds } // update that user's seconds
+                        $set: { "seconds.$.seconds": new_re } // update that user's seconds
                     }
                 );
+
+                // await Seconds_Module.findOneAndDelete({
+                //     category : data.cat,
+                //     Tough : data.tough,
+                //     "seconds.user" : data.user
+                // })
             }
-            
+
             data.text = "refund";
             await data.save();
-        
+
             // Fetch fee and balance with await
             const fees = await Rupeemodule.findOne({ username: "admin" });
             const bal = await Balancemodule.findOne({ user: data.user });
@@ -7354,9 +8300,32 @@ app.post("/refund/data/and/add/to/users", adminMidleware, async (req, res) => {
             bal.balance = new_bal;
             await bal.save();
 
+            const admin_acc_listing_data = await Refund_Tickets.findOne({ user: "kick" });
+            if (admin_acc_listing_data) {
+                admin_acc_listing_data.count = parseInt(admin_acc_listing_data.count) + parseInt(fees.rupee);
+                admin_acc_listing_data.user_id.push({
+                    user: data.user,
+                    rupee: fees.rupee,
+                    Time: Time
+                })
+
+                await admin_acc_listing_data.save();
+            } else {
+                await Refund_Tickets.create({
+                    Time: Time,
+                    count: fees.rupee,
+                    user: "kick",
+                    user_id: [{
+                        user: data.user,
+                        rupee: fees.rupee,
+                        Time: Time
+                    }]
+                });
+            }
+
             return res.status(200).json({ Status: "OK" });
         }
-        
+
         else {
             data.text = "non-refund";
             await data.save();
@@ -7393,15 +8362,15 @@ app.post("/refund/data/and/add/to/users", adminMidleware, async (req, res) => {
 
 const refer_and_earn_Schema = new mongoose.Schema({
     Time: String,
-    my_referd : [
+    my_referd: [
         {
-            user : String,
-            d_id : String
+            user: String,
+            d_id: String
         }
     ],
-    referd_user_d_id : String,
-    ac_crt : { type: String, default: "No" },
-    ac_deb : { type: String, default: "No" },
+    referd_user_d_id: String,
+    ac_crt: { type: String, default: "No" },
+    ac_deb: { type: String, default: "No" },
     user: { type: String, unique: true }, // Unique constraint
 }, { timestamps: true });
 
@@ -7429,14 +8398,4016 @@ app.post("/refer/and/earn", async (req, res) => {
     }
 });
 
-app.get("/print/user/data", authMiddleware ,async(req, res)=>{
-    try{
-        console.log(req.user)        
-    }catch (error) {
-        console.error("Referral Error:", error);
-        return res.status(500).json({ status: "ERROR", message: "Failed to create referral" });
+async function get_iq(user, cat, level) {
+    try {
+        const iq_data = await IQ_Data_Module.findOne({ user: user, category: cat, level: level });
+        if (iq_data) {
+            return iq_data.iq;
+        } else {
+            return 1; // default IQ
+        }
+    } catch (error) {
+        console.error("Error fetching IQ data:", error);
+        return 1; // default IQ on error
+    }
+}
+
+
+async function cat_fn(user, cat, fn) {
+    let data_fnd = await sng_qst_20_Module.findOne({ user, cat, ob: fn })
+    if (!data_fnd) {
+        data_fnd = await sng_qst_20_Module.create({
+            user, cat, ob: fn
+        })
+    }
+    return "ok"
+}
+
+
+const Calc_perr = new mongoose.Schema({
+    Time: String,
+    cat: { type: String, unique: true }, // Unique constraint
+    count: String,
+    yes: [],
+    no: [],
+    seconds: []
+}, { timestamps: true });
+
+const monitor_cal_data_Module = mongoose.model('Monitor_cal_per_data', Calc_perr);
+
+
+
+async function calcccc_cc(cat, count) {
+    const cat_find = await monitor_cal_data_Module.findOne({ cat })
+    if (cat_find) {
+        return parseInt(cat_find.count)
+    } else {
+        await monitor_cal_data_Module.create({ Time, cat, count, yes: [], no: [], seconds: [] })
+        return count
+    }
+}
+
+
+
+app.get("/get/calculate/data/monitor/main", async (req, res) => {
+    try {
+        const data = await monitor_cal_data_Module.find({})
+        if (data) {
+            res.status(200).json({ data })
+        } else {
+            res.status(200).json({ message: "No Data Found" })
+        }
+    } catch (error) {
+        console.error("Error fetching IQ data:", error);
     }
 })
+
+
+function One() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+
+
+            const cat_count = await calcccc_cc("Total Boxes [Comp]", 40)
+            const na = parseInt(cat_count) - (parseInt(sum) * 3) //3 means it takes 1 seconds to make check the 3 boxes
+            const difficulty = getDifficultiesByPer(na); //fix 40 1931
+            const boxes = generateBoxesData(difficulty);
+
+            // ✅ REAL ANSWER (NOT CONFIG)
+            const correct = boxes.filter(b => b.complete).length;
+
+            const buffer = drawImage(boxes);
+            const image = buffer.toString("base64");
+
+            // res.json({
+            //     title: "Total Boxes [Comp]",
+            //     question: "How many boxes are unbroken in total?",
+            //     options: generateOptions(correct),
+            //     answer: correct,
+            //     image
+            // });
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(correct.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: image,
+                Questio: "How many boxes are unbroken in total?",
+                options: generateOptions(correct),
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "Total Boxes [Comp]",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "star_circ_tria"
+            });
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+
+        } catch (err) {
+            // ✅ FIX: no res → rethrow so caller can handle
+            throw err;
+        }
+    };
+}
+
+function Two() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+
+            const cat_count = await calcccc_cc("Total Boxes [Broken]", 40)
+            const na = parseInt(cat_count) - (parseInt(sum) * 3)
+            const difficulty = getDifficultiesByPer_two(na); //fix 40 1931
+            const { boxes, brokenCount } = generateBoxesData_two(difficulty);
+
+            const imageBuffer = drawImage_two(boxes);
+            const image = await uploadImage_two(imageBuffer);
+
+            const options = generateOptions_two(brokenCount);
+
+            // res.json({
+            //     title: "Total Boxes [Broken]",
+            //     question: "How many broken boxes are there?",
+            //     options,
+            //     answer: brokenCount,
+            //     image: image.image
+            // })
+
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(brokenCount.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: image.image,
+                Questio: "How many broken boxes are there?",
+                options: options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "Total Boxes [Broken]",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "star_circ_tria"
+            });
+
+            console.log(dt_post)
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+
+
+
+function Three() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+
+
+            const cat_count = await calcccc_cc("Stars [Broken]", 60)
+            const na = parseInt(cat_count) - (parseInt(sum) * 3)
+            const puzzle = generatePuzzle_three(na); //fix 60 1931
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "Stars [Broken]",
+            //     question: "How many Broken boxes contain stars?",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.correct;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: "How many Broken boxes contain stars?",
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "Stars [Broken]",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "star_circ_tria"
+            });
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+
+function Four() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+
+            const cat_count = await calcccc_cc("Stars [Comp]", 50)
+            const na = parseInt(cat_count) - (parseInt(sum) * 3)
+            const puzzle = generatePuzzle_four(na); //fix 50 1931
+
+            // res.json({
+            //     title: "Stars [Comp]",
+            //     question: "How many Unbroken boxes contain stars?",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+
+            const ans = puzzle.correct;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: "How many Unbroken boxes contain stars?",
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "Stars [Comp]",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "star_circ_tria"
+            });
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+function Five() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+
+            const cat_count = await calcccc_cc("Triangle [Broken]", 50)
+            const na = parseInt(cat_count) - (parseInt(sum) * 3)
+            const puzzle = generatePuzzle_five(na); //50 fix 1931-1
+
+            // convert base64 → image
+            // const buffer = Buffer.from(puzzle.image, "base64");
+
+            // res.json({
+            //     title: "Triangle [Broken]",
+            //     question: "How many Broken boxes contain Triangle?",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+
+            const ans = puzzle.correct;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: "How many Broken boxes contain Triangle?",
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "Triangle [Broken]",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "star_circ_tria"
+            });
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+
+function Six() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+
+            const cat_count = await calcccc_cc("Triangle [Comp]", 50)
+            const na = parseInt(cat_count) - (parseInt(sum) * 3) //3 means it takes 1 seconds to make check the 3 boxes
+            const puzzle = generatePuzzle_six(na); //50 fix 1931
+
+            // convert base64 → image
+            // const buffer = Buffer.from(puzzle.image, "base64");
+
+            // res.json({
+            //     title: "Triangle [Comp]",
+            //     question: "How many Unbroken boxes contain Triangle?",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+
+            const ans = puzzle.correct;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: "How many Unbroken boxes contain Triangle?",
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "Triangle [Comp]",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "star_circ_tria"
+            });
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+function Seven() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+
+            const cat_count = await calcccc_cc("Circels [Comp]", 55)
+            const na = parseInt(cat_count) - (parseInt(sum) * 3) //3 means it takes 1 seconds to make check the 3 boxes
+            const puzzle = generatePuzzle_seven(na); //fix 55 1931
+
+            // res.json({
+            //     title: "Circels [Comp]",
+            //     question: "How many complete boxes contain circles",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+
+            const ans = puzzle.correct;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: "How many complete boxes contain circles",
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "Circels [Comp]",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "star_circ_tria"
+            });
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+function Eight() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+
+            const cat_count = await calcccc_cc("Circels [Broken]", 50)
+            const na = parseInt(cat_count) - (parseInt(sum) * 3) //3 means it takes 1 seconds to make check the 3 boxes
+            const puzzle = generatePuzzle_eight(na); //fix 50
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "Circels [Broken]",
+            //     question: "How many uncomplete boxes contain circles",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.correct;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: "How many uncomplete boxes contain circles",
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "Circels [Broken]",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "star_circ_tria"
+            });
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+function Nine() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("[Circels and Triangles] Comp", 40)
+            const na = parseInt(cat_count) - (parseInt(sum) * 3) //3 means it takes 1 seconds to make check the 3 boxes
+            const puzzle = generatePuzzle_complete_nine(na); //40 fix 1931
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Comp",
+            //     question: "How many complete boxes contain circles and triangles (in different boxes)?",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.correct;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: "How many complete boxes contain circles and triangles (in different boxes)?",
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "[Circels and Triangles] Comp",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "star_circ_tria"
+            });
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+
+function Ten() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("[Circels and Triangles] Broken", 40)
+            const na = parseInt(cat_count) - (parseInt(sum) * 3) //3 means it takes 1 seconds to make check the 3 boxes
+            const puzzle = generatePuzzle_broken_ten(na);
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.correct;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: "Count the broken boxes that contain circles and triangles.",
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "[Circels and Triangles] Broken",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "star_circ_tria"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+//Test this One
+function Eleven() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("[Colours & Name Match]", 17)
+            const na = parseInt(cat_count) - (parseInt(sum) * 0.85) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+            const puzzle = generatePuzzle_color(na);
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.answer;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: puzzle.question,
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "[Colours & Name Match]",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "Colours & Name Match"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+
+function Tweleve() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("Pattern_to_Numbers", 17)
+            const na = parseInt(cat_count) - (parseInt(sum) * 1) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+            const puzzle = generatePuzzle_unlock_pattern(na)
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.answer;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: "Count how many colour names match their actual colours.",
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "Pattern_to_Numbers",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "Pattern_to_Numbers"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+
+function Thirteen() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("Morse code", 17)
+            const na = parseInt(cat_count) - (parseInt(sum) * 1) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+            const puzzle = generatePuzzle_morseCode(na);
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.answer;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: "Find the correct word from the Morse code.",
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "Morse code",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "Morse code"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+function Fourteen() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("Black_&_White_letters", 10)
+            const na = parseInt(cat_count) - (parseInt(sum) * 1) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+            const puzzle = generatePuzzle_alphabetColourCount(na);
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.answer;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: "How many letters match the clue colours?.",
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "Black_&_White_letters",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "Black_&_White_letters"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+
+function Fifteen() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("puzle_peace_male_female", 10)
+            const na = parseInt(cat_count) - (parseInt(sum) * 1) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+            let puzzle;
+
+            // let data
+            // const num = 16
+            if (na <= 7) {
+                puzzle = generatePuzzle_maleConnectorCount(2, 3)
+            } else if (na == 8) {
+                puzzle = generatePuzzle_maleConnectorCount(2, 4)
+            } else if (na == 9 || na == 10) {
+                puzzle = generatePuzzle_maleConnectorCount(3, 3)
+            } else if (na == 11) {
+                puzzle = generatePuzzle_maleConnectorCount(2, 5)
+            } else if (na == 12 || na == 13 || na == 14) {
+                puzzle = generatePuzzle_maleConnectorCount(3, 4)
+            } else if (na == 15) {
+                puzzle = generatePuzzle_maleConnectorCount(3, 5)
+            } else if (na >= 16) {
+                puzzle = generatePuzzle_maleConnectorCount(4, 4)
+            } else {
+                puzzle = generatePuzzle_maleConnectorCount(4, 4)
+            }
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.answer;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: "How many puzzle pieces contain 2 or more MALE connectors (outward tabs)?",
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "puzle_peace_male_female",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "puzle_peace_male_female"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+function Sixteen() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("letters_missalign", 10)
+            const na = parseInt(cat_count) - (parseInt(sum) * 1) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+
+            const puzzle = generatePuzzle_misalignedLetters(na); //if na = 10 it shows 10 words
+
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.answer;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: "How many letters are misaligned?",
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "letters_missalign",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "letters_missalign"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+
+function Seventeen() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("clock_s", 6)
+            const na = parseInt(cat_count) - (parseInt(sum) * 0.5) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+            const puzzle = generatePuzzle_clockCounting(na);
+            console.log("Numbers of clocks : ", na)
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.answer;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: puzzle.question,
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "clock_s",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "clock_s"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+function Eighteen() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("scramble_words", 20)
+            const na = parseInt(cat_count) - (parseInt(sum) * 1) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+            const puzzle = generatePuzzle_scrambledWords(na, 90);
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.answer;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: puzzle.question,
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "scramble_words",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "scramble_words"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+function Nineteen() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("letter_colour_find", 8)
+            const na = parseInt(cat_count) - (parseInt(sum) * 1) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+            const puzzle = generatePuzzle_colorMatch(na);
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.answer;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: puzzle.question,
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "letter_colour_find",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "letter_colour_find"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+
+function Twenty() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("word_colour_find", 5)
+            const na = parseInt(cat_count) - (parseInt(sum) * 0.5) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+            const puzzle = generatePuzzle_colorMatch2(na);
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.answer;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: puzzle.question,
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "word_colour_find",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "word_colour_find"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+
+function Twentyone() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("encode_decode", 5)
+            const na = parseInt(cat_count) - (parseInt(sum) * 0.8) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+            const puzzle = generatePuzzle_cipher_text({ letterLength: na });
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.answer;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: puzzle.question,
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "encode_decode",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "encode_decode"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+function Twentytwo() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("count_leters_exist", 8)
+            const na = parseInt(cat_count) - (parseInt(sum) * 0.7) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+            // const puzzle = generatePuzzle_cipher_text({letterLength : na});
+
+            const num = na
+            const puzzle = generatePuzzle_consonant_count({
+                minWords: num - 2,
+                maxWords: num
+            });
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.answer;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: puzzle.question,
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "count_leters_exist",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "count_leters_exist"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+function Twentythree() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("count_word_exist", 14)
+            const na = parseInt(cat_count) - (parseInt(sum) * 1) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+            // const puzzle = generatePuzzle_cipher_text({letterLength : na});
+
+            const puzzle = generatePuzzle_word_search({ totalWords: na })
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.answer;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: puzzle.question,
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "count_word_exist",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "count_word_exist"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+//work
+function Twentyfour() {
+    return async function (level, user, qno, sec, sum, x) {
+        try {
+            const cat_count = await calcccc_cc("re_arrange_letters", 5)
+            const na = parseInt(cat_count) - (parseInt(sum) * 0.5) //3 means it takes 1 seconds to make check the 3 boxes
+            // const puzzle = generatePuzzle_broken_ten(na);
+            // const puzzle = generatePuzzle_cipher_text({letterLength : na});
+
+            const puzzle = generatePuzzle_alphabetical({ letters: na })
+
+            // convert base64 → image
+
+            // res.json({
+            //     title: "[Circels and Triangles] Broken",
+            //     question: "Count the broken boxes that contain circles and triangles.",
+            //     options: puzzle.options,
+            //     answer: puzzle.correct,
+            //     image: puzzle.image
+            // })
+
+            const ans = puzzle.answer;
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(ans.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: puzzle.image,
+                Questio: puzzle.question,
+                options: puzzle.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "re_arrange_letters",
+                yes: [],
+                no: [],
+                x: x,
+                typ: "re_arrange_letters"
+            });
+
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+
+const functions = {
+    One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten,
+    // Eleven, Tweleve, Thirteen, Fourteen, Fifteen, Sixteen
+}
+
+
+const milion_qst_Schema = new mongoose.Schema({
+    Time: String,
+    count: {
+        type: Number,
+        default: 1
+    },
+    rs: {
+        type: Number,
+    },
+    shown_qst: {
+        type: Number,
+        default: 1
+    },
+    user: {
+        type: String,
+        unique: true
+    },
+    m_counts: {
+        type: [Number],
+        default: [6, 7, 8, 9, 10]
+    }
+}, { timestamps: true });
+
+const Milion_ten_qst_count_Module = mongoose.model('Milion', milion_qst_Schema);
+
+const qst_aray_store_Schema = new mongoose.Schema({
+    Time: String,
+    user: {
+        type: String,
+        unique: true
+    },
+    qst_array: {
+        type: [String],
+        default: [],
+    },
+}, { timestamps: true });
+
+const Qst_array_store_Module = mongoose.model('Qst_array', qst_aray_store_Schema);
+
+
+async function generate_qst_no(user, count) {
+
+    console.log("Generating question for user:", user, "Question number:", count);
+
+    try {
+
+        let qst_array_data =
+            await Qst_array_store_Module.findOne({ user });
+
+        const get_level = await get_tough_ll(count);
+
+        const functions = {
+            Twentyfour,
+            Twentythree,
+            Twentytwo,
+            Twentyone,
+            Twenty,
+            Nineteen,
+            Eighteen,
+            // Seventeen,
+            Sixteen,
+            Fifteen,
+            // Fourteen,
+            // Thirteen,
+            // Tweleve,
+            One,
+            Two,
+            // Three,
+            // Four,
+            // Five,
+            // Six,
+            // Seven,
+            // Eight,
+            // Nine,
+            // Ten
+            Eleven,
+        };
+
+        // If already exists
+        if (qst_array_data) {
+
+            const qst_array = qst_array_data.qst_array;
+
+            const fnName = qst_array[count - 1];
+
+            const qst_fn = functions[fnName];
+
+            console.log("Function:", qst_fn);
+
+            if (typeof qst_fn === "function") {
+
+                // CALL FIRST FUNCTION
+                const returned_fn = qst_fn();
+
+                // RUN ASYNC FUNCTION
+                await returned_fn(
+                    get_level.toString(),
+                    user.toString(),
+                    count.toString(),
+                    "20",
+                    get_level.toString(),
+                    "x"
+                );
+
+                return qst_array_data;
+            }
+
+            console.log("Function not found:", fnName);
+
+            return false;
+        }
+
+        // Generate questions
+        const qst_gen = [
+            "Twentyfour",
+            "Twentythree",
+            "Twentytwo",
+            "Twentyone",
+            "Twenty",
+            "Nineteen",
+            "Eighteen",
+            // "Seventeen",
+            "Sixteen",
+            "Fifteen",
+            // "Fourteen",
+            // "Thirteen",
+            // "Tweleve",
+            "Eleven",
+            "One",
+            "Two",
+            // "Three",
+            // "Four",
+            // "Five",
+            // "Six",
+            // "Seven",
+            // "Eight",
+            // "Nine",
+            // "Ten"
+
+        ];
+
+        // Shuffle
+        const shuffled = [...qst_gen]
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 10);
+
+        // Save
+        qst_array_data =
+            await Qst_array_store_Module.create({
+                Time: new Date().toISOString(),
+                user,
+                qst_array: shuffled
+            });
+
+        const fnName = shuffled[count - 1];
+
+        const qst_fn = functions[fnName];
+
+        if (typeof qst_fn === "function") {
+
+            const returned_fn = qst_fn();
+
+            await returned_fn(
+                get_level.toString(),
+                user.toString(),
+                count.toString(),
+                "20",
+                get_level.toString(),
+                "x"
+            );
+
+            return qst_array_data;
+        }
+
+        console.log("Function not found:", fnName);
+
+        return false;
+
+    } catch (error) {
+
+        console.log(error);
+
+        return false;
+    }
+}
+
+async function get_categ_fn(fn) {
+    const data = [
+        {
+            fn: "One",
+            typ: "star_circ_tria"
+        },
+        {
+            fn: "Two",
+            typ: "star_circ_tria"
+        },
+        {
+            fn: "Three",
+            typ: "star_circ_tria"
+        },
+        {
+            fn: "Four",
+            typ: "star_circ_tria"
+
+        },
+        {
+            fn: "Five",
+            typ: "star_circ_tria"
+        },
+        {
+            fn: "Six",
+            typ: "star_circ_tria"
+        },
+        {
+            fn: "Seven",
+            typ: "star_circ_tria"
+        },
+        {
+            fn: "Eight",
+            typ: "star_circ_tria"
+        },
+        {
+            fn: "Nine",
+            typ: "star_circ_tria"
+        },
+        {
+            fn: "Ten",
+            typ: "star_circ_tria"
+        },
+        {
+            fn: "Eleven",
+            typ: "Colours & Name Match"
+        },
+        {
+            fn: "Tweleve",
+            typ: "Pattern_to_Numbers"
+        },
+        {
+            fn: "Thirteen",
+            typ: "Morse code"
+        },
+        {
+            fn: "Fourteen",
+            typ: "Black_&_White_letters"
+        },
+        {
+            fn: "Fifteen",
+            typ: "puzle_peace_male_female"
+        },
+        {
+            fn: "Sixteen",
+            typ: "letters_missalign"
+        },
+        {
+            fn: "Seventeen",
+            typ: "clock_s"
+        },
+        {
+            fn: "Eighteen",
+            typ: "scramble_words"
+        },
+        {
+            fn: "Nineteen",
+            typ: "letter_colour_find"
+        },
+        {
+            fn: "Twenty",
+            typ: "word_colour_find"
+        },
+        {
+            fn: "Twentyone",
+            typ: "encode_decode"
+        },
+        {
+            fn: "Twentytwo",
+            typ: "count_leters_exist"
+        },
+        {
+            fn: "Twentythree",
+            typ: "count_word_exist"
+        },
+        {
+            fn: "Twentyfour",
+            typ: "re_arrange_letters"
+        }
+    ]
+
+    const find_data = data.find(d => d.fn === fn)
+    return find_data ? find_data.typ : null;
+
+
+}
+
+
+app.post("/milionear/game/start/ten/qst", authMiddleware, async (req, res) => {
+
+    const user = req.user;
+    const { rs } = req.body;
+    try {
+
+
+        const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
+        await Qst_array_store_Module.deleteMany({ user });
+        await Milion_ten_qst_count_Module.deleteMany({ user }); //deleting qst array store data for new game start
+        await QuestionModule.deleteMany({ user }); //make add this in logics remove this from here
+
+
+        if (status?.Status === "off") {
+            return res.status(200).json({ Status: "Time", message: status.text });
+        }
+
+        await StartValidmodule.findOneAndDelete({ user: user })
+
+        let lang_data = await LanguageSelectModule.findOne({ user });
+
+        if (!lang_data || !lang_data.lang) {
+            lang_data = await LanguageSelectModule.create({
+                Time,
+                lang: ["English"],
+                user
+            })
+        }
+
+        let balance = await Balancemodule.findOne({ user }); // ac balance
+
+        if (!balance) {
+            balance = await Balancemodule.create({
+                Time,
+                user,
+                balance: "10",
+                last_tr_id: "no"
+            })
+        }
+
+        const star_bal = await StarBalmodule.findOne({ user })
+        if (!star_bal) {
+            await StarBalmodule.create({
+                Time,
+                user,
+                balance: "20",
+            })
+        }
+        const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
+
+
+
+
+
+        const balanceNum = parseInt(balance.balance);
+        const feesNum = parseInt(10);
+
+        if (balanceNum < feesNum) {
+            return res.status(200).json({ Status: "Low-Bal" });
+        }
+
+        const f_bal = parseInt(balance.balance) - 10
+        balance.balance = f_bal.toString()
+        await balance.save()
+        await History_db(user, "10")
+
+        // const get_per = (won_data / (total_play || 1)) * 100;
+
+
+
+        let create_data = await QuestionListmodule.findOne({ user }); //i this this was useless
+
+
+        const _dec_bal = await Balancemodule.findOne({ user });
+
+
+        // const reward_data = await milion_reward(1, rs)
+
+        await Milion_ten_qst_count_Module.create({
+            Time: new Date().toISOString(),
+            count: 1,
+            rs: 0,
+            user: user,
+            m_counts: [6, 7, 8, 9, 10]
+        });
+
+
+        const dat = await Milion_ten_qst_count_Module.findOne({ user });
+        console.log("Data created for user:", dat);
+
+        await Totalusermodule.create({ user, Time })
+        const data_user = await Usermodule.findById(user).lean()
+        await admin_noti("💚💚 Mili Game Started", `User : ${data_user.username}`)
+
+        return res.status(200).json({ Status: "OK", message: "Milionear game started with ten questions" });
+
+        // pending
+
+
+
+
+
+
+    } catch (error) {
+        console.error("❌ Main Catch Error:", error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+})
+
+async function get_qst_time_update(user, Qno_ID) {
+    const time_up = await time_ans_Module.findOne({ user, Qno_ID });
+    if (time_up && time_up.Qst_get_tm === "n") {
+        time_up.Qst_get_tm = new Date();
+        await time_up.save();
+    }
+}
+
+app.post("/milionear/game/quit/ten/qst", authMiddleware, async (req, res) => {
+    const user = req.user;
+    const { yn } = req.body;
+    try {
+
+        //question must be Do you want to play
+        if (yn === "no") {
+            const data_milion_ten_dt = await Milion_ten_qst_count_Module.findOne({ user });
+            if (data_milion_ten_dt) {
+                const reward = data_milion_ten_dt.rs
+                const star_bal = await StarBalmodule.findOne({ user })
+                if (star_bal) {
+                    star_bal.balance = (parseInt(star_bal.balance) + parseInt(reward)).toString();
+                    await star_bal.save();
+                } else {
+                    await StarBalmodule.create({
+                        Time,
+                        user,
+                        balance: reward.toString(),
+                    })
+                }
+                await History(user, reward)
+                await Milion_ten_qst_count_Module.deleteMany({ user: user })
+                await Wonmodule.create({
+                    Time,
+                    user,
+                    no: "No Rank",
+                    ID: "No ID"
+                })
+
+                const data_user = await Usermodule.findById(user).lean()
+                await admin_noti(`${reward} Stars Deposited. 🛑`, `Stars Deposited to User : ${data_user.username}`)
+
+
+                return res.status(200).json({ Status: "Credit_Quit", message: "Milionear game quit successfully" });
+
+            } else {
+                await Milion_ten_qst_count_Module.updateOne(
+                    { user: user },
+                    { $pull: { m_counts: data_milion_ten_dt.count } }
+                );
+                return res.status(200).json({ Status: "No-Game", message: "No active Milionear game found to quit" });
+            }
+        } else {
+
+            return res.status(200).json({ Status: "Continue", message: "Milionear game continue" });
+        }
+
+    } catch (error) {
+        console.error("❌ Main Catch Error:", error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+})
+
+app.post("/revel/qst/start/game", authMiddleware, async (req, res) => {
+    const user = req.user;
+
+    try {
+        const data_milion_ten_dt = await Milion_ten_qst_count_Module
+            .findOne({ user })
+
+        console.log("Data for user:", data_milion_ten_dt);
+        if (data_milion_ten_dt.count === data_milion_ten_dt.shown_qst) {
+            await Milion_ten_qst_count_Module.updateOne(
+                { user },
+                { $inc: { shown_qst: 1 } }
+            );
+            return res.status(200).json({ Status: "OK", message: "Do you want to play" })
+        }
+        return res.status(200).json({ Status: "OK", message: "No question to show" })
+    } catch (error) {
+        console.error("❌ Main Catch Error:", error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+});
+
+app.get("/milionear/game/get/qst/no/to/play", authMiddleware, async (req, res) => {
+    const user = req.user;
+
+    try {
+        const data_milion_ten_dt = await Milion_ten_qst_count_Module.findOne({ user });
+
+
+        if (!data_milion_ten_dt) {
+            return res.status(200).json({ Status: "OUT", message: "OUT" });
+        }
+
+
+        const data_milion_ten_data = data_milion_ten_dt.m_counts
+
+        const data = await Qst_array_store_Module.findOne({ user });
+
+        if (!data) {
+            await generate_qst_no(user, data_milion_ten_dt.count)
+        }
+
+        if (data_milion_ten_data.includes(data_milion_ten_dt.count)) {
+            //make ask do you want to play or continue
+            return res.status(200).json({ Status: "yes/no", message: "Do you want to play", rs: data_milion_ten_dt.rs })
+        }
+
+        if (data_milion_ten_dt.count === data_milion_ten_dt.shown_qst) {
+            const data = await Qst_array_store_Module.findOne({ user }).lean()
+            const categ = await get_categ_fn(data.qst_array[data_milion_ten_dt.count - 1]);
+            return res.status(200).json({ Status: "show", message: "Understand Game", cat: categ })
+        }
+
+        if (data_milion_ten_dt.count <= 10) {
+            const rs = data_milion_ten_dt.count || 0
+            const fnd_qst = await QuestionModule.findOne({ user, Qno: data_milion_ten_dt.count.toString() }).lean();
+            const rupp = ["10", "20", "30", "40", "50", "80", "110", "140", "170", "200"]
+            const ind = data_milion_ten_dt.count - 1
+            const rsss = rupp[ind]
+            if (!fnd_qst) {
+                //get question function here create a Question function here
+                const ret = await generate_qst_no(user, data_milion_ten_dt.count)
+                const fnd_qst = await QuestionModule.findOne({ user, Qno: data_milion_ten_dt.count.toString() }).lean(); //make this dynamic later
+                await get_qst_time_update(user, fnd_qst._id)
+
+
+                return res.status(200).json({ Status: "OK", Data: fnd_qst, rw: rsss })
+            }
+            await get_qst_time_update(user, fnd_qst._id)
+
+
+
+            return res.status(200).json({ Status: "OK", Data: fnd_qst, rw: rsss })
+
+        }
+
+    } catch (error) {
+        console.error("❌ Main Catch Error:", error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+
+})
+
+
+async function get_tough_ll(count) {
+    const data = [
+
+        {
+            num: 1,
+            tough: 5
+        },
+
+        {
+            num: 2,
+            tough: 4
+        },
+
+        {
+            num: 3,
+            tough: 3
+        },
+
+        {
+            num: 4,
+            tough: 2
+        },
+
+        {
+            num: 5,
+            tough: 1
+        },
+
+        {
+            num: 6,
+            tough: 0
+        },
+
+        {
+            num: 7,
+            tough: 0
+        },
+
+        {
+            num: 8,
+            tough: 0
+        },
+
+        {
+            num: 9,
+            tough: 0
+        },
+
+        {
+            num: 10,
+            tough: 0
+        }
+
+    ]
+
+    const find_data = data.find(d => d.num === count)
+    return find_data ? find_data.tough : 0
+
+}
+
+async function milion_reward(count, rs) {
+
+    //10 and 20 rupees
+
+    const data = [
+        {
+            num: 1,
+            reward: 10
+        },
+        {
+            num: 2,
+            reward: 20
+        },
+        {
+            num: 3,
+            reward: 30
+        },
+        {
+            num: 4,
+            reward: 40
+        },
+        {
+            num: 5,
+            reward: 50
+        },
+        {
+            num: 6,
+            reward: 80
+        },
+        {
+            num: 7,
+            reward: 110
+        },
+        {
+            num: 8,
+            reward: 140
+        },
+        {
+            num: 9,
+            reward: 170
+        },
+        {
+            num: 10,
+            reward: 200
+        }
+
+    ]
+
+    const find_data = data.find(d => d.num === count)
+    if (rs === 10) {
+        return find_data ? find_data.reward * 2 : 0
+    } else {
+        return find_data ? find_data.reward : 0
+    }
+
+}
+
+
+app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
+    const user = req.user;
+    const { answer } = req.body;
+
+    try {
+
+
+
+
+        const data_milion_ten_dt = await Milion_ten_qst_count_Module.findOne({ user });
+
+        if (!data_milion_ten_dt) {
+            return res.status(200).json({ Status: "OUT", message: "OUT" });
+        }
+
+
+        const find_qst_data = await QuestionModule.findOne({ user, Qno: data_milion_ten_dt.count.toString() });
+        // const answer_time_data = await time_ans_Module.findOne({ user, Qno_ID: find_qst_data._id });
+
+        // answer_time_data.updatedAt = new Date();
+        // const time = answer_time_data.updatedAt - answer_time_data.Qst_get_tm
+        // const timeDiffSeconds = Math.floor(time / 1000);
+
+        // console.log("Time taken to answer : " + timeDiffSeconds + " Timeeee : " + time )
+
+
+
+
+
+
+
+        const answer_time_data = await time_ans_Module.findOne({
+            user,
+            Qno_ID: find_qst_data._id
+        });
+
+        if (!answer_time_data) {
+            console.log("Record not found");
+            return;
+        }
+
+        const currentTime = new Date();
+        const questionTime = new Date(answer_time_data.Qst_get_tm);
+
+        const time = currentTime.getTime() - questionTime.getTime();
+        const timeDiffSeconds = Math.floor(time / 1000);
+
+        console.log(
+            "Time taken to answer:",
+            timeDiffSeconds,
+            "seconds",
+            "Milliseconds:",
+            time
+        );
+
+
+
+
+
+
+
+
+
+        if (timeDiffSeconds > parseInt(find_qst_data.seconds) + 5) {
+            //time out
+            await Milion_ten_qst_count_Module.deleteMany({ user })
+            return res.status(200).json({ Status: "TimeOut", message: "Time Out! Game Over." });
+        }
+
+        await time_ans_Module.findOneAndDelete({ user })
+
+
+
+
+
+
+
+        let Ans = find_qst_data.Ans;
+
+        function compareHash(plainText, hash) {
+            const plainHash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(plainText.toString())
+                .digest("hex");
+            return plainHash === hash;
+        }
+
+
+
+
+        const check_ans = compareHash(answer, Ans)
+
+        if (check_ans) {
+            if (data_milion_ten_dt.count <= 10) {
+                await find_qst_data.deleteOne();
+                const rward_amt = await milion_reward(data_milion_ten_dt.count, data_milion_ten_dt.rs)
+                const mi_dtt = await Milion_ten_qst_count_Module.findOne({ user })
+
+                mi_dtt.count = mi_dtt.count + 1
+                mi_dtt.rs = rward_amt
+                await mi_dtt.save()
+
+
+                // await Milion_ten_qst_count_Module.updateOne(
+                //     { user },
+                //     {
+                //         $inc: { count: 1 },
+                //         $set: { rs: rward_amt }
+                //     }
+                // );
+                console.log(rward_amt)
+                return res.status(200).json({ Status: "correct", message: "Correct Answer!", reward: rward_amt });
+            }
+            else {
+                const data_user = await Usermodule.findById(user).lean()
+                await admin_noti("❤️❤️ Mili. Won the Game.", `User : ${data_user.username}`)
+                return res.status(200).json({ Status: "completed", message: "Congratulations! You have completed the game." });
+            }
+
+
+        } else {
+            //wrong answer
+            await find_qst_data.deleteOne();
+            await Milion_ten_qst_count_Module.deleteMany({ user })
+            const data_user = await Usermodule.findById(user).lean()
+            await admin_noti("💚💚 Mili. Answered Incorrectly", `User : ${data_user.username}`)
+            return res.status(200).json({ Status: "wrong", message: "Wrong Answer! Game Over." });
+        }
+
+
+
+
+
+
+
+    } catch (error) {
+        console.error("❌ Main Catch Error:", error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+
+})
+
+
+
+//Main start API
+app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req, res) => {
+    const user = req.user;
+    if (!user) return res.status(400).json({ Status: "s_m", message: "Some Data Missing" });
+
+    try {
+
+
+        const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
+
+
+        if (status?.Status === "off") {
+            return res.status(200).json({ Status: "Time", message: status.text });
+        }
+
+
+        const lang_data = await LanguageSelectModule.findOne({ user }).lean();
+        const balance = await Balancemodule.findOne({ user }); // ac balance
+        const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
+
+        if (!lang_data || !lang_data.lang) throw new Error("No language data found");
+
+        if (!balance) return res.status(200).json({ Status: "no_us" });
+
+        const balanceNum = parseInt(balance.balance);
+        const feesNum = parseInt(fees.rupee);
+
+        if (balanceNum < feesNum) {
+            return res.status(200).json({ Status: "Low-Bal" });
+        }
+
+        // const get_per = (won_data / (total_play || 1)) * 100;
+
+
+
+        let create_data = await QuestionListmodule.findOne({ user }); //i this this was useless
+
+
+
+        await QuestionModule.deleteMany({ user });
+
+        const dif_l = ["Singel"];
+
+        const qst_gen = [
+            One(), Two(), Three(), Four(), Five(), Six(),
+            Seven(), Eight(), Nine(), Ten(), Eleven(), Tweleve(), Thirteen(),
+            Fourteen(), Fifteen(), Sixteen()
+            // Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),
+        ];
+
+        const _dec_bal = await Balancemodule.findOne({ user });
+        const won_data = await Wonmodule.find({ user })
+        const randomFunction = qst_gen[Math.floor(Math.random() * qst_gen.length)];
+
+        //make continue from here work 4831
+
+        const get_profit = await Profit_cal_Module.findOne({ user }).lean()
+
+        if (!get_profit) {
+
+            //make him win because he was an new user make him win 50 rupees
+            randomFunction(105, user, "1", "20", "3")
+
+        } else {
+
+
+            const get_cat = await get_cat_per(user)
+
+            if (get_cat !== "none") {
+                // functions[get_cat.fun]?.(105, user, "20", `${get_cat.lst_sec}`)
+                console.log("Herre.........")
+
+                    // const fnName = get_cat.fun; // e.g. "addScore"
+                    // console.log("fnName:", get_cat.fun);
+                    // console.log("functions keys:", Object.keys(functions));
+
+                    (async () => {
+                        const fn = await functions[get_cat.fun](105, user, "1", "20", "0"); // outer runs
+
+                        if (typeof fn === "function") {
+                            await fn(105, user, "1", "20", "0"); // inner runs
+                        }
+                    })();
+
+                // functions[get_cat.fun]?.(
+                //     105,
+                //     user,
+                //     "1",
+                //     "20", 
+                //     "0"
+                // );
+
+
+            } else {
+                randomFunction(105, user, "1", "20", "0")
+            }
+
+        }
+
+
+
+
+
+        //105 = per
+        //user = user
+        //1 = question number
+        //20 = seconds
+        //0 = minus - 0
+
+
+
+        // shuffled.forEach((data, i) => {
+        //     const num = (i + 1).toString();
+        //     dif.push(num);
+        //     const lvl = dif_l[i]
+        //     //make easy before creating add some logics
+        //     data(lvl, user, num, "20", "1")
+        // });
+
+
+
+
+        if (!create_data) {
+            create_data = await QuestionListmodule.create({
+                user,
+                Time,
+                lang: lang_data.lang[0],
+                list: ["1"],
+                oldlist: ["1"],
+            });
+        }
+
+
+        await Promise.all([
+
+            StartValidmodule.create({ Time, user, valid: "yes" }),
+            Totalusermodule.create({ Time, user }),
+            Historymodule.create({ Time, user, rupee: fees.rupee, type: "Debited", tp: "Rupee" }),
+            QuestionListmodule.updateOne(
+                { user: user },
+                {
+                    $set: { list: "1" },
+                    $push: { oldlist: "1" },
+                }
+            )
+        ]);
+
+
+        // const _to_str_up_rp = balanceNum - feesNum
+
+
+
+        if (_dec_bal) {
+            const currentBal = parseInt(_dec_bal.balance);
+            const updatedBal = currentBal - feesNum;
+
+            _dec_bal.balance = updatedBal.toString(); // ✅ convert number to string
+            await _dec_bal.save();
+            await profit_cal_data_update(user, feesNum, "0")
+        }
+
+        const wal_cnt_mod = await Amount_walet_count_Module.findOne({ user: "kick" });
+
+        if (wal_cnt_mod) {
+            wal_cnt_mod.count = parseInt(wal_cnt_mod.count) + feesNum;
+
+            wal_cnt_mod.user_id.push({
+                Time,
+                user,
+                rupee: feesNum,
+            });
+
+            await wal_cnt_mod.save();
+        } else {
+            await Amount_walet_count_Module.create({
+                Time,
+                user: "kick",   // <-- ADD THIS
+                count: feesNum,
+                user_id: [{
+                    Time,
+                    user,
+                    rupee: feesNum
+                }]
+            });
+        }
+
+
+        // ✅ Convert updated balance back to string
+        const updatedBal = await Balancemodule.findOne({ user });
+
+        if (typeof updatedBal.balance === "number") {
+            await Balancemodule.updateOne(
+                { user },
+                { $set: { balance: updatedBal.balance.toString() } }
+            );
+        }
+
+        const balance_to_admin_account = await Amount_Count_Module.findOne({ user: "kick" });
+
+        if (balance_to_admin_account) {
+            balance_to_admin_account.count = parseInt(balance_to_admin_account.count) + parseInt(fees.rupee)
+            await balance_to_admin_account.save()
+        } else {
+            await Amount_Count_Module.create({ Time, user: "kick", count: fees.rupee })
+        }
+
+
+
+
+
+
+        const count = await QuestionModule.countDocuments({ user });
+        if (count === 1) {
+            console.log("✅ Finished successfully");
+            return res.status(200).json({ Status: "OK" });
+        } else {
+            console.log("amount credited")
+            const bal_dt = await Balancemodule.findOne({ user: user })
+            const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
+            await QuestionModule.deleteMany({ user })
+            bal_dt.balance = lat.toString()
+            await bal_dt.save()
+            console.log("BAD")
+            return res.status(200).json({ Status: "BAD_CR" })
+        }
+
+
+
+    } catch (error) {
+        console.error("❌ Main Catch Error:", error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+});
+
+
+
+//25-03-2026 1948 main v 0.0.0
+app.post('/start/playing/by/debit/amount/new/all/xx/main/1', authMiddleware, async (req, res) => {
+    const user = req.user;
+    if (!user) return res.status(400).json({ Status: "s_m", message: "Some Data Missing" });
+
+    try {
+
+
+        const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
+
+
+        if (status?.Status === "off") {
+            return res.status(200).json({ Status: "Time", message: status.text });
+        }
+
+        await StartValidmodule.findOneAndDelete({ user: user })
+
+
+        const lang_data = await LanguageSelectModule.findOne({ user }).lean();
+        const balance = await Balancemodule.findOne({ user }); // ac balance
+        const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
+
+        if (!lang_data || !lang_data.lang) throw new Error("No language data found");
+
+        if (!balance) return res.status(200).json({ Status: "no_us" });
+
+        const balanceNum = parseInt(balance.balance);
+        const feesNum = parseInt(10);
+
+        if (balanceNum < feesNum) {
+            return res.status(200).json({ Status: "Low-Bal" });
+        }
+
+        // const get_per = (won_data / (total_play || 1)) * 100;
+
+
+
+        let create_data = await QuestionListmodule.findOne({ user }); //i this this was useless
+
+
+
+        await QuestionModule.deleteMany({ user });
+
+
+
+        const qst_gen = [
+            One(), Two(), Three(), Four(), Five(), Six(),
+            Seven(), Eight(), Nine(), Ten(),
+            // Eleven(), Tweleve(), Thirteen(),
+            // Fourteen(), Fifteen(), Sixteen()
+            // Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),
+        ];
+
+        const _dec_bal = await Balancemodule.findOne({ user });
+
+        const randomFunction =
+            qst_gen[Math.floor(Math.random() * qst_gen.length)];
+
+        //make continue from here work 4831
+
+
+
+
+        randomFunction(105, user, "1", "20", "0", "10")
+
+
+
+
+
+        //105 = per
+        //user = user
+        //1 = question number
+        //20 = seconds
+        //0 = minus - 0
+
+
+
+        // shuffled.forEach((data, i) => {
+        //     const num = (i + 1).toString();
+        //     dif.push(num);
+        //     const lvl = dif_l[i]
+        //     //make easy before creating add some logics
+        //     data(lvl, user, num, "20", "1")
+        // });
+
+
+
+
+        if (!create_data) {
+            create_data = await QuestionListmodule.create({
+                user,
+                Time,
+                lang: lang_data.lang[0],
+                list: ["1"],
+                oldlist: ["1"],
+            });
+        }
+
+
+        await Promise.all([
+
+            StartValidmodule.create({ Time, user, valid: "yes" }),
+            Totalusermodule.create({ Time, user }),
+            Historymodule.create({ Time, user, rupee: feesNum, type: "Debited", tp: "Rupee" }),
+            QuestionListmodule.updateOne(
+                { user: user },
+                {
+                    $set: { list: "1" },
+                    $push: { oldlist: "1" },
+                }
+            )
+        ]);
+
+
+        // const _to_str_up_rp = balanceNum - feesNum
+
+
+
+        if (_dec_bal) {
+            const currentBal = parseInt(_dec_bal.balance);
+            const updatedBal = currentBal - feesNum;
+
+            _dec_bal.balance = updatedBal.toString(); // ✅ convert number to string
+            await _dec_bal.save();
+            await profit_cal_data_update(user, feesNum, "0")
+        }
+
+        const wal_cnt_mod = await Amount_walet_count_Module.findOne({ user: "kick" });
+
+        if (wal_cnt_mod) {
+            wal_cnt_mod.count = parseInt(wal_cnt_mod.count) + feesNum;
+
+            wal_cnt_mod.user_id.push({
+                Time,
+                user,
+                rupee: feesNum,
+            });
+
+            await wal_cnt_mod.save();
+        } else {
+            await Amount_walet_count_Module.create({
+                Time,
+                user: "kick",   // <-- ADD THIS
+                count: feesNum,
+                user_id: [{
+                    Time,
+                    user,
+                    rupee: feesNum
+                }]
+            });
+        }
+
+
+        // ✅ Convert updated balance back to string
+        const updatedBal = await Balancemodule.findOne({ user });
+
+        if (typeof updatedBal.balance === "number") {
+            await Balancemodule.updateOne(
+                { user },
+                { $set: { balance: updatedBal.balance.toString() } }
+            );
+        }
+
+        const balance_to_admin_account = await Amount_Count_Module.findOne({ user: "kick" });
+
+        if (balance_to_admin_account) {
+            balance_to_admin_account.count = parseInt(balance_to_admin_account.count) + parseInt(feesNum)
+            await balance_to_admin_account.save()
+        } else {
+            await Amount_Count_Module.create({ Time, user: "kick", count: feesNum })
+        }
+
+
+
+
+
+
+        const count = await QuestionModule.countDocuments({ user });
+        if (count === 1) {
+            console.log("✅ Finished successfully");
+            return res.status(200).json({ Status: "OK" });
+        } else {
+            console.log("amount credited")
+            const bal_dt = await Balancemodule.findOne({ user: user })
+            const lat = parseInt(bal_dt.balance) + parseInt(feesNum)
+            await QuestionModule.deleteMany({ user })
+            bal_dt.balance = lat.toString()
+            await bal_dt.save()
+            console.log("BAD")
+            await Historymodule.create({
+                Time,
+                user,
+                rupee: feesNum,
+                type: "Credited",
+                tp: "Rupee",
+            });
+            return res.status(200).json({ Status: "BAD_CR" })
+        }
+
+
+
+    } catch (error) {
+        console.error("❌ Main Catch Error:", error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+});
+
+//v 0.0.1
+app.post('/start/playing/by/debit/amount/new/all/xx/main', authMiddleware, async (req, res) => {
+    const user = req.user;
+    if (!user) return res.status(400).json({ Status: "s_m", message: "Some Data Missing" });
+
+    try {
+
+
+        const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
+
+
+        if (status?.Status === "off") {
+            return res.status(200).json({ Status: "Time", message: status.text });
+        }
+
+        await StartValidmodule.findOneAndDelete({ user: user })
+
+        let lang_data = await LanguageSelectModule.findOne({ user });
+        let balance = await Balancemodule.findOne({ user }); // ac balance
+        const star_bal = await StarBalmodule.findOne({ user })
+        if (!star_bal) {
+            await StarBalmodule.create({
+                Time,
+                user,
+                balance: "2",
+            })
+        }
+        const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
+
+        if (!lang_data || !lang_data.lang) {
+            lang_data = await LanguageSelectModule.create({
+                Time,
+                lang: ["English"],
+                user
+            })
+        }
+
+        if (!balance) {
+            balance = await Balancemodule.create({
+                Time,
+                user,
+                balance: "10",
+                last_tr_id: "no"
+            })
+        }
+
+        const balanceNum = parseInt(balance.balance);
+        const feesNum = parseInt(10);
+
+        if (balanceNum < feesNum) {
+            return res.status(200).json({ Status: "Low-Bal" });
+        }
+
+        // const get_per = (won_data / (total_play || 1)) * 100;
+
+
+
+        let create_data = await QuestionListmodule.findOne({ user }); //i this this was useless
+
+
+
+        await QuestionModule.deleteMany({ user }); //make add this in logics remove this from here
+
+        const _dec_bal = await Balancemodule.findOne({ user });
+
+
+
+        const typee = await get_cat_in_out(user, "10", "20", "10")
+        await admin_noti(`Credited +${feesNum}.00₹`, `Started Playing user ${user}, staWro : ${typee}`)
+
+        // const randomFunction = qst_gen[Math.floor(Math.random() * qst_gen.length)];
+
+        //make continue from here work 4831
+
+
+
+
+        // randomFunction(105, user, "1", "20", "0", "10")
+
+
+
+
+
+        //105 = per
+        //user = user
+        //1 = question number
+        //20 = seconds
+        //0 = minus - 0
+
+
+
+        // shuffled.forEach((data, i) => {
+        //     const num = (i + 1).toString();
+        //     dif.push(num);
+        //     const lvl = dif_l[i]
+        //     //make easy before creating add some logics
+        //     data(lvl, user, num, "20", "1")
+        // });
+
+
+
+
+        if (!create_data) {
+            create_data = await QuestionListmodule.create({
+                user,
+                Time,
+                lang: lang_data.lang[0],
+                list: ["1"],
+                oldlist: ["1"],
+            });
+        }
+
+
+        await Promise.all([
+
+            StartValidmodule.create({ Time, user, valid: "yes" }),
+            Totalusermodule.create({ Time, user }),
+            Historymodule.create({ Time, user, rupee: feesNum, type: "Debited", tp: "Rupee" }),
+            QuestionListmodule.updateOne(
+                { user: user },
+                {
+                    $set: { list: "1" },
+                    $push: { oldlist: "1" },
+                }
+            )
+        ]);
+
+
+        // const _to_str_up_rp = balanceNum - feesNum
+
+
+
+        if (_dec_bal) {
+            const currentBal = parseInt(_dec_bal.balance);
+            const updatedBal = currentBal - feesNum;
+
+            _dec_bal.balance = updatedBal.toString(); // ✅ convert number to string
+            await _dec_bal.save();
+            await profit_cal_data_update(user, feesNum, "0")
+
+        }
+
+        const wal_cnt_mod = await Amount_walet_count_Module.findOne({ user: "kick" });
+
+        if (wal_cnt_mod) {
+            wal_cnt_mod.count = parseInt(wal_cnt_mod.count) + feesNum;
+
+            wal_cnt_mod.user_id.push({
+                Time,
+                user,
+                rupee: feesNum,
+            });
+
+            await wal_cnt_mod.save();
+        } else {
+            await Amount_walet_count_Module.create({
+                Time,
+                user: "kick",   // <-- ADD THIS
+                count: feesNum,
+                user_id: [{
+                    Time,
+                    user,
+                    rupee: feesNum
+                }]
+            });
+        }
+
+
+        // ✅ Convert updated balance back to string
+        const updatedBal = await Balancemodule.findOne({ user });
+
+        if (typeof updatedBal.balance === "number") {
+            await Balancemodule.updateOne(
+                { user },
+                { $set: { balance: updatedBal.balance.toString() } }
+            );
+        }
+
+        const balance_to_admin_account = await Amount_Count_Module.findOne({ user: "kick" });
+
+        if (balance_to_admin_account) {
+            balance_to_admin_account.count = parseInt(balance_to_admin_account.count) + parseInt(feesNum)
+            await balance_to_admin_account.save()
+        } else {
+            await Amount_Count_Module.create({ Time, user: "kick", count: feesNum })
+        }
+
+
+        const count = await QuestionModule.countDocuments({ user });
+        const type_qst = await QuestionModule.findOne({ user });
+        if (count === 1) {
+            console.log("✅ Finished successfully");
+            return res.status(200).json({ Status: "OK", type: type_qst.typ });
+        } else {
+            console.log("amount credited")
+            const bal_dt = await Balancemodule.findOne({ user: user })
+            const lat = parseInt(bal_dt.balance) + parseInt(feesNum)
+            await QuestionModule.deleteMany({ user })
+            bal_dt.balance = lat.toString()
+            await bal_dt.save()
+            console.log("BAD")
+            await Historymodule.create({
+                Time,
+                user,
+                rupee: feesNum,
+                type: "Credited",
+                tp: "Rupee",
+            });
+            return res.status(200).json({ Status: "BAD_CR" })
+        }
+
+
+
+    } catch (error) {
+        console.error("❌ Main Catch Error:", error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+});
+
+
+
+
+
+
+app.get("/admin/balance/played", adminMiddleware, async (req, res) => {
+    try {
+        const all_bal = await Amount_Count_Module.findOne({ user: "kick" });
+        return res.status(200).json({ Status: "OK", data: all_bal });
+    } catch (error) {
+        console.error("Error fetching balance:", error);
+        return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch balance" });
+    }
+});
+
+
+
+app.get("/admin/balance/free/played", adminMiddleware, async (req, res) => {
+    try {
+        const all_bal = await Amount_Free_Count_Module.findOne({ user: "kick" });
+        return res.status(200).json({ Status: "OK", data: all_bal });
+    }
+    catch (error) {
+        console.error("Error fetching balance:", error);
+        return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch balance" });
+    }
+});
+
+const amount_walet_count_Schema = new mongoose.Schema({
+    Time: String,
+    count: Number,
+    user: {
+        default: "kick",
+        type: String
+    },
+    user_id: [{
+        user: String,
+        time: String,
+        rupee: String,
+    }]
+}, { timestamps: true });
+
+const Amount_walet_count_Module = mongoose.model('Amount_one', amount_walet_count_Schema);
+
+
+
+app.get("/admin/balance/wallet", adminMiddleware, async (req, res) => {
+    try {
+        const all_bal = await Amount_walet_count_Module.findOne({ user: "kick" });
+        if (all_bal) {
+        } else {
+            return res.status(200).json({ Status: "OK", data: "No Data Found" });
+        }
+        return res.status(200).json({ Status: "OK", data: all_bal });
+    } catch (error) {
+        console.error("Error fetching balance:", error);
+        return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch balance" });
+    }
+});
+
+app.get("/admin/refund/data/list", adminMidleware, async (req, res) => {
+    try {
+        const all_data = await Refund_d_Module.findOne({ user: "kick" });
+        return res.status(200).json({ Status: "OK", data: all_data });
+    } catch (error) {
+        console.error("Error fetching refund data:", error);
+        return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch refund data" });
+    }
+});
+
+const Amount_refund_Tickets_Schema = new mongoose.Schema({
+    Time: String,
+    count: Number,
+    user: {
+        default: "kick",
+        type: String
+    },
+    user_id: [{
+        user: String,
+        time: String,
+        rupee: String,
+    }]
+}, { timestamps: true });
+
+const Refund_Tickets = mongoose.model('Refund_Tickets', Amount_refund_Tickets_Schema);
+
+
+app.get("/admin/refund/tickets/list", adminMiddleware, async (req, res) => {
+    try {
+        const all_bal = await Refund_Tickets.findOne({ user: "kick" });
+        if (all_bal) {
+            return res.status(200).json({ Status: "OK", data: all_bal });
+        } else {
+            return res.status(200).json({ Status: "OK", data: "No Data Found" });
+        }
+
+    } catch (error) {
+        console.error("Error fetching balance:", error);
+        return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch balance" });
+    }
+});
+
+
+app.get("/get/levels/user", authMiddleware, async (req, res) => {
+    try {
+        const user = req.user;
+
+        const data = await StarBalmodule.findOne({ user }).lean()
+        if (data) {
+            return res.status(200).json({ data: data.balance })
+        } else {
+            return res.status(200).json({ message: "No Data" })
+        }
+
+
+    } catch (error) {
+        console.error("Error fetching balance:", error);
+        return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch balance" });
+    }
+})
+
+
+const sec_tough_admin = new mongoose.Schema({
+    Time: String,
+    level: String,
+    cat: String,
+    sec: String,
+    sec_try: []
+
+}, { timestamps: true });
+
+const sec_Count_Module = mongoose.model('admin_sec_calculate', sec_tough_admin);
+
+
+app.get(
+    "/get/all/user/data/new/for/kick/dataa/:data",
+    adminMiddleware,
+    async (req, res) => {
+        try {
+            const data = decodeURIComponent(req.params.data).trim();
+            console.log("Searching:", data);
+
+            let user = null;
+
+            // 1️⃣ If it's a valid ObjectId → search by _id
+            if (mongoose.Types.ObjectId.isValid(data)) {
+                user = await Usermodule.findById(data).lean()
+            }
+
+            // 2️⃣ Otherwise (or fallback) → search by email
+            if (!user) {
+                user = await Usermodule.findOne({ email: data }).lean()
+            }
+
+            if (!user) {
+                return res.status(200).json({
+                    Status: "NOT_FOUND",
+                    message: "User not found",
+                });
+            }
+
+            const user_balance = await Balancemodule.findOne({ user: user._id }).lean()
+            const bank_acc = await UPImodule.findOne({ user: user._id }).lean()
+            const lel = await get_per(user._id)
+
+            const total = await Totalusermodule.find({ user: user._id }).lean()
+            const old_list = await QuestionListmodule.findOne({ user: user._id }).lean() || 0
+
+            // const old_list_len = (old_list.oldlist).length
+
+            const won = await Wonmodule.find({ user: user._id }).lean()
+
+
+            return res.status(200).json({
+                Status: "OK",
+                data: user,
+                balance: user_balance || "No",
+                bank: bank_acc || "No",
+                level: lel,
+                total_played: total.length,
+                won: won.length,
+                Old_List: old_list?.oldlist?.length || 0
+            });
+
+        } catch (error) {
+            console.error("Error fetching user data:", error);
+
+            return res.status(500).json({
+                status: "SERVER_ERR",
+                message: "Failed to fetch user data",
+            });
+        }
+    }
+);
+
+
+
+async function get_lel_dif(level, cat) {
+
+    const data = await sec_Count_Module.findOne({ level, cat });
+
+    if (!data || !Array.isArray(data.sec_try) || data.sec_try.length === 0) {
+        return "20"; // default difficulty
+    }
+
+    const sum = data.sec_try.reduce((acc, val) => acc + val, 0);
+    const avg = sum / data.sec_try.length;
+
+    return avg.toString();
+}
+
+
+const balance_re_paid_Schema = new mongoose.Schema({
+    Time: String,
+    aded: String,
+    user: String,
+    total: String,
+}, { timestamps: true });
+
+const Balance_re_paid = mongoose.model('Admin_add_balance', balance_re_paid_Schema);
+
+
+
+
+app.post("/add/from/admin/balance/to/balance", adminMiddleware, async (req, res) => {
+    const { user, new_balance } = req.body;
+    try {
+        const userData = await Balancemodule.findOne({ user });
+        if (userData) {
+            const new_bal = parseInt(userData.balance) + parseInt(new_balance)
+            userData.balance = new_bal
+            await userData.save()
+            await Balance_re_paid.create({ Time, aded: new_balance, user, total: new_bal })
+            return res.status(200).json({ Status: "OK" })
+        } else {
+            return res.status(200).json({ message: "No data Found" })
+        }
+
+    } catch (error) {
+        console.error("Error fetching balance:", error);
+        return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch balance" });
+    }
+})
+
+const refund_some_error_Schema = new mongoose.Schema({
+    Time: String,
+    aded: String,
+    user: String,
+    id_d: String,
+}, { timestamps: true });
+
+const Start_page_add_Module = mongoose.model('Admin_refu_d_start', refund_some_error_Schema);
+
+
+app.post(
+    "/verify/data/to-confirm/reported/doc/async",
+    adminMiddleware,
+    async (req, res) => {
+        const { user, id } = req.body;
+
+        try {
+            const alreadyClaimed = await Start_page_add_Module.findOne({ id_d: id });
+            if (alreadyClaimed) {
+                return res.status(409).json({ Status: "CLMD" });
+            }
+
+            const userDoc = await Totalusermodule.findById(id);
+            if (!userDoc || userDoc.user !== user) {
+                return res.status(403).json({ Status: "NTHIM" });
+            }
+
+            const bal = await Balancemodule.findOne({ user });
+            const fees = await Rupeemodule.findOne({ username: "admin" });
+
+            if (!bal || !fees) {
+                return res.status(404).json({ Status: "DATA_MISSING" });
+            }
+
+            const totalBalance =
+                Number(bal.balance || 0) + Number(fees.rupee || 0);
+
+            bal.balance = totalBalance.toString();
+            await bal.save();
+
+            const Time = new Date().toISOString();
+
+            await Historymodule.create({
+                Time,
+                user,
+                rupee: fees.rupee,
+                type: "Credited",
+                tp: "Rupee",
+            });
+
+            await Start_page_add_Module.create({
+                Time,
+                added: fees.rupee,
+                user,
+                id_d: id,
+            });
+
+            return res.status(200).json({ Status: "OK" });
+
+        } catch (error) {
+            console.error("Verify route error:", error);
+            return res
+                .status(500)
+                .json({ Status: "SERVER_ERR", message: "Failed to process request" });
+        }
+    }
+);
+
+
+app.get("/get/latest/won/stars/data", adminMiddleware, async (req, res) => {
+    try {
+        const data = await To_Admin_Historymodule.find({})
+        if (data) {
+            return res.status(200).json({ data })
+        } else {
+            return res.status(200).json({ Message: "No Data Found" })
+        }
+    } catch (error) {
+        console.error("Verify route error:", error);
+        return res
+            .status(500)
+            .json({ Status: "SERVER_ERR", message: "Failed to process request" });
+    }
+})
+
+
+// app.get("/add/balance/to/all/user", async (req, res) => {
+//     try {
+//         const fetch_all = await Balancemodule.find({});
+//         const Data = fetch_all.map(element => ({
+//             User: element.user,
+//             Balance: element.balance
+//         }));
+
+//         return res.status(200).json({ Data });
+//     } catch (error) {
+//         console.error("Verify route error:", error);
+//         return res
+//             .status(500)
+//             .json({ Status: "SERVER_ERR", message: "Failed to process request" });
+//     }
+// });
+
+
+
+// app.get("/add/balance/to/all/user", async (req, res) => {
+//     try {
+//         const fetch_all = await Balancemodule.find({});
+//         const amount_to_add = 10
+
+//         for (let element of fetch_all) {
+//             let currentBalance = Number(element.balance) || 0; // convert string to number safely
+//             element.balance = currentBalance + amount_to_add;
+//             await History(element.user, `${amount_to_add}`)
+//             await element.save();
+//         }
+
+//         const updated = await Balancemodule.find({});
+//         const Data = updated.map(el => ({
+//             User: el.user,
+//             Balance: el.balance
+//         }));
+
+//         return res.status(200).json({ Status: "SUCCESS", Data });
+//     } catch (error) {
+//         console.error("Update route error:", error);
+//         return res
+//             .status(500)
+//             .json({ Status: "SERVER_ERR", message: "Failed to process request" });
+//     }
+// });
+
+
+app.post("/verify/answer/question/number/m", async (req, res) => {
+    const {
+        answer,
+        id,
+        seconds,
+        Ans
+    } = req.body;
+    try {
+        console.log(answer, id, seconds, Ans)
+    } catch (error) {
+        console.error("Verify route error:", error);
+        return res
+            .status(500)
+            .json({ Status: "SERVER_ERR", message: "Failed to process request" });
+    }
+})
+
+
+app.get("/get/paid/user/list", async (req, res) => {
+    try {
+        const paidUsers = await ClaimedCoinsmodule.find({}).lean();
+        return res.status(200).json({ Status: "OK", data: paidUsers });
+    } catch (error) {
+        console.error("Error fetching paid users:", error);
+        return res.status(500).json({ Status: "SERVER_ERR", message: "Failed to fetch paid users" });
+    }
+});
+
+
+const FCM_TokenSchema = new mongoose.Schema({
+    user: { type: String, unique: true },
+    token: String,
+}, { timestamps: true });
+
+const FCM_module = mongoose.model("FCM_Tokens", FCM_TokenSchema);
+
+
+app.post("/fm/token/new", authMiddleware, async (req, res) => {
+    try {
+        const user = req.user;  // convert to string
+        const { token } = req.body;
+
+        await FCM_module.findOneAndUpdate(
+            { user: user },
+            { token: token },
+            { upsert: true, new: true }
+        );
+
+        return res.status(200).json({ Status: "OK" });
+
+    } catch (error) {
+        console.error("Error saving FCM token:", error);
+        return res.status(500).json({
+            Status: "SERVER_ERR",
+            message: "Failed to save FCM token"
+        });
+    }
+});
+
+
+
+export const sendNotification = async (user, title, body) => {
+    try {
+
+        const user_data = await FCM_module.findOne({ user })
+        if (user_data) {
+            const message = {
+                notification: {
+                    title: title,
+                    body: body,
+                },
+                android: {
+                    priority: "high",
+                    notification: {
+                        sound: "default",
+                        channelId: "high_importance_channel",
+                    },
+                },
+                token: user_data.token,
+            };
+
+            const response = await admin.messaging().send(message);
+        }
+
+    } catch (err) {
+        console.error("Notification error:", err);
+    }
+};
+
+
+// app.post("/send-notification/datatatata/l", async (req, res) => {
+
+//   const { title, body } = req.body;
+
+//   try {
+
+//     await sendNotification("eJRCRABVQy6Bmwl0KKpxn8:APA91bEzRgyogOCuH2FYdtDY9dGCkXKRSQL90RZR6tDRYd_2jmu2Rgr-Z419YetSsi2fZbNMpCqp1WWwA3WMM929z40-B7CAGVpEA0IyTQa5-RdR3NeXor8", title, body);
+
+//     res.json({ status: "sent" });
+
+//   } catch (err) {
+
+//     res.status(500).json({ error: err.message });
+
+//   }
+
+// });
+
+
+const uniq_new_user_Schema = new mongoose.Schema({
+    user: { type: String, unique: true },
+    star: {
+        default: "0",
+        type: String
+    },
+
+}, { timestamps: true });
+
+const Uniq_new_user_module = mongoose.model("New_user_uniq", uniq_new_user_Schema);
+
+
+
+//try
+
+app.get("/doc/betwween/time/cal", async (req, res) => {
+    const data = await sng_qst_20_Module.find({})
+    res.status(200).json({ data })
+})
+
+
+//19-03-2026
+app.post("/get/question/for/new/users/signed/out/users/qstion", async (req, res) => {
+    const { u_id } = req.body;
+    try {
+        const data_find = await Uniq_new_user_module.findOne({ user: u_id }).lean()
+        if (!data_find) {
+            const data = await QuestionModule.findOne({ user: u_id })
+            if (data) {
+                const get_fetch_data = await time_ans_Module.findOne({ user: u_id, Qno_ID: data._id })
+
+                if (get_fetch_data.Qst_get_tm === "n") {
+                    get_fetch_data.Qst_get_tm = new Date()
+                    await get_fetch_data.save()
+                }
+                return res.status(200).json({ Status: "OK", data })
+            }
+            return res.status(200).json({ Status: "NO_EXI" })
+        }
+    } catch (error) {
+        console.log(error)
+    }
+})
+
+
+app.post("/get/question/for/new/users/signed/out/users/verify/qst", async (req, res) => {
+    const { u_id, sec, ans, q_id } = req.body;
+
+    try {
+        // 🔍 Find data
+        const find_user_doc = await Uniq_new_user_module.findOne({ user: u_id });
+        const fetch_cal = await time_ans_Module.findOne({ Qno_ID: q_id });
+
+        if (!fetch_cal) {
+            return res.status(404).json({ Status: "Timer Data Not Found" });
+        }
+
+        // ⏱ Update timing
+        const now = new Date();
+        fetch_cal.Qst_ans_tm = now;
+        fetch_cal.updatedAt = now;
+
+        const timeDiffSeconds = Math.floor((now - fetch_cal.createdAt) / 1000);
+        fetch_cal.r_sec = timeDiffSeconds;
+        fetch_cal.cl_sec = sec;
+
+        await fetch_cal.save();
+
+        // 🚨 Cheating check
+        if (timeDiffSeconds > 25) {
+            return res.status(200).json({ Status: "Cheated" });
+        }
+
+        // 📦 Get question data
+        const find_qst_data = await QuestionModule.findOne({ user: u_id });
+
+        if (!find_qst_data) {
+            return res.status(404).json({ Status: "Question Not Found" });
+        }
+
+        // 🔐 Compare hash
+        function compareHash(plainText, hash) {
+            const plainHash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(plainText.toString())
+                .digest("hex");
+
+            return plainHash === hash;
+        }
+
+        const check_ans = compareHash(ans, find_qst_data.Ans);
+
+        // ✅ If correct
+        if (check_ans) {
+            const reward = parseInt(sec) * 10;
+
+            await Uniq_new_user_module.create({
+                user: u_id,
+                star: reward
+            });
+
+            return res.status(200).json({
+                Status: "OKK",
+                rupee: reward
+            });
+        }
+
+        // ❌ If wrong
+        await Uniq_new_user_module.create({
+            user: u_id,
+            star: 0
+        });
+        return res.status(200).json({ Status: "OK" });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ Status: "Server Error" });
+    }
+});
+
+app.post("/get/question/for/new/users/signed/out/users", async (req, res) => {
+    const { u_id } = req.body;
+    try {
+
+        if (!u_id || u_id === undefined || u_id === null) return res.status(200).json({ message: "Some Data Missing" })
+
+
+        const data_find = await Uniq_new_user_module.findOne({ user: u_id }).lean()
+        if (!data_find) {
+            const qst_gen = [
+                One(), Two(), Three(), Four(), Five(), Six(),
+                Seven(), Eight(),
+                // Nine(), Ten(),
+                // Eleven(), Tweleve(), Thirteen(),
+                // Fourteen(), Fifteen(), Sixteen()
+                // Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),
+            ];
+
+            const randomFunction =
+                qst_gen[Math.floor(Math.random() * qst_gen.length)];
+
+            //make continue from here work 4831
+
+            await QuestionModule.findOneAndDelete({ user: u_id })
+
+            randomFunction(105, u_id, "1", "20", "5", "10")
+            const typ_dt = await QuestionModule.findOne({ user: u_id }).lean()
+            await admin_noti("New User started Playing", "A new user started Playing")
+
+            return res.status(200).json({ Status: "OK", typ: typ_dt.typ })
+
+        } else {
+            return res.status(200).json({ Status: "IN" })
+        }
+    } catch (error) {
+        console.log(error)
+    }
+})
+
+
+
+const Admin_app_FCM_Schema = new mongoose.Schema({
+    Time: String,
+    FCM: String,
+    name: {
+        default: "kick",
+        type: "String"
+    }
+}, { timestamps: true });
+
+const Admin_FCM_Module = mongoose.model('Admin_FCM', Admin_app_FCM_Schema);
+
+app.post("/get/new/admin/fcm/token", async (req, res) => {
+    const { fcm } = req.body;
+
+    try {
+        if (!fcm) {
+            return res.status(400).json({ Status: "FAIL", message: "FCM token required" });
+        }
+
+        await Admin_FCM_Module.findOneAndUpdate(
+            { name: "kick" },
+            {
+                FCM: fcm,
+                Time: new Date()
+            },
+            {
+                new: true,
+                upsert: true // 🔥 create if not exists
+            }
+        );
+
+        return res.status(200).json({ Status: "OK" });
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ Status: "ERROR", message: "Server error" });
+    }
+});
+
+app.post("/send/multiple", async (req, res) => {
+    const { title, body } = req.body;
+
+    try {
+
+        const tokens = [];
+
+        const fcm_tokens = await Admin_FCM_Module.find({});
+
+        fcm_tokens.forEach((tok) => {
+            tokens.push(tok.FCM); // 👈 make sure field name is correct
+        });
+
+
+        const message = {
+            tokens: tokens, // 🔥 array of tokens
+            notification: {
+                title: title,
+                body: body,
+            },
+        };
+
+        const response = await admin.messaging().sendEachForMulticast(message);
+
+        console.log("Success:", response.successCount);
+        console.log("Failed:", response.failureCount);
+
+        res.json({
+            Status: "OK",
+            success: response.successCount,
+            failed: response.failureCount
+        });
+
+    } catch (error) {
+        console.log("Error:", error);
+        res.status(500).json({
+            Status: "ERROR",
+            message: error.message
+        });
+    }
+});
+
+async function admin_noti(title, body) {
+    const find_tok = await Admin_FCM_Module.findOne({ name: "kick" }).lean()
+    const token = find_tok.FCM;
+
+    const message = {
+        token, // 🔥 single FCM token
+        notification: {
+            title,
+            body,
+        },
+        android: {
+            priority: "high",
+            notification: { channelId: "high_priority_channel" }, // must match your Flutter channel
+        },
+        apns: { headers: { "apns-priority": "10" } }, // high priority for iOS
+    };
+
+    const response = await admin.messaging().send(message); // 🔹 send single
+
+    console.log("Message sent successfully:", response);
+}
+
+
+// 🔹 POST /send/single
+app.post("/send/single", async (req, res) => {
+    const { title, body } = req.body;
+
+    try {
+        // const token = "c_jDRvW4TeimHmQ9G2X4zW:APA91bFdBckrEUNB_9P49VHbj8zKcyiDwt23noVU_wctd21EqWvPSk4sIMljC4ANQk9E47rdaFy_R0IvNWswFQBMqU_UzOOZnkPRPkYrV3WlS8FKk4ui-KQ"
+        // if (!token) {
+        //     return res
+        //         .status(400)
+        //         .json({ Status: "ERROR", message: "FCM token is required" });
+        // }
+
+        const find_tok = await Admin_FCM_Module.findOne({ name: "kick" }).lean()
+        const token = find_tok.FCM;
+
+        const message = {
+            token, // 🔥 single FCM token
+            notification: {
+                title,
+                body,
+            },
+            android: {
+                priority: "high",
+                notification: { channelId: "high_priority_channel" }, // must match your Flutter channel
+            },
+            apns: { headers: { "apns-priority": "10" } }, // high priority for iOS
+        };
+
+        const response = await admin.messaging().send(message); // 🔹 send single
+
+        console.log("Message sent successfully:", response);
+        res.json({ Status: "OK", messageId: response });
+    } catch (error) {
+        console.log("Error sending notification:", error);
+        res.status(500).json({ Status: "ERROR", message: error.message });
+    }
+});
+
+
+
+
+//time try
+
+const Time_Try_Schema = new mongoose.Schema({
+    Time: String,
+}, { timestamps: true });
+
+const Time_Try_Module = mongoose.model('Time_Try', Time_Try_Schema);
+
+
+
+
+app.get("/try/time/stamp", async (req, res) => {
+    try {
+        // find the first document
+        const data = await Time_Try_Module.findOne({});
+
+        if (!data) {
+            // create a new document if none exists
+            const newData = await Time_Try_Module.create({});
+            return res.json({ Status: "OK", data: newData, timeDifference: 0 });
+        } else {
+            // update only updatedAt
+            const updated = await Time_Try_Module.updateOne(
+                { _id: data._id },
+                { $set: { updatedAt: new Date() } }
+            );
+
+            // fetch the updated document
+            const updatedDoc = await Time_Try_Module.findById(data._id);
+
+            // calculate time difference in milliseconds
+            const timeDiffMs = updatedDoc.updatedAt - updatedDoc.createdAt;
+
+            // optional: convert to seconds, minutes, or hours
+            const timeDiffSeconds = Math.floor(timeDiffMs / 1000);
+            const timeDiffMinutes = Math.floor(timeDiffSeconds / 60);
+            const timeDiffHours = Math.floor(timeDiffMinutes / 60);
+
+            return res.json({
+                Status: "OK",
+                message: "updatedAt updated successfully",
+                timeDifference: {
+                    //   milliseconds: timeDiffMs,
+                    seconds: timeDiffSeconds,
+                    //   minutes: timeDiffMinutes,
+                    //   hours: timeDiffHours
+                }
+            });
+        }
+    } catch (error) {
+        console.log("Error updating updatedAt:", error);
+        res.status(500).json({ Status: "ERROR", message: error.message });
+    }
+});
+
+app.get("/get/total/data", async (req, res) => {
+    try {
+        const total_inc = await Amount_Count_Module.findOne({ user: "kick" }).lean()
+        const total_paid = await Tot
+    } catch (error) {
+        console.log("Error updating updatedAt:", error);
+        res.status(500).json({ Status: "ERROR", message: error.message });
+    }
+})
+
+
+
+
+
+//trial
+
+
+
+app.get('/similar/question/colour', (req, res) => {
+    const Data = generateGame()
+    res.json({
+        Data
+    });
+});
+
+
+app.get('/similar/question/text', (req, res) => {
+    const Data = generateGame_text()
+    res.json({
+        Data
+    });
+});
+
+
+app.get('/trial/ten/questions/11', (req, res) => {
+    const Data = generatePuzzle_color(20)
+    res.json({
+        Data
+    });
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 process.on('uncaughtException', (err) => {
     console.error('Uncaught Exception:', err);
@@ -7446,5 +12417,179 @@ process.on('uncaughtException', (err) => {
 process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection:', reason);
 });
+
+
+const PORT = 80;
+
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
+
+
+
+//make add cat this user : String,
+// cat : String,
+// ob : {
+//     type : String,
+//     default : ""
+// },
+// yes : [],
+// no : [],
+// lst_sec : {
+//     type : Number,
+//     default : 100
+// },
+// lst_q_id : String, in one(), two()
+
+
+
+app.post("/api/notifications/subscribe", (req, res) => {
+
+    console.log("Received subscription:");
+    console.log(req.body);
+
+    subscription = req.body;
+
+    res.json({
+        success: true,
+        message: "Subscription saved"
+    });
+
+});
+
+app.post("/api/notifications/send", async (req, res) => {
+
+    const { title, message } = req.body;
+
+    try {
+
+        if (!subscription) {
+            return res.status(400).json({
+                success: false,
+                message: "No subscription found. Enable notifications first."
+            });
+        }
+
+        const payload = JSON.stringify({
+            title: title,
+            message: message
+        });
+
+        console.log("Sending notification...");
+
+        await webpush.sendNotification(
+            subscription,
+            payload
+        );
+
+        console.log("Notification sent!");
+
+        res.json({
+            success: true,
+            message: "Notification sent successfully"
+        });
+
+    } catch (error) {
+
+        console.error("PUSH ERROR:", error);
+
+        res.status(500).json({
+            success: false,
+            message: "Failed to send notification",
+            error: error.message
+        });
+
+    }
+
+});
+
+
+
+app.get("/get/active/users/data", async (req, res) => {
+    try {
+        if (activeUsers.size > 0) {
+            return res.status(200).json({
+                success: true,
+                activeUsers: Array.from(activeUsers.keys()),
+                totalActiveUsers: activeUsers.size
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "No Data Found",
+            activeUsers: [],
+            totalActiveUsers: 0
+        });
+
+    } catch (error) {
+        console.log(error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Server Error"
+        });
+    }
+});
+
+
+
+app.get("/export/live-history", async (req, res) => {
+    try {
+        const data = await LiveHistoryModule
+            .find()
+            .sort({ createdAt: -1 })
+            .lean();
+
+        // Convert MongoDB data to Excel-friendly data
+        const excelData = data.map(item => ({
+            User: item.user,
+            Name: item.name,
+            Action: item.action,
+            CreatedAt: item.createdAt
+        }));
+
+        // Create worksheet
+        const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+        // Create workbook
+        const workbook = XLSX.utils.book_new();
+
+        XLSX.utils.book_append_sheet(
+            workbook,
+            worksheet,
+            "Live History"
+        );
+
+        // Create Excel file in memory
+        const excelBuffer = XLSX.write(workbook, {
+            type: "buffer",
+            bookType: "xlsx"
+        });
+
+        res.setHeader(
+            "Content-Disposition",
+            'attachment; filename="live-history.xlsx"'
+        );
+
+        res.setHeader(
+            "Content-Type",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        );
+
+        res.send(excelBuffer);
+
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            success: false,
+            message: "Failed to export Excel",
+            error: error.message
+        });
+    }
+});
+
 
 
