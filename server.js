@@ -783,7 +783,7 @@ app.post("/post/login", async (req, res) => {
             expiresIn: "365 days"
         });
 
-        await LiveHistory("686e24d32f21c9417882f777", "Hare Krishna")
+        await LiveHistory("686e24d32f21c9417882f777", "Default Login Without Verification" )
 
         return res.status(200).json({
             Status: "OK",
@@ -793,8 +793,6 @@ app.post("/post/login", async (req, res) => {
             username: "Avi",
             email: "avi@gmail.com"
         });
-
-
 
     } catch (error) {
         console.error("Google Auth Error:", error);
@@ -812,7 +810,6 @@ app.post('/post/google/auth', async (req, res) => {
 
     try {
         let user = await Usermodule.findOne({ email });
-        console.log(email, name, username, uid)
 
         if (user) {
             // User exists, proceed to login
@@ -824,7 +821,7 @@ app.post('/post/google/auth', async (req, res) => {
                 expiresIn: "365 days"
             });
 
-            await LiveHistory(user, "Login")
+            await LiveHistory(user, "Logged In")
 
             return res.status(200).json({
                 Status: "OK",
@@ -856,7 +853,7 @@ app.post('/post/google/auth', async (req, res) => {
 
             await admin_noti("🧡🧡 New Account Created", `User : ${username} , Created New Account`)
 
-            await LiveHistory(user._id, "New User Login && Account Created")
+            await LiveHistory(user._id, "New User Login & Account Created")
 
             return res.status(200).json({
                 Status: "OK",
@@ -881,7 +878,6 @@ app.post('/post/new/google/user', async (req, res) => {
         return res.status(400).json({ Status: "INVALID_DATA", message: "Missing required fields." });
     }
 
-    console.log(email, name, username, uid)
 
     try {
         // Check if user already exists
@@ -901,7 +897,7 @@ app.post('/post/new/google/user', async (req, res) => {
             valid: "yes"
         });
 
-        await LiveHistory(user._id, "New Account & New User")
+        await LiveHistory(user._id, "New User Login & Account Created")
 
 
         return res.status(200).json({ Status: "OK", message: "User created successfully." });
@@ -1006,6 +1002,7 @@ app.post('/get/balance/new/data', authMiddleware, async (req, res) => {
 
         if (val_cm !== "" && refer_ui !== "") {
             const data_bal = await Balancemodule.findOne({ user: refer_ui }).lean();
+
             if (!data_bal) return res.status(200).json({ Status: "BAD_REF" });
         }
 
@@ -1069,9 +1066,10 @@ app.get("/get/acount/balence", authMiddleware, async (req, res) => {
 
         const data = await Balancemodule.findOne({ user: user }).lean();
         if (data) {
-            console.log(data)
+            await LiveHistory(user, "Checking Account Balance")
             return res.status(200).json({ data })
         } else {
+            await LiveHistory(user, "Checking Account Balance — Balance Document Doesn't Exist")
             return res.status(202).json({ Status: "NO" })
         }
 
@@ -1268,6 +1266,9 @@ app.post("/bank/upi/data/collect", authMiddleware, async (req, res) => {
         }
 
         if (!ac_h_nme) {
+
+
+
             return res.status(400).json({
                 Status: "NO",
                 message: "Account holder name is required"
@@ -1317,6 +1318,8 @@ app.post("/bank/upi/data/collect", authMiddleware, async (req, res) => {
                 { new: true } // Return updated document
             );
 
+            await LiveHistory(user, `Updated New Payment data from : ${existingData} to ${updatedData}`)
+
             return res.status(200).json({
                 Status: "OK",
                 message: `${type} data updated successfully`,
@@ -1343,6 +1346,9 @@ app.post("/bank/upi/data/collect", authMiddleware, async (req, res) => {
 
             const createdData = await UPImodule.create(newData);
 
+
+            await LiveHistory(user, `Created New Payment Data : User : ${user}; Account Holder Name : ${ac_h_nme}; Type of Payment Method : ${type}; `)
+
             return res.status(201).json({
                 Status: "OK",
                 message: `${type} data saved successfully`,
@@ -1366,7 +1372,6 @@ app.get("/bank/upi/data/get/upi_data", authMiddleware, async (req, res) => {
         // Get user ID directly from req.user
         const userId = req.user;
 
-        console.log("User ID from req.user:", userId); // Debug log
 
         if (!userId) {
             return res.status(400).json({
@@ -1521,7 +1526,7 @@ const CoinSchema = new mongoose.Schema({
 
 const Coinmodule = mongoose.model('Coins', CoinSchema);
 
-app.post("/coin/new/data", async (req, res) => {
+app.post("/coin/new/data", adminMiddleware, async (req, res) => {
     const { title, img, valid, body, stars } = req.body;
     try {
         if (!title && !img && !valid && !body && !stars) return res.status(400).json({ Status: "NO", message: "Some Data Missing" })
@@ -1565,7 +1570,7 @@ app.get("/get/coin/data/2", adminMidleware, async (req, res) => {
 
 
 
-app.delete("/delete/coin/by/:id", async (req, res) => {
+app.delete("/delete/coin/by/:id", adminMidleware, async (req, res) => {
     const id = req.params.id;
     try {
         if (!id) return res.status(400).json({ Status: "NO", message: "Some Data Missing" })
@@ -1603,6 +1608,8 @@ const Mycoinsmodule = mongoose.model('My_Coins', MyCoinsSchema);
 
 
 
+//work from Here
+
 app.post('/get/my/conis/get', authMiddleware, async (req, res) => {
     const { id } = req.body;
     try {
@@ -1625,7 +1632,8 @@ app.post('/get/my/conis/get', authMiddleware, async (req, res) => {
                 //coins to my coins
                 await Mycoinsmodule.create({ Time, title: data.title, img: data.img, valid: data.valid, body: data.body, stars: data.stars, type: "Stars", user })
                 await Historymodule.create({ Time, user, rupee: data.stars, type: "Debited", tp: "Stars" });
-                await sendNotification(user, "New Coin Purchased", `${data.title} coin successfully added to your wallet 🎉`);
+                await LiveHistory(user, `New Coin Purchase :: Title : ${data.title}; Body : ${data.body}; Stars : ${data.stars}; Type : Stars`)
+                await sendNotification(user, "New Coin Purchase", `${data.title} coin successfully added to your wallet 🎉`);
                 return res.status(200).json({ Status: "OK" })
             }
             else {
@@ -1634,6 +1642,7 @@ app.post('/get/my/conis/get', authMiddleware, async (req, res) => {
 
         } else if (!data1) {
             await StarBalmodule.create({ Time, user, balance: "2" });
+            await LiveHistory(user, "Created Star Wallet and Added 2 Stars")
             // History
             await Historymodule.create({ Time, user, rupee: "2", type: "Credited", tp: "Stars" });
             return res.status(202).json({ Status: "Low Bal" })
@@ -1702,9 +1711,10 @@ app.get('/get/stars/balance', authMiddleware, async (req, res) => {
 
         const data = await StarBalmodule.findOne({ user }).lean()
         if (!data) {
-            await StarBalmodule.create({ Time, user: user, balance: "0" });
+            await StarBalmodule.create({ Time, user: user, balance: "2" });
             // History
-            await Historymodule.create({ Time, user, rupee: "0", type: "Credited", tp: "Stars" });
+            await Historymodule.create({ Time, user, rupee: "2", type: "Credited", tp: "Stars" });
+            await LiveHistory(user, "Created Star Wallet and Added 2 Stars")
             return res.status(200).json({ Status: "OKK" });
         } else {
             return res.status(200).json({ data });
@@ -1763,12 +1773,13 @@ app.get("/get/coins/by/id/cupons/by/apps/:id", async (req, res) => {
 });
 
 
+//work from here 16-08-2026
+
 
 app.post('/claim/reqst/coins/admin', authMiddleware, async (req, res) => {
     const { id } = req.body
     try {
         const user = req.user;
-        console.log(id, user)
         if (!user && !id) return res.status(400).json({ Status: "BAD", message: "Some Data Missing" })
 
         const bank = await UPImodule.findOne({ user }).lean();
