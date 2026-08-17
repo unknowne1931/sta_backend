@@ -176,7 +176,7 @@ app.post(
             const user = payment.notes?.user;
             const rp_i = payment.amount / 100
 
-            console.log("Payment details:", { user, amount: rp_i });
+            // console.log("Payment details:", { user, amount: rp_i });
             if (!user) {
                 console.log("⚠️ No user found in payment notes");
                 return res.status(400).json({ success: false, message: "User missing in notes" });
@@ -213,13 +213,15 @@ app.post(
             userData.balance = int_bal
             await userData.save();
 
+
+            await LiveHistory(
+                user,
+                `💰 Deposited ₹${creditAmount} to staWro | Previous Balance: ₹${userData.balance} | New Balance: ₹${int_bal}`
+            );
+
             const admin_bal_wallet = await Amount_in_wallet_Count_Module.findOne({ user: "kick" });
 
             const num = Number(rp_i)
-            console.log("User found:", userData);
-            console.log("Credit amount:", creditAmount);
-            console.log("Admin balance wallet:", admin_bal_wallet);
-
 
             if (admin_bal_wallet) {
                 await Amount_in_wallet_Count_Module.updateOne(
@@ -258,6 +260,7 @@ app.post(
                 const new_bal = parseInt(get_referd_user.balance) + 40;
                 get_referd_user.balance = new_bal;
                 await get_referd_user.save();
+                
                 const admin_bal = await Amount_Free_Count_Module.findOne({ user: "kick  " });
                 if (admin_bal) {
                     await Amount_Free_Count_Module.updateOne(
@@ -479,7 +482,7 @@ async function LiveHistory(user, action) {
         const documents = await LiveHistoryModule
             .find()
             .sort({ createdAt: -1 })
-            .skip(30);
+            .skip(1);
 
         // If old documents exist
         if (documents.length > 0) {
@@ -777,13 +780,15 @@ app.post("/post/login", async (req, res) => {
 
     try {
 
+        const user = "686e24d32f21c9417882f777"
+
         console.log("Datttt ")
 
         const token = jwt.sign({ id: "686e24d32f21c9417882f777" }, "kanna_stawro_founders_withhh_1931_liketha", {
             expiresIn: "365 days"
         });
 
-        await LiveHistory("686e24d32f21c9417882f777", "Default Login Without Verification" )
+        await LiveHistory(user, "Default Login Without Verification" )
 
         return res.status(200).json({
             Status: "OK",
@@ -3400,7 +3405,6 @@ app.delete("/delete/by/user/id/for/valid/data", authMiddleware, activeUserMiddle
     try {
         if (!user) return res.status(400).json({ Status: 400, message: "Some Data Missing" })
 
-        await LiveHistory(user, "Deleting Documnet")
 
         const data = await StartValidmodule.findOne({ user });
         await Milion_ten_qst_count_Module.findOneAndDelete({ user })
