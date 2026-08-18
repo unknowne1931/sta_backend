@@ -361,6 +361,15 @@ const activeUserMiddleware = (req, res, next) => {
 };
 
 
+async function user_id_to_username(user) {
+    const data = await Usermodule.findById(user)
+    if(data){
+        return data.username
+    }else{
+        return null
+    }
+}
+
 function indianDateTime(date) {
     const d = new Date(date);
 
@@ -926,7 +935,6 @@ async function fisrt_time_user(user) {
         await LanguageSelectModule.create({ lang: ["English"], Time, user })
     }
 }
-
 
 
 app.post('/post/google/login', async (req, res) => {
@@ -1920,7 +1928,9 @@ app.delete("/find/by/id/and/delete/req/coins/:id", adminMidleware, async (req, r
             } else {
                 await Refund_d_Module.create({ Time, user: "kick", count: num, users: [data.user] });
             }
+
             await LiveHistory(data.user, `Refunded to User: ${data.user}, Amount: ₹${data.title}`)
+            await addPaymentToExcel(data.user, await user_id_to_username(data.user), data.title.replace("₹", "").trim(), "Paid to Bank Account or UPI", "Credited" )
             await data.deleteOne();
 
             return res.status(202).json({ Status: "OK" })
@@ -6802,6 +6812,11 @@ app.post("/refund/data/and/add/to/users", adminMidleware, async (req, res) => {
             const new_bal = parseInt(fees.rupee) + parseInt(bal.balance);
             bal.balance = new_bal;
             await bal.save();
+
+            const user_data = await Usermodule.findById(data.user)
+            
+            await addPaymentToExcel(data.user, user_data.username, fees.rupee, "Refunded due to a technical error in the question [Wallet] ", "Credited")
+
 
             const admin_acc_listing_data = await Refund_Tickets.findOne({ user: "kick" });
             if (admin_acc_listing_data) {

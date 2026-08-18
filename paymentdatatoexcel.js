@@ -157,9 +157,9 @@ export async function addPaymentToExcel(
         throw writeError;
     }
 
-    console.log(`📊 ${paymentType}: ₹${paidInRupees}`);
-    console.log(`💰 New Balance: ₹${newBalance.toFixed(2)}`);
-    console.log(`📈 Total entries: ${existingData.length}`);
+    // console.log(`📊 ${paymentType}: ₹${paidInRupees}`);
+    // console.log(`💰 New Balance: ₹${newBalance.toFixed(2)}`);
+    // console.log(`📈 Total entries: ${existingData.length}`);
 }
 
 /**
@@ -188,8 +188,10 @@ function applyStyling(worksheet, dataLength) {
 
     // Apply header styling
     const headers = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+
     headers.forEach(col => {
         const cellRef = `${col}1`;
+
         if (worksheet[cellRef]) {
             worksheet[cellRef].s = headerStyle;
         }
@@ -197,49 +199,106 @@ function applyStyling(worksheet, dataLength) {
 
     // Apply styling to data rows
     for (let row = 2; row <= dataLength + 1; row++) {
-        // Credited column (C)
+
+        // User ID
+        if (worksheet[`A${row}`]) {
+            worksheet[`A${row}`].s = {
+                alignment: {
+                    horizontal: "center",
+                    vertical: "center",
+                    wrapText: true
+                }
+            };
+        }
+
+        // User Name
+        if (worksheet[`B${row}`]) {
+            worksheet[`B${row}`].s = {
+                alignment: {
+                    horizontal: "center",
+                    vertical: "center",
+                    wrapText: true
+                }
+            };
+        }
+
+        // Credited column - GREEN
         const creditedCell = worksheet[`C${row}`];
-        if (creditedCell && creditedCell.v > 0) {
+
+        if (creditedCell) {
             creditedCell.s = {
-                font: { color: { rgb: "008000" }, bold: true },
-                alignment: { horizontal: "right" },
-                numFmt: '#,##0.00'
-            };
-        } else if (creditedCell) {
-            creditedCell.s = {
-                font: { color: { rgb: "808080" } },
-                alignment: { horizontal: "right" },
+                font: {
+                    color: {
+                        rgb: creditedCell.v > 0 ? "008000" : "808080"
+                    },
+                    bold: creditedCell.v > 0
+                },
+                alignment: {
+                    horizontal: "center",
+                    vertical: "center"
+                },
                 numFmt: '#,##0.00'
             };
         }
 
-        // Debited column (D)
+        // Debited column - RED
         const debitedCell = worksheet[`D${row}`];
-        if (debitedCell && debitedCell.v > 0) {
+
+        if (debitedCell) {
             debitedCell.s = {
-                font: { color: { rgb: "FF0000" }, bold: true },
-                alignment: { horizontal: "right" },
-                numFmt: '#,##0.00'
-            };
-        } else if (debitedCell) {
-            debitedCell.s = {
-                font: { color: { rgb: "808080" } },
-                alignment: { horizontal: "right" },
+                font: {
+                    color: {
+                        rgb: debitedCell.v > 0 ? "FF0000" : "808080"
+                    },
+                    bold: debitedCell.v > 0
+                },
+                alignment: {
+                    horizontal: "center",
+                    vertical: "center"
+                },
                 numFmt: '#,##0.00'
             };
         }
 
-        // Balance column (E)
+        // Balance column
         const balanceCell = worksheet[`E${row}`];
+
         if (balanceCell) {
             const value = balanceCell.v || 0;
+
             balanceCell.s = {
-                font: { 
-                    color: { rgb: value >= 0 ? "008000" : "FF0000" }, 
-                    bold: true 
+                font: {
+                    color: {
+                        rgb: value >= 0 ? "008000" : "FF0000"
+                    },
+                    bold: true
                 },
-                alignment: { horizontal: "right" },
+                alignment: {
+                    horizontal: "center",
+                    vertical: "center"
+                },
                 numFmt: '#,##0.00'
+            };
+        }
+
+        // Why
+        if (worksheet[`F${row}`]) {
+            worksheet[`F${row}`].s = {
+                alignment: {
+                    horizontal: "center",
+                    vertical: "center",
+                    wrapText: true
+                }
+            };
+        }
+
+        // Date/Time
+        if (worksheet[`G${row}`]) {
+            worksheet[`G${row}`].s = {
+                alignment: {
+                    horizontal: "center",
+                    vertical: "center"
+                }
             };
         }
     }
