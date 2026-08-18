@@ -6982,6 +6982,78 @@ app.get("/get/calculate/data/monitor/main", adminMiddleware, async (req, res) =>
     }
 })
 
+app.put(
+    "/get/update/new/data/monitor/data",
+    adminMiddleware,
+    async (req, res) => {
+        const { cat, val } = req.body;
+
+        try {
+            const data = await monitor_cal_data_Module.findOneAndUpdate(
+                { cat },
+                { count: String(val) },
+                { new: true }
+            );
+
+            if (!data) {
+                return res.status(404).json({
+                    Status: "NO",
+                    message: "Data not found"
+                });
+            }
+
+            return res.status(200).json({
+                Status: "OK",
+                message: "Count updated successfully",
+                data
+            });
+
+        } catch (error) {
+            console.error("Error updating monitor data:", error);
+
+            return res.status(500).json({
+                Status: "NO",
+                message: "Internal server error",
+                error: error.message
+            });
+        }
+    }
+);
+
+
+app.delete("/get/update/new/data/monitor/data/delete",
+    adminMiddleware,
+    async (req, res) => {
+        const { cat } = req.body;
+
+        try {
+            const data = await monitor_cal_data_Module.findOneAndDelete({ cat });
+
+            if (!data) {
+                return res.status(404).json({
+                    Status: "NO",
+                    message: "Data not found"
+                });
+            }
+
+            return res.status(200).json({
+                Status: "YES",
+                message: "Data deleted successfully"
+            });
+
+        } catch (error) {
+            console.error("Error deleting monitor data:", error);
+
+            return res.status(500).json({
+                Status: "NO",
+                message: "Internal server error",
+                error: error.message
+            });
+        }
+    }
+);
+
+
 
 function One() {
     return async function (level, user, qno, sec, sum, x) {
@@ -9226,6 +9298,7 @@ app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
 
         const data_milion_ten_dt = await Milion_ten_qst_count_Module.findOne({ user });
 
+
         if (!data_milion_ten_dt) {
             return res.status(200).json({ Status: "OUT", message: "OUT" });
         }
@@ -9239,6 +9312,8 @@ app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
         // const timeDiffSeconds = Math.floor(time / 1000);
 
         // console.log("Time taken to answer : " + timeDiffSeconds + " Timeeee : " + time )
+
+        const mili_data = await monitor_cal_data_Module.findOne({cat : find_qst_data.sub_lang })
 
 
 
@@ -9329,12 +9404,25 @@ app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
                 //     }
                 // );
                 console.log(rward_amt)
+                await mili_data.updateOne({
+                    $push: {
+                        yes: user
+                    }
+                });
                 await LiveHistory(user, `Answerd Correctly to Qst ID : ${find_qst_data._id}, Reward : ${rward_amt}, Qst No : ${data_milion_ten_dt.count} ,Question : ${find_qst_data.Questio}`)
                 await find_qst_data.deleteOne();
+
+                
+
                 return res.status(200).json({ Status: "correct", message: "Correct Answer!", reward: rward_amt });
             }
             else {
                 const data_user = await Usermodule.findById(user).lean()
+                await mili_data.updateOne({
+                    $push: {
+                        yes: user
+                    }
+                });
                 await admin_noti("❤️❤️ Mili. Won the Game.", `User : ${data_user.username}`)
                 await LiveHistory(
                     user,
@@ -9351,6 +9439,11 @@ app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
                 user,
                 `Answered incorrectly for Qst ID: ${find_qst_data._id}, Qst: ${find_qst_data.Questio}, Submitted Answer: ${answer}`
             );
+            await mili_data.updateOne({
+                $push: {
+                    no: user
+                }
+            });
             await find_qst_data.deleteOne();
             await Milion_ten_qst_count_Module.deleteMany({ user })
             const data_user = await Usermodule.findById(user).lean()
