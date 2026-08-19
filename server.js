@@ -522,6 +522,15 @@ async function LiveHistory(user, action) {
 }
 
 
+async function addToWinList(user) {
+    const data = await Wonmodule.find({})
+    await Wonmodule.create({
+        user,
+        Time,
+        no: data.length + 1,
+        ID : "stars"
+    });
+}
 
 
 
@@ -982,7 +991,7 @@ const BalanceSchema = new mongoose.Schema({
     last_tr_id: { type: String, unique: true }
 }, { timestamps: true });
 
-const Balancemodule = mongoose.model('Balance', BalanceSchema);
+export const Balancemodule = mongoose.model('Balance', BalanceSchema);
 
 
 const my_money_Schema = new mongoose.Schema({
@@ -8673,6 +8682,8 @@ async function generate_qst_no(user, count) {
         let qst_array_data =
             await Qst_array_store_Module.findOne({ user });
 
+        
+
         const get_level = await get_tough_ll(count);
 
         const functions = {
@@ -8736,6 +8747,8 @@ async function generate_qst_no(user, count) {
             return false;
         }
 
+        console.log("here 1")
+
         // Generate questions
         const qst_gen = [
             "Twentyfour",
@@ -8771,12 +8784,18 @@ async function generate_qst_no(user, count) {
             .slice(0, 10);
 
         // Save
+
+        console.log("here 2")
+
+
         qst_array_data =
             await Qst_array_store_Module.create({
                 Time: new Date().toISOString(),
                 user,
                 qst_array: shuffled
             });
+
+        console.log("here 3")
 
         const fnName = shuffled[count - 1];
 
@@ -8794,6 +8813,8 @@ async function generate_qst_no(user, count) {
                 get_level.toString(),
                 "x"
             );
+
+            console.log("here 4")
 
             return qst_array_data;
         }
@@ -8987,6 +9008,31 @@ app.post("/milionear/game/start/ten/qst", authMiddleware, async (req, res) => {
         await addPaymentToExcel(user, user_data.username, feesNum, "To start Mili Game", "Debited")
         // const get_per = (won_data / (total_play || 1)) * 100;
 
+        const wal_cnt_mod = await Amount_walet_count_Module.findOne({ user: "kick" });
+
+        if (wal_cnt_mod) {
+            wal_cnt_mod.count = parseInt(wal_cnt_mod.count) + feesNum;
+
+            wal_cnt_mod.user_id.push({
+                Time,
+                user,
+                rupee: feesNum,
+            });
+
+            await wal_cnt_mod.save();
+        } else {
+            await Amount_walet_count_Module.create({
+                Time,
+                user: "kick",   // <-- ADD THIS
+                count: feesNum,
+                user_id: [{
+                    Time,
+                    user,
+                    rupee: feesNum
+                }]
+            });
+        }
+
 
 
         let create_data = await QuestionListmodule.findOne({ user }); //i this this was useless
@@ -9037,11 +9083,16 @@ app.post("/milionear/game/quit/ten/qst", authMiddleware, async (req, res) => {
     const { yn } = req.body;
     try {
 
+
+        const data_milion_ten_dt = await Milion_ten_qst_count_Module.findOne({ user });
+
+        if(!data_milion_ten_dt){
+            return res.status(200).json({ Status: "No-Game", message: "No active Milionear game found to quit" });
+        }
+
         //question must be Do you want to play
-        if (yn === "no") {
-            const data_milion_ten_dt = await Milion_ten_qst_count_Module.findOne({ user });
-            if (data_milion_ten_dt) {
-                const reward = data_milion_ten_dt.rs
+        if (yn === "no" && data_milion_ten_dt) {
+            const reward = data_milion_ten_dt.rs
                 const star_bal = await StarBalmodule.findOne({ user })
                 if (star_bal) {
                     star_bal.balance = (parseInt(star_bal.balance) + parseInt(reward)).toString();
@@ -9053,7 +9104,7 @@ app.post("/milionear/game/quit/ten/qst", authMiddleware, async (req, res) => {
                         balance: reward.toString(),
                     })
                 }
-                await History(user, reward)
+                await History_star(user, reward)
                 await Milion_ten_qst_count_Module.deleteMany({ user: user })
                 await Wonmodule.create({
                     Time,
@@ -9070,15 +9121,13 @@ app.post("/milionear/game/quit/ten/qst", authMiddleware, async (req, res) => {
                     `Game quit at question ${data_milion_ten_dt.count}; reward collected: "${reward}"`
                 );
                 return res.status(200).json({ Status: "Credit_Quit", message: "Milionear game quit successfully" });
+            
+        } else {
 
-            } else {
-                await Milion_ten_qst_count_Module.updateOne(
+            await Milion_ten_qst_count_Module.updateOne(
                     { user: user },
                     { $pull: { m_counts: data_milion_ten_dt.count } }
                 );
-                return res.status(200).json({ Status: "No-Game", message: "No active Milionear game found to quit" });
-            }
-        } else {
 
             return res.status(200).json({ Status: "Continue", message: "Milionear game continue" });
         }
@@ -9116,6 +9165,8 @@ app.get("/milionear/game/get/qst/no/to/play", authMiddleware, async (req, res) =
 
     try {
         const data_milion_ten_dt = await Milion_ten_qst_count_Module.findOne({ user });
+
+        console.log("here 5")
 
 
         if (!data_milion_ten_dt) {
@@ -9170,6 +9221,61 @@ app.get("/milionear/game/get/qst/no/to/play", authMiddleware, async (req, res) =
 
 
 async function get_tough_ll(count) {
+    // const data = [
+
+    //     {
+    //         num: 1,
+    //         tough: 5
+    //     },
+
+    //     {
+    //         num: 2,
+    //         tough: 4
+    //     },
+
+    //     {
+    //         num: 3,
+    //         tough: 3
+    //     },
+
+    //     {
+    //         num: 4,
+    //         tough: 2
+    //     },
+
+    //     {
+    //         num: 5,
+    //         tough: 1
+    //     },
+
+    //     {
+    //         num: 6,
+    //         tough: 0
+    //     },
+
+    //     {
+    //         num: 7,
+    //         tough: 0
+    //     },
+
+    //     {
+    //         num: 8,
+    //         tough: 0
+    //     },
+
+    //     {
+    //         num: 9,
+    //         tough: 0
+    //     },
+
+    //     {
+    //         num: 10,
+    //         tough: 0
+    //     }
+
+    // ]
+
+
     const data = [
 
         {
@@ -9179,47 +9285,47 @@ async function get_tough_ll(count) {
 
         {
             num: 2,
-            tough: 4
+            tough: 5
         },
 
         {
             num: 3,
-            tough: 3
+            tough: 5
         },
 
         {
             num: 4,
-            tough: 2
+            tough: 5
         },
 
         {
             num: 5,
-            tough: 1
+            tough: 5
         },
 
         {
             num: 6,
-            tough: 0
+            tough: 5
         },
 
         {
             num: 7,
-            tough: 0
+            tough: 5
         },
 
         {
             num: 8,
-            tough: 0
+            tough: 5
         },
 
         {
             num: 9,
-            tough: 0
+            tough: 5
         },
 
         {
             num: 10,
-            tough: 0
+            tough: 5
         }
 
     ]
@@ -9391,9 +9497,9 @@ app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
                 const rward_amt = await milion_reward(data_milion_ten_dt.count, data_milion_ten_dt.rs)
                 const mi_dtt = await Milion_ten_qst_count_Module.findOne({ user })
 
-                mi_dtt.count = mi_dtt.count + 1
-                mi_dtt.rs = rward_amt
-                await mi_dtt.save()
+                data_milion_ten_dt.count = data_milion_ten_dt.count + 1
+                data_milion_ten_dt.rs = rward_amt
+                await data_milion_ten_dt.save()
 
 
                 // await Milion_ten_qst_count_Module.updateOne(
@@ -9424,10 +9530,28 @@ app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
                     }
                 });
                 await admin_noti("❤️❤️ Mili. Won the Game.", `User : ${data_user.username}`)
+                await addToWinList(user);
                 await LiveHistory(
                     user,
                     `💚💚 User won the competition by answering all 10 questions and received 200 rewards`
                 );
+
+                const star_bal = await StarBalmodule.findOne({ user })
+                if (star_bal) {
+                    star_bal.balance = (parseInt(star_bal.balance) + 200).toString();
+                    await star_bal.save();
+                } else {
+                    await StarBalmodule.create({
+                        Time,
+                        user,
+                        balance: reward.toString(),
+                    })
+                }
+
+                await History_star(user, 200)
+
+        
+
                 await find_qst_data.deleteOne();
                 return res.status(200).json({ Status: "completed", message: "Congratulations! You have completed the game." });
             }
@@ -10128,10 +10252,6 @@ app.post('/start/playing/by/debit/amount/new/all/xx/main', authMiddleware, async
         return res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 });
-
-
-
-
 
 
 app.get("/admin/balance/played", adminMiddleware, async (req, res) => {

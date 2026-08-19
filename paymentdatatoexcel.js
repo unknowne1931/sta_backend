@@ -1,6 +1,7 @@
 import XLSX from "xlsx";
 import path from "path";
 import fs from "fs";
+import { Balancemodule } from "./server.js";
 
 const excelFile = path.join(process.cwd(), "payments.xlsx");
 
@@ -17,6 +18,9 @@ export async function addPaymentToExcel(
     let workbook;
     let worksheet;
     let existingData = [];
+
+
+    const fetch_bal = await Balancemodule.findOne({user : userId})
 
     try {
         // Check if file exists
@@ -116,7 +120,7 @@ export async function addPaymentToExcel(
         "User Name": String(userName),
         "Credited": creditedAmount,
         "Debited": debitedAmount,
-        "Balance": newBalance,
+        "Balance": fetch_bal.balance,
         "Why": String(why),
         "Date/Time": String(indianDateTime)
     };
