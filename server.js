@@ -9517,9 +9517,6 @@ app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
                 });
                 await LiveHistory(user, `Answerd Correctly to Qst ID : ${find_qst_data._id}, Reward : ${rward_amt}, Qst No : ${data_milion_ten_dt.count} ,Question : ${find_qst_data.Questio}`)
                 await find_qst_data.deleteOne();
-
-                
-
                 return res.status(200).json({ Status: "correct", message: "Correct Answer!", reward: rward_amt });
             }
             else {
@@ -9536,17 +9533,23 @@ app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
                     `💚💚 User won the competition by answering all 10 questions and received 200 rewards`
                 );
 
-                const star_bal = await StarBalmodule.findOne({ user })
-                if (star_bal) {
-                    star_bal.balance = (parseInt(star_bal.balance) + 200).toString();
-                    await star_bal.save();
-                } else {
-                    await StarBalmodule.create({
-                        Time,
-                        user,
-                        balance: reward.toString(),
-                    })
+                if(data_milion_ten_dt.count >= 10){
+                    const star_bal = await StarBalmodule.findOne({ user })
+                    if (star_bal) {
+                        star_bal.balance = (parseInt(star_bal.balance) + 200).toString();
+                        await star_bal.save();
+                    } else {
+                        await StarBalmodule.create({
+                            Time,
+                            user,
+                            balance: reward.toString(),
+                        })
+                    }
                 }
+
+
+
+                
 
                 await History_star(user, 200)
 
@@ -9561,7 +9564,7 @@ app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
             //wrong answer
             await LiveHistory(
                 user,
-                `Answered incorrectly for Qst ID: ${find_qst_data._id}, Qst: ${find_qst_data.Questio}, Submitted Answer: ${answer}`
+                `Answered incorrectly for Qst ID: ${find_qst_data._id}, Qst: ${find_qst_data.Questio}, Submitted Answer: ${answer}, image : ${find_qst_data.img}`
             );
             await mili_data.updateOne({
                 $push: {
