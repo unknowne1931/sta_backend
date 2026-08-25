@@ -8673,8 +8673,9 @@ const qst_aray_store_Schema = new mongoose.Schema({
 const Qst_array_store_Module = mongoose.model('Qst_array', qst_aray_store_Schema);
 
 
+ 
 
-
+//original
 async function generate_qst_no(user, count) {
 
     console.log("Generating question for user:", user, "Question number:", count);
@@ -8689,21 +8690,30 @@ async function generate_qst_no(user, count) {
         const get_level = await get_tough_ll(count);
 
         const functions = {
+            Twentyfour,
+            Twentythree,
+            Twentytwo,
+            Twentyone,
+            Twenty,
             Nineteen,
-            Nineteen,
-            Nineteen,
-            Nineteen,
-            Nineteen,
-            Nineteen,
-            Nineteen,
-            Nineteen,
-            Nineteen,
-            Nineteen,
-            Nineteen, 
-            Nineteen,
-            Nineteen,
-            Nineteen,
-            
+            Eighteen,
+            // Seventeen,
+            Sixteen,
+            Fifteen,
+            // Fourteen,
+            // Thirteen,
+            // Tweleve,
+            One,
+            Two,
+            // Three,
+            // Four,
+            // Five,
+            // Six,
+            // Seven,
+            // Eight,
+            // Nine,
+            // Ten 
+            Eleven,
         };
 
         // If already exists
@@ -8746,19 +8756,30 @@ async function generate_qst_no(user, count) {
 
         // Generate questions
         const qst_gen = [
+            "Twentyfour",
+            "Twentythree",
+            "Twentytwo",
+            "Twentyone",
+            "Twenty",
             "Nineteen",
-            "Nineteen",
-            "Nineteen",
-            "Nineteen",
-            "Nineteen",
-            "Nineteen",
-            "Nineteen",
-            "Nineteen",
-            "Nineteen",
-            "Nineteen",
-            "Nineteen",
-            "Nineteen",
-            "Nineteen",
+            "Eighteen",
+            // "Seventeen",
+            "Sixteen",
+            "Fifteen",
+            // "Fourteen",
+            // "Thirteen",
+            // "Tweleve",
+            "Eleven",
+            "One",
+            "Two",
+            // "Three",
+            // "Four",
+            // "Five",
+            // "Six",
+            // "Seven",
+            // "Eight",
+            // "Nine",
+            // "Ten"
 
         ];
 
@@ -8814,167 +8835,6 @@ async function generate_qst_no(user, count) {
         return false;
     }
 }
-
-//original
-// async function generate_qst_no(user, count) {
-
-//     console.log("Generating question for user:", user, "Question number:", count);
-
-//     try {
-
-//         let qst_array_data =
-//             await Qst_array_store_Module.findOne({ user });
-
-        
-
-//         const get_level = await get_tough_ll(count);
-
-//         const functions = {
-//             Twentyfour,
-//             Twentythree,
-//             Twentytwo,
-//             Twentyone,
-//             Twenty,
-//             Nineteen,
-//             Eighteen,
-//             // Seventeen,
-//             Sixteen,
-//             Fifteen,
-//             // Fourteen,
-//             // Thirteen,
-//             // Tweleve,
-//             One,
-//             Two,
-//             // Three,
-//             // Four,
-//             // Five,
-//             // Six,
-//             // Seven,
-//             // Eight,
-//             // Nine,
-//             // Ten 
-//             Eleven,
-//         };
-
-//         // If already exists
-//         if (qst_array_data) {
-
-//             const qst_array = qst_array_data.qst_array;
-
-//             const fnName = qst_array[count - 1];
-
-//             const qst_fn = functions[fnName];
-
-//             console.log("Function:", qst_fn);
-
-//             if (typeof qst_fn === "function") {
-
-//                 console.log("008")
-
-//                 // CALL FIRST FUNCTION
-//                 const returned_fn = qst_fn();
-
-//                 // RUN ASYNC FUNCTION
-//                 await returned_fn(
-//                     get_level.toString(),
-//                     user.toString(),
-//                     count.toString(),
-//                     "20",
-//                     get_level.toString(),
-//                     "x"
-//                 );
-
-//                 return qst_array_data;
-//             }
-
-//             console.log("Function not found:", fnName);
-
-//             return false;
-//         }
-
-//         console.log("here 1")
-
-//         // Generate questions
-//         const qst_gen = [
-//             "Twentyfour",
-//             "Twentythree",
-//             "Twentytwo",
-//             "Twentyone",
-//             "Twenty",
-//             "Nineteen",
-//             "Eighteen",
-//             // "Seventeen",
-//             "Sixteen",
-//             "Fifteen",
-//             // "Fourteen",
-//             // "Thirteen",
-//             // "Tweleve",
-//             "Eleven",
-//             "One",
-//             "Two",
-//             // "Three",
-//             // "Four",
-//             // "Five",
-//             // "Six",
-//             // "Seven",
-//             // "Eight",
-//             // "Nine",
-//             // "Ten"
-
-//         ];
-
-//         // Shuffle
-//         const shuffled = [...qst_gen]
-//             .sort(() => Math.random() - 0.5)
-//             .slice(0, 10);
-
-//         // Save
-
-//         console.log("here 2")
-
-
-//         qst_array_data =
-//             await Qst_array_store_Module.create({
-//                 Time: new Date().toISOString(),
-//                 user,
-//                 qst_array: shuffled
-//             });
-
-//         console.log("here 3")
-
-//         const fnName = shuffled[count - 1];
-
-//         const qst_fn = functions[fnName];
-
-//         if (typeof qst_fn === "function") {
-
-//             const returned_fn = qst_fn();
-
-//             await returned_fn(
-//                 get_level.toString(),
-//                 user.toString(),
-//                 count.toString(),
-//                 "20",
-//                 get_level.toString(),
-//                 "x"
-//             );
-
-//             console.log("here 4")
-
-//             return qst_array_data;
-//         }
-
-//         console.log("Function not found:", fnName);
-
-//         return false;
-
-//     } catch (error) {
-
-//         console.log(error);
-
-//         return false;
-//     }
-// }
 
 async function get_categ_fn(fn) {
     const data = [
@@ -9642,7 +9502,7 @@ app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
         const check_ans = compareHash(answer, Ans)
 
         if (check_ans) {
-            if (data_milion_ten_dt.count <= 10) {
+            if (data_milion_ten_dt.count < 10) {
                 const rward_amt = await milion_reward(data_milion_ten_dt.count, data_milion_ten_dt.rs)
                 const mi_dtt = await Milion_ten_qst_count_Module.findOne({ user })
 
