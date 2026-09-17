@@ -7064,25 +7064,6 @@ app.delete("/get/update/new/data/monitor/data/delete",
 
 
 
-
-const dataSchema = new mongoose.Schema({
-    user: {
-        type: String,
-        required: true,
-        unique: true
-    },
-
-    data: {
-        type: Map,
-        of: mongoose.Schema.Types.Mixed,
-        default: {}
-    }
-});
-
-const puzz_Data_Module = mongoose.model("puzz_data", dataSchema);
-
-
-
 function One() {
     return async function (level, user, qno, sec, sum, x) {
         try {
@@ -8692,74 +8673,21 @@ const qst_aray_store_Schema = new mongoose.Schema({
 const Qst_array_store_Module = mongoose.model('Qst_array', qst_aray_store_Schema);
 
 
-
-const Function_name_Schema = new mongoose.Schema({
-
-    Time: {
-        type: String
-    },
-
-    user: {
-        type: String,
-        default: "KicK",
-        unique: true
-    },
-
-    fun_array: {
-        type: [
-            {
-                name: {
-                    type: String,
-                    required: true,
-                    unique : true
-                },
-
-                add_to_live: {
-                    type: Boolean,
-                    default: false
-                }
-            }
-        ],
-
-        default: [
-            { name: "Twentyfour", add_to_live: true },
-            { name: "Twentythree", add_to_live: true },
-            { name: "Twentytwo", add_to_live: true },
-            { name: "Twentyone", add_to_live: true },
-            { name: "Twenty", add_to_live: true },
-            { name: "Nineteen", add_to_live: true },
-            { name: "Eighteen", add_to_live: true },
-            { name: "Sixteen", add_to_live: true },
-            { name: "Fifteen", add_to_live: true },
-            { name: "Eleven", add_to_live: true },
-            { name: "One", add_to_live: true },
-            { name: "Two", add_to_live: true }
-        ]
-    }
-
-}, {
-    timestamps: true
-});
-
-
-const Function_Names_Module = mongoose.model("Function_Name", Function_name_Schema);
-
+ 
 
 //original
 async function generate_qst_no(user, count) {
 
-    console.log(
-        "Generating question for user:",
-        user,
-        "Question number:",
-        count
-    );
+    console.log("Generating question for user:", user, "Question number:", count);
 
     try {
 
-        // =========================================
-        // FUNCTION MAP
-        // =========================================
+        let qst_array_data =
+            await Qst_array_store_Module.findOne({ user });
+
+        
+
+        const get_level = await get_tough_ll(count);
 
         const functions = {
             Twentyfour,
@@ -8784,30 +8712,11 @@ async function generate_qst_no(user, count) {
             // Seven,
             // Eight,
             // Nine,
-            // Ten,
-            Eleven
+            // Ten 
+            Eleven,
         };
 
-
-        // =========================================
-        // GET QUESTION ARRAY
-        // =========================================
-
-        let qst_array_data =
-            await Qst_array_store_Module.findOne({ user });
-
-
-        // =========================================
-        // GET LEVEL
-        // =========================================
-
-        const get_level = await get_tough_ll(count);
-
-
-        // =========================================
-        // IF QUESTION ARRAY ALREADY EXISTS
-        // =========================================
-
+        // If already exists
         if (qst_array_data) {
 
             const qst_array = qst_array_data.qst_array;
@@ -8816,14 +8725,16 @@ async function generate_qst_no(user, count) {
 
             const qst_fn = functions[fnName];
 
+            console.log("Function:", qst_fn);
 
             if (typeof qst_fn === "function") {
 
-                // Call generator
+                console.log("008")
+
+                // CALL FIRST FUNCTION
                 const returned_fn = qst_fn();
 
-
-                // Run returned async function
+                // RUN ASYNC FUNCTION
                 await returned_fn(
                     get_level.toString(),
                     user.toString(),
@@ -8833,151 +8744,72 @@ async function generate_qst_no(user, count) {
                     "x"
                 );
 
-
                 return qst_array_data;
             }
 
-
-            console.log(
-                "Function not found:",
-                fnName
-            );
+            console.log("Function not found:", fnName);
 
             return false;
         }
 
+        console.log("here 1")
 
-        // =========================================
-        // GET FUNCTION SETTINGS FROM DB
-        // =========================================
+        // Generate questions
+        const qst_gen = [
+            "Twentyfour",
+            "Twentythree",
+            "Twentytwo",
+            "Twentyone",
+            "Twenty",
+            "Nineteen",
+            "Eighteen",
+            // "Seventeen",
+            "Sixteen",
+            "Fifteen",
+            // "Fourteen",
+            // "Thirteen",
+            // "Tweleve",
+            "Eleven",
+            "One",
+            "Two",
+            // "Three",
+            // "Four",
+            // "Five",
+            // "Six",
+            // "Seven",
+            // "Eight",
+            // "Nine",
+            // "Ten"
 
-        let data_function =
-            await Function_Names_Module
-                .findOne({ user: "KicK" })
-                .lean();
+        ];
 
+        // Shuffle
+        const shuffled = [...qst_gen]
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 10);
 
-        // =========================================
-        // CREATE DEFAULT DATA IF NOT EXISTS
-        // =========================================
+        // Save
 
-        if (!data_function) {
-
-            data_function =
-                await Function_Names_Module.create({
-                    user: "KicK"
-                });
-
-            data_function =
-                data_function.toObject();
-        }
-
-
-        // =========================================
-        // GET ONLY add_to_live === true
-        // =========================================
-
-        const qst_gen =
-            data_function.fun_array
-                .filter(item => item.add_to_live === true)
-                .map(item => item.name);
-
-
-        console.log(
-            "Selected live functions:",
-            qst_gen
-        );
-
-
-        // =========================================
-        // CHECK FUNCTIONS EXIST
-        // =========================================
-
-        const valid_qst_gen =
-            qst_gen.filter(name => {
-                return typeof functions[name] === "function";
-            });
-
-
-        console.log(
-            "Valid functions:",
-            valid_qst_gen
-        );
-
-
-        // =========================================
-        // CHECK ENOUGH FUNCTIONS
-        // =========================================
-
-        if (valid_qst_gen.length === 0) {
-
-            console.log(
-                "No functions are enabled."
-            );
-
-            return false;
-        }
-
-
-        // =========================================
-        // SHUFFLE
-        // =========================================
-
-        const shuffled =
-            [...valid_qst_gen]
-                .sort(() => Math.random() - 0.5);
-
-
-        // =========================================
-        // TAKE MAXIMUM 10
-        // =========================================
-
-        const final_qst_array =
-            shuffled.slice(0, 10);
-
-
-        console.log(
-            "Final question array:",
-            final_qst_array
-        );
-
-
-        // =========================================
-        // SAVE
-        // =========================================
+        console.log("here 2")
 
 
         qst_array_data =
             await Qst_array_store_Module.create({
-
                 Time: new Date().toISOString(),
-
                 user,
-
-                qst_array: final_qst_array
+                qst_array: shuffled
             });
 
+        console.log("here 3")
 
-        // =========================================
-        // GET FUNCTION FOR CURRENT QUESTION
-        // =========================================
+        const fnName = shuffled[count - 1];
 
-        const fnName =
-            final_qst_array[count - 1];
-
-
-        const qst_fn =
-            functions[fnName];
-
+        const qst_fn = functions[fnName];
 
         if (typeof qst_fn === "function") {
 
-            // Call generator
-            const returned_fn =
-                qst_fn();
+            const returned_fn = qst_fn();
 
-
-            // Run returned async function
             await returned_fn(
                 get_level.toString(),
                 user.toString(),
@@ -8987,18 +8819,14 @@ async function generate_qst_no(user, count) {
                 "x"
             );
 
+            console.log("here 4")
 
             return qst_array_data;
         }
 
-
-        console.log(
-            "Function not found:",
-            fnName
-        );
+        console.log("Function not found:", fnName);
 
         return false;
-
 
     } catch (error) {
 
