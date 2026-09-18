@@ -7081,13 +7081,57 @@ const dataSchema = new mongoose.Schema({
 
 const puzz_Data_Module = mongoose.model("puzz_data", dataSchema);
 
+/**
+ * Get existing user data OR create new one if it doesn't exist
+ * @param {string} user - The username
+ * @param {object} data - Data to set (only used on creation)
+ * @returns {Promise<{doc: object, created: boolean}>}
+ */
+async function getOrCreatePuzleData(user, data = {}) {
+    // Try to find existing
+    let doc = await puzz_Data_Module.findOne({ user });
+
+    if (doc) {
+        return { doc, created: false };  // ✅ found existing
+    }
+
+    // Create new
+    try {
+        doc = await puzz_Data_Module.create({ user, data });
+        return { doc, created: true };   // ✅ created new
+    } catch (err) {
+        // Handle race condition: another request created it between find & create
+        if (err.code === 11000) {
+            doc = await puzz_Data_Module.findOne({ user });
+            return { doc, created: false };
+        }
+        throw err;
+    }
+}
 
 
+
+//work 18-09-2026
 function One() {
     return async function (level, user, qno, sec, sum, x) {
         try {
 
+            const data = await getOrCreatePuzleData("One", {
+                qst : {
+                    1 : 10,
+                    2 : 20,
+                    3 : 30,
+                    4 : 35,
+                    5 : 40,
+                    6 : 40,
+                    7 : 40,
+                    8 : 40,
+                    9 : 40,
+                    10 : 40                    
+                }
+            }
 
+            )
             const cat_count = await calcccc_cc("Total Boxes [Comp]", 40)
             const na = parseInt(cat_count) - (parseInt(sum) * 3) //3 means it takes 1 seconds to make check the 3 boxes
             const difficulty = getDifficultiesByPer(na); //fix 40 1931
@@ -8600,7 +8644,7 @@ function Twentyfour() {
             //     answer: puzzle.correct,
             //     image: puzzle.image
             // })
-
+ 
             const ans = puzzle.answer;
 
             const hash = crypto
