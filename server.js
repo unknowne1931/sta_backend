@@ -120,12 +120,12 @@ const Time_2 = Time.toLocaleString("en-US", {
 
 
 const qst_gen = [
-    One(), Two(), Three(), Four(), Five(), Six(),
-    Seven(), Eight(), Nine(), Ten(),
-    // Eleven(), Tweleve(), Thirteen(),
-    // Fourteen(), Fifteen(), Sixteen()
-    // Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),
+    One(), Two()
 ];
+
+const functions = {
+    One, Two
+}
 
 
 //razorpay webhook
@@ -7087,20 +7087,22 @@ const puzz_Data_Module = mongoose.model("puzz_data", dataSchema);
  * @param {object} data - Data to set (only used on creation)
  * @returns {Promise<{doc: object, created: boolean}>}
  */
+
+
 async function getOrCreatePuzleData(user, data = {}) {
     // Try to find existing
     let doc = await puzz_Data_Module.findOne({ user });
 
     if (doc) {
-        return { doc, created: false };  // ✅ found existing
+        return { doc, created: false };
     }
 
     // Create new
     try {
         doc = await puzz_Data_Module.create({ user, data });
-        return { doc, created: true };   // ✅ created new
+        return { doc, created: true };
     } catch (err) {
-        // Handle race condition: another request created it between find & create
+        // Handle race condition
         if (err.code === 11000) {
             doc = await puzz_Data_Module.findOne({ user });
             return { doc, created: false };
@@ -7109,33 +7111,34 @@ async function getOrCreatePuzleData(user, data = {}) {
     }
 }
 
-
-
-//work 18-09-2026
+// work 18-09-2026
 function One() {
     return async function (level, user, qno, sec, sum, x) {
         try {
-
-            const data = await getOrCreatePuzleData("One", {
-                qst : {
-                    1 : 10,
-                    2 : 20,
-                    3 : 30,
-                    4 : 35,
-                    5 : 40,
-                    6 : 40,
-                    7 : 40,
-                    8 : 40,
-                    9 : 40,
-                    10 : 40                    
+            const result = await getOrCreatePuzleData("One", {
+                qst: {
+                    1: 10,
+                    2: 20,
+                    3: 30,
+                    4: 35,
+                    5: 40,
+                    6: 40,
+                    7: 40,
+                    8: 40,
+                    9: 40,
+                    10: 40
                 }
-            }
+            });
 
-            )
-            const cat_count = await calcccc_cc("Total Boxes [Comp]", 40)
-            const na = parseInt(cat_count) - (parseInt(sum) * 3) //3 means it takes 1 seconds to make check the 3 boxes
-            const difficulty = getDifficultiesByPer(na); //fix 40 1931
+            // ✅ FIX: Access the document from the result object
+            const doc = result.doc;
+
+            console.log(doc.data.get('qst')[qno]); //Ex num 10
+
+            // ✅ FIX: Use doc.data.qst instead of data.qst
+            const difficulty = getDifficultiesByPer(parseInt(doc.data.get("qst")[qno]));
             const boxes = generateBoxesData(difficulty);
+            await calcccc_cc("Total Boxes [Comp]", 40)
 
             // ✅ REAL ANSWER (NOT CONFIG)
             const correct = boxes.filter(b => b.complete).length;
@@ -7143,21 +7146,14 @@ function One() {
             const buffer = drawImage(boxes);
             const image = buffer.toString("base64");
 
-            // res.json({
-            //     title: "Total Boxes [Comp]",
-            //     question: "How many boxes are unbroken in total?",
-            //     options: generateOptions(correct),
-            //     answer: correct,
-            //     image
-            // });
-
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
                 .update(correct.toString())
                 .digest("hex");
 
+            // ✅ FIX: 'Time' was undefined — pass it in or define it
             const dt_post = await QuestionModule.create({
-                Time: Time,
+                Time: Time,        // ⚠️ 'Time' is not defined — see note below
                 user: user,
                 img: image,
                 Questio: "How many boxes are unbroken in total?",
@@ -7174,7 +7170,7 @@ function One() {
             });
 
             await time_ans_Module.create({
-                Time,
+                Time,              // ⚠️ same issue — 'Time' is not defined
                 user,
                 Qno_ID: dt_post._id,
                 Qst_crt_tm: new Date(),
@@ -7182,13 +7178,9 @@ function One() {
                 Qst_ans_tm: "n",
                 cl_sec: "n",
                 r_sec: -1
-
-            })
-
-
+            });
 
         } catch (err) {
-            // ✅ FIX: no res → rethrow so caller can handle
             throw err;
         }
     };
@@ -7198,15 +7190,34 @@ function Two() {
     return async function (level, user, qno, sec, sum, x) {
         try {
 
-            const cat_count = await calcccc_cc("Total Boxes [Broken]", 40)
-            const na = parseInt(cat_count) - (parseInt(sum) * 3)
-            const difficulty = getDifficultiesByPer_two(na); //fix 40 1931
+            const data = await getOrCreatePuzleData("Two", {
+
+                qst: {
+                    1: 10,
+                    2: 20,
+                    3: 30,
+                    4: 35,
+                    5: 40,
+                    6: 40,
+                    7: 40,
+                    8: 40,
+                    9: 40,
+                    10: 40
+                }
+
+            })
+
+            const data_doc = data.doc
+
+            const difficulty = getDifficultiesByPer_two(parseInt(data_doc.data.get("qst")[qno])); //fix 40 1931
             const { boxes, brokenCount } = generateBoxesData_two(difficulty);
 
             const imageBuffer = drawImage_two(boxes);
             const image = await uploadImage_two(imageBuffer);
 
             const options = generateOptions_two(brokenCount);
+
+            await calcccc_cc("Total Boxes [Broken]", 40)
 
             // res.json({
             //     title: "Total Boxes [Broken]",
@@ -7264,1436 +7275,8 @@ function Two() {
 
 
 
-function Three() {
-    return async function (level, user, qno, sec, sum, x) {
-        try {
 
 
-            const cat_count = await calcccc_cc("Stars [Broken]", 60)
-            const na = parseInt(cat_count) - (parseInt(sum) * 3)
-            const puzzle = generatePuzzle_three(na); //fix 60 1931
-
-            // convert base64 → image
-
-            // res.json({
-            //     title: "Stars [Broken]",
-            //     question: "How many Broken boxes contain stars?",
-            //     options: puzzle.options,
-            //     answer: puzzle.correct,
-            //     image: puzzle.image
-            // })
-
-            const ans = puzzle.correct;
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(ans.toString())
-                .digest("hex");
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: puzzle.image,
-                Questio: "How many Broken boxes contain stars?",
-                options: puzzle.options,
-                Ans: hash,
-                tough: "none",
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "Stars [Broken]",
-                yes: [],
-                no: [],
-                x: x,
-                typ: "star_circ_tria"
-            });
-
-            await time_ans_Module.create({
-                Time,
-                user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: new Date(),
-                Qst_get_tm: "n",
-                Qst_ans_tm: "n",
-                cl_sec: "n",
-                r_sec: -1
-
-            })
-
-
-        } catch (error) {
-            console.log(error)
-        }
-    }
-}
-
-
-
-function Four() {
-    return async function (level, user, qno, sec, sum, x) {
-        try {
-
-            const cat_count = await calcccc_cc("Stars [Comp]", 50)
-            const na = parseInt(cat_count) - (parseInt(sum) * 3)
-            const puzzle = generatePuzzle_four(na); //fix 50 1931
-
-            // res.json({
-            //     title: "Stars [Comp]",
-            //     question: "How many Unbroken boxes contain stars?",
-            //     options: puzzle.options,
-            //     answer: puzzle.correct,
-            //     image: puzzle.image
-            // })
-
-
-            const ans = puzzle.correct;
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(ans.toString())
-                .digest("hex");
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: puzzle.image,
-                Questio: "How many Unbroken boxes contain stars?",
-                options: puzzle.options,
-                Ans: hash,
-                tough: "none",
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "Stars [Comp]",
-                yes: [],
-                no: [],
-                x: x,
-                typ: "star_circ_tria"
-            });
-
-            await time_ans_Module.create({
-                Time,
-                user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: new Date(),
-                Qst_get_tm: "n",
-                Qst_ans_tm: "n",
-                cl_sec: "n",
-                r_sec: -1
-            })
-
-
-        } catch (error) {
-            console.log(error)
-        }
-    }
-}
-
-
-function Five() {
-    return async function (level, user, qno, sec, sum, x) {
-        try {
-
-            const cat_count = await calcccc_cc("Triangle [Broken]", 50)
-            const na = parseInt(cat_count) - (parseInt(sum) * 3)
-            const puzzle = generatePuzzle_five(na); //50 fix 1931-1
-
-            // convert base64 → image
-            // const buffer = Buffer.from(puzzle.image, "base64");
-
-            // res.json({
-            //     title: "Triangle [Broken]",
-            //     question: "How many Broken boxes contain Triangle?",
-            //     options: puzzle.options,
-            //     answer: puzzle.correct,
-            //     image: puzzle.image
-            // })
-
-
-            const ans = puzzle.correct;
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(ans.toString())
-                .digest("hex");
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: puzzle.image,
-                Questio: "How many Broken boxes contain Triangle?",
-                options: puzzle.options,
-                Ans: hash,
-                tough: "none",
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "Triangle [Broken]",
-                yes: [],
-                no: [],
-                x: x,
-                typ: "star_circ_tria"
-            });
-
-            await time_ans_Module.create({
-                Time,
-                user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: new Date(),
-                Qst_get_tm: "n",
-                Qst_ans_tm: "n",
-                cl_sec: "n",
-                r_sec: -1
-
-            })
-
-
-
-        } catch (error) {
-            console.log(error)
-        }
-    }
-}
-
-
-
-function Six() {
-    return async function (level, user, qno, sec, sum, x) {
-        try {
-
-            const cat_count = await calcccc_cc("Triangle [Comp]", 50)
-            const na = parseInt(cat_count) - (parseInt(sum) * 3) //3 means it takes 1 seconds to make check the 3 boxes
-            const puzzle = generatePuzzle_six(na); //50 fix 1931
-
-            // convert base64 → image
-            // const buffer = Buffer.from(puzzle.image, "base64");
-
-            // res.json({
-            //     title: "Triangle [Comp]",
-            //     question: "How many Unbroken boxes contain Triangle?",
-            //     options: puzzle.options,
-            //     answer: puzzle.correct,
-            //     image: puzzle.image
-            // })
-
-
-            const ans = puzzle.correct;
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(ans.toString())
-                .digest("hex");
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: puzzle.image,
-                Questio: "How many Unbroken boxes contain Triangle?",
-                options: puzzle.options,
-                Ans: hash,
-                tough: "none",
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "Triangle [Comp]",
-                yes: [],
-                no: [],
-                x: x,
-                typ: "star_circ_tria"
-            });
-
-            await time_ans_Module.create({
-                Time,
-                user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: new Date(),
-                Qst_get_tm: "n",
-                Qst_ans_tm: "n",
-                cl_sec: "n",
-                r_sec: -1
-
-            })
-
-
-
-        } catch (error) {
-            console.log(error)
-        }
-    }
-}
-
-
-function Seven() {
-    return async function (level, user, qno, sec, sum, x) {
-        try {
-
-            const cat_count = await calcccc_cc("Circels [Comp]", 55)
-            const na = parseInt(cat_count) - (parseInt(sum) * 3) //3 means it takes 1 seconds to make check the 3 boxes
-            const puzzle = generatePuzzle_seven(na); //fix 55 1931
-
-            // res.json({
-            //     title: "Circels [Comp]",
-            //     question: "How many complete boxes contain circles",
-            //     options: puzzle.options,
-            //     answer: puzzle.correct,
-            //     image: puzzle.image
-            // })
-
-
-            const ans = puzzle.correct;
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(ans.toString())
-                .digest("hex");
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: puzzle.image,
-                Questio: "How many complete boxes contain circles",
-                options: puzzle.options,
-                Ans: hash,
-                tough: "none",
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "Circels [Comp]",
-                yes: [],
-                no: [],
-                x: x,
-                typ: "star_circ_tria"
-            });
-
-            await time_ans_Module.create({
-                Time,
-                user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: new Date(),
-                Qst_get_tm: "n",
-                Qst_ans_tm: "n",
-                cl_sec: "n",
-                r_sec: -1
-
-            })
-
-
-
-        } catch (error) {
-            console.log(error)
-        }
-    }
-}
-
-
-function Eight() {
-    return async function (level, user, qno, sec, sum, x) {
-        try {
-
-            const cat_count = await calcccc_cc("Circels [Broken]", 50)
-            const na = parseInt(cat_count) - (parseInt(sum) * 3) //3 means it takes 1 seconds to make check the 3 boxes
-            const puzzle = generatePuzzle_eight(na); //fix 50
-
-            // convert base64 → image
-
-            // res.json({
-            //     title: "Circels [Broken]",
-            //     question: "How many uncomplete boxes contain circles",
-            //     options: puzzle.options,
-            //     answer: puzzle.correct,
-            //     image: puzzle.image
-            // })
-
-            const ans = puzzle.correct;
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(ans.toString())
-                .digest("hex");
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: puzzle.image,
-                Questio: "How many uncomplete boxes contain circles",
-                options: puzzle.options,
-                Ans: hash,
-                tough: "none",
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "Circels [Broken]",
-                yes: [],
-                no: [],
-                x: x,
-                typ: "star_circ_tria"
-            });
-
-            await time_ans_Module.create({
-                Time,
-                user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: new Date(),
-                Qst_get_tm: "n",
-                Qst_ans_tm: "n",
-                cl_sec: "n",
-                r_sec: -1
-
-            })
-
-
-        } catch (error) {
-            console.log(error)
-        }
-    }
-}
-
-
-function Nine() {
-    return async function (level, user, qno, sec, sum, x) {
-        try {
-            const cat_count = await calcccc_cc("[Circels and Triangles] Comp", 40)
-            const na = parseInt(cat_count) - (parseInt(sum) * 3) //3 means it takes 1 seconds to make check the 3 boxes
-            const puzzle = generatePuzzle_complete_nine(na); //40 fix 1931
-
-            // convert base64 → image
-
-            // res.json({
-            //     title: "[Circels and Triangles] Comp",
-            //     question: "How many complete boxes contain circles and triangles (in different boxes)?",
-            //     options: puzzle.options,
-            //     answer: puzzle.correct,
-            //     image: puzzle.image
-            // })
-
-            const ans = puzzle.correct;
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(ans.toString())
-                .digest("hex");
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: puzzle.image,
-                Questio: "How many complete boxes contain circles and triangles (in different boxes)?",
-                options: puzzle.options,
-                Ans: hash,
-                tough: "none",
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "[Circels and Triangles] Comp",
-                yes: [],
-                no: [],
-                x: x,
-                typ: "star_circ_tria"
-            });
-
-            await time_ans_Module.create({
-                Time,
-                user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: new Date(),
-                Qst_get_tm: "n",
-                Qst_ans_tm: "n",
-                cl_sec: "n",
-                r_sec: -1
-
-            })
-
-
-        } catch (error) {
-            console.log(error)
-        }
-    }
-}
-
-
-
-function Ten() {
-    return async function (level, user, qno, sec, sum, x) {
-        try {
-            const cat_count = await calcccc_cc("[Circels and Triangles] Broken", 40)
-            const na = parseInt(cat_count) - (parseInt(sum) * 3) //3 means it takes 1 seconds to make check the 3 boxes
-            const puzzle = generatePuzzle_broken_ten(na);
-
-            // convert base64 → image
-
-            // res.json({
-            //     title: "[Circels and Triangles] Broken",
-            //     question: "Count the broken boxes that contain circles and triangles.",
-            //     options: puzzle.options,
-            //     answer: puzzle.correct,
-            //     image: puzzle.image
-            // })
-
-            const ans = puzzle.correct;
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(ans.toString())
-                .digest("hex");
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: puzzle.image,
-                Questio: "Count the broken boxes that contain circles and triangles.",
-                options: puzzle.options,
-                Ans: hash,
-                tough: "none",
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "[Circels and Triangles] Broken",
-                yes: [],
-                no: [],
-                x: x,
-                typ: "star_circ_tria"
-            });
-
-
-            await time_ans_Module.create({
-                Time,
-                user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: new Date(),
-                Qst_get_tm: "n",
-                Qst_ans_tm: "n",
-                cl_sec: "n",
-                r_sec: -1
-
-            })
-
-
-        } catch (error) {
-            console.log(error)
-        }
-    }
-}
-
-
-//Test this One
-function Eleven() {
-    return async function (level, user, qno, sec, sum, x) {
-        try {
-            const cat_count = await calcccc_cc("[Colours & Name Match]", 17)
-            const na = parseInt(cat_count) - (parseInt(sum) * 0.85) //3 means it takes 1 seconds to make check the 3 boxes
-            // const puzzle = generatePuzzle_broken_ten(na);
-            const puzzle = generatePuzzle_color(na);
-
-            // convert base64 → image
-
-            // res.json({
-            //     title: "[Circels and Triangles] Broken",
-            //     question: "Count the broken boxes that contain circles and triangles.",
-            //     options: puzzle.options,
-            //     answer: puzzle.correct,
-            //     image: puzzle.image
-            // })
-
-            const ans = puzzle.answer;
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(ans.toString())
-                .digest("hex");
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: puzzle.image,
-                Questio: puzzle.question,
-                options: puzzle.options,
-                Ans: hash,
-                tough: "none",
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "[Colours & Name Match]",
-                yes: [],
-                no: [],
-                x: x,
-                typ: "Colours & Name Match"
-            });
-
-
-            await time_ans_Module.create({
-                Time,
-                user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: new Date(),
-                Qst_get_tm: "n",
-                Qst_ans_tm: "n",
-                cl_sec: "n",
-                r_sec: -1
-
-            })
-
-
-        } catch (error) {
-            console.log(error)
-        }
-    }
-}
-
-
-
-function Tweleve() {
-    return async function (level, user, qno, sec, sum, x) {
-        try {
-            const cat_count = await calcccc_cc("Pattern_to_Numbers", 17)
-            const na = parseInt(cat_count) - (parseInt(sum) * 1) //3 means it takes 1 seconds to make check the 3 boxes
-            // const puzzle = generatePuzzle_broken_ten(na);
-            const puzzle = generatePuzzle_unlock_pattern(na)
-
-            // convert base64 → image
-
-            // res.json({
-            //     title: "[Circels and Triangles] Broken",
-            //     question: "Count the broken boxes that contain circles and triangles.",
-            //     options: puzzle.options,
-            //     answer: puzzle.correct,
-            //     image: puzzle.image
-            // })
-
-            const ans = puzzle.answer;
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(ans.toString())
-                .digest("hex");
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: puzzle.image,
-                Questio: "Count how many colour names match their actual colours.",
-                options: puzzle.options,
-                Ans: hash,
-                tough: "none",
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "Pattern_to_Numbers",
-                yes: [],
-                no: [],
-                x: x,
-                typ: "Pattern_to_Numbers"
-            });
-
-
-            await time_ans_Module.create({
-                Time,
-                user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: new Date(),
-                Qst_get_tm: "n",
-                Qst_ans_tm: "n",
-                cl_sec: "n",
-                r_sec: -1
-
-            })
-
-
-        } catch (error) {
-            console.log(error)
-        }
-    }
-}
-
-
-
-function Thirteen() {
-    return async function (level, user, qno, sec, sum, x) {
-        try {
-            const cat_count = await calcccc_cc("Morse code", 17)
-            const na = parseInt(cat_count) - (parseInt(sum) * 1) //3 means it takes 1 seconds to make check the 3 boxes
-            // const puzzle = generatePuzzle_broken_ten(na);
-            const puzzle = generatePuzzle_morseCode(na);
-
-            // convert base64 → image
-
-            // res.json({
-            //     title: "[Circels and Triangles] Broken",
-            //     question: "Count the broken boxes that contain circles and triangles.",
-            //     options: puzzle.options,
-            //     answer: puzzle.correct,
-            //     image: puzzle.image
-            // })
-
-            const ans = puzzle.answer;
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(ans.toString())
-                .digest("hex");
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: puzzle.image,
-                Questio: "Find the correct word from the Morse code.",
-                options: puzzle.options,
-                Ans: hash,
-                tough: "none",
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "Morse code",
-                yes: [],
-                no: [],
-                x: x,
-                typ: "Morse code"
-            });
-
-
-            await time_ans_Module.create({
-                Time,
-                user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: new Date(),
-                Qst_get_tm: "n",
-                Qst_ans_tm: "n",
-                cl_sec: "n",
-                r_sec: -1
-
-            })
-
-
-        } catch (error) {
-            console.log(error)
-        }
-    }
-}
-
-
-function Fourteen() {
-    return async function (level, user, qno, sec, sum, x) {
-        try {
-            const cat_count = await calcccc_cc("Black_&_White_letters", 10)
-            const na = parseInt(cat_count) - (parseInt(sum) * 1) //3 means it takes 1 seconds to make check the 3 boxes
-            // const puzzle = generatePuzzle_broken_ten(na);
-            const puzzle = generatePuzzle_alphabetColourCount(na);
-
-            // convert base64 → image
-
-            // res.json({
-            //     title: "[Circels and Triangles] Broken",
-            //     question: "Count the broken boxes that contain circles and triangles.",
-            //     options: puzzle.options,
-            //     answer: puzzle.correct,
-            //     image: puzzle.image
-            // })
-
-            const ans = puzzle.answer;
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(ans.toString())
-                .digest("hex");
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: puzzle.image,
-                Questio: "How many letters match the clue colours?.",
-                options: puzzle.options,
-                Ans: hash,
-                tough: "none",
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "Black_&_White_letters",
-                yes: [],
-                no: [],
-                x: x,
-                typ: "Black_&_White_letters"
-            });
-
-
-            await time_ans_Module.create({
-                Time,
-                user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: new Date(),
-                Qst_get_tm: "n",
-                Qst_ans_tm: "n",
-                cl_sec: "n",
-                r_sec: -1
-
-            })
-
-
-        } catch (error) {
-            console.log(error)
-        }
-    }
-}
-
-
-
-function Fifteen() {
-    return async function (level, user, qno, sec, sum, x) {
-        try {
-            const cat_count = await calcccc_cc("puzle_peace_male_female", 10)
-            const na = parseInt(cat_count) - (parseInt(sum) * 1) //3 means it takes 1 seconds to make check the 3 boxes
-            // const puzzle = generatePuzzle_broken_ten(na);
-            let puzzle;
-
-            // let data
-            // const num = 16
-            if (na <= 7) {
-                puzzle = generatePuzzle_maleConnectorCount(2, 3)
-            } else if (na == 8) {
-                puzzle = generatePuzzle_maleConnectorCount(2, 4)
-            } else if (na == 9 || na == 10) {
-                puzzle = generatePuzzle_maleConnectorCount(3, 3)
-            } else if (na == 11) {
-                puzzle = generatePuzzle_maleConnectorCount(2, 5)
-            } else if (na == 12 || na == 13 || na == 14) {
-                puzzle = generatePuzzle_maleConnectorCount(3, 4)
-            } else if (na == 15) {
-                puzzle = generatePuzzle_maleConnectorCount(3, 5)
-            } else if (na >= 16) {
-                puzzle = generatePuzzle_maleConnectorCount(4, 4)
-            } else {
-                puzzle = generatePuzzle_maleConnectorCount(4, 4)
-            }
-
-            // convert base64 → image
-
-            // res.json({
-            //     title: "[Circels and Triangles] Broken",
-            //     question: "Count the broken boxes that contain circles and triangles.",
-            //     options: puzzle.options,
-            //     answer: puzzle.correct,
-            //     image: puzzle.image
-            // })
-
-            const ans = puzzle.answer;
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(ans.toString())
-                .digest("hex");
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: puzzle.image,
-                Questio: "How many puzzle pieces contain 2 or more MALE connectors (outward tabs)?",
-                options: puzzle.options,
-                Ans: hash,
-                tough: "none",
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "puzle_peace_male_female",
-                yes: [],
-                no: [],
-                x: x,
-                typ: "puzle_peace_male_female"
-            });
-
-
-            await time_ans_Module.create({
-                Time,
-                user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: new Date(),
-                Qst_get_tm: "n",
-                Qst_ans_tm: "n",
-                cl_sec: "n",
-                r_sec: -1
-
-            })
-
-
-        } catch (error) {
-            console.log(error)
-        }
-    }
-}
-
-
-function Sixteen() {
-    return async function (level, user, qno, sec, sum, x) {
-        try {
-            const cat_count = await calcccc_cc("letters_missalign", 10)
-            const na = parseInt(cat_count) - (parseInt(sum) * 1) //3 means it takes 1 seconds to make check the 3 boxes
-            // const puzzle = generatePuzzle_broken_ten(na);
-
-            const puzzle = generatePuzzle_misalignedLetters(na); //if na = 10 it shows 10 words
-
-
-            // convert base64 → image
-
-            // res.json({
-            //     title: "[Circels and Triangles] Broken",
-            //     question: "Count the broken boxes that contain circles and triangles.",
-            //     options: puzzle.options,
-            //     answer: puzzle.correct,
-            //     image: puzzle.image
-            // })
-
-            const ans = puzzle.answer;
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(ans.toString())
-                .digest("hex");
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: puzzle.image,
-                Questio: "How many letters are misaligned?",
-                options: puzzle.options,
-                Ans: hash,
-                tough: "none",
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "letters_missalign",
-                yes: [],
-                no: [],
-                x: x,
-                typ: "letters_missalign"
-            });
-
-
-            await time_ans_Module.create({
-                Time,
-                user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: new Date(),
-                Qst_get_tm: "n",
-                Qst_ans_tm: "n",
-                cl_sec: "n",
-                r_sec: -1
-
-            })
-
-
-        } catch (error) {
-            console.log(error)
-        }
-    }
-}
-
-
-
-function Seventeen() {
-    return async function (level, user, qno, sec, sum, x) {
-        try {
-            const cat_count = await calcccc_cc("clock_s", 6)
-            const na = parseInt(cat_count) - (parseInt(sum) * 0.5) //3 means it takes 1 seconds to make check the 3 boxes
-            // const puzzle = generatePuzzle_broken_ten(na);
-            const puzzle = generatePuzzle_clockCounting(na);
-            console.log("Numbers of clocks : ", na)
-
-            // convert base64 → image
-
-            // res.json({
-            //     title: "[Circels and Triangles] Broken",
-            //     question: "Count the broken boxes that contain circles and triangles.",
-            //     options: puzzle.options,
-            //     answer: puzzle.correct,
-            //     image: puzzle.image
-            // })
-
-            const ans = puzzle.answer;
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(ans.toString())
-                .digest("hex");
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: puzzle.image,
-                Questio: puzzle.question,
-                options: puzzle.options,
-                Ans: hash,
-                tough: "none",
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "clock_s",
-                yes: [],
-                no: [],
-                x: x,
-                typ: "clock_s"
-            });
-
-
-            await time_ans_Module.create({
-                Time,
-                user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: new Date(),
-                Qst_get_tm: "n",
-                Qst_ans_tm: "n",
-                cl_sec: "n",
-                r_sec: -1
-
-            })
-
-
-        } catch (error) {
-            console.log(error)
-        }
-    }
-}
-
-
-function Eighteen() {
-    return async function (level, user, qno, sec, sum, x) {
-        try {
-            const cat_count = await calcccc_cc("scramble_words", 20)
-            const na = parseInt(cat_count) - (parseInt(sum) * 1) //3 means it takes 1 seconds to make check the 3 boxes
-            // const puzzle = generatePuzzle_broken_ten(na);
-            const puzzle = generatePuzzle_scrambledWords(na, 90);
-
-            // convert base64 → image
-
-            // res.json({
-            //     title: "[Circels and Triangles] Broken",
-            //     question: "Count the broken boxes that contain circles and triangles.",
-            //     options: puzzle.options,
-            //     answer: puzzle.correct,
-            //     image: puzzle.image
-            // })
-
-            const ans = puzzle.answer;
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(ans.toString())
-                .digest("hex");
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: puzzle.image,
-                Questio: puzzle.question,
-                options: puzzle.options,
-                Ans: hash,
-                tough: "none",
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "scramble_words",
-                yes: [],
-                no: [],
-                x: x,
-                typ: "scramble_words"
-            });
-
-
-            await time_ans_Module.create({
-                Time,
-                user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: new Date(),
-                Qst_get_tm: "n",
-                Qst_ans_tm: "n",
-                cl_sec: "n",
-                r_sec: -1
-
-            })
-
-
-        } catch (error) {
-            console.log(error)
-        }
-    }
-}
-
-
-function Nineteen() {
-    return async function (level, user, qno, sec, sum, x) {
-        try {
-            const cat_count = await calcccc_cc("letter_colour_find", 8)
-            const na = parseInt(cat_count) - (parseInt(sum) * 1) //3 means it takes 1 seconds to make check the 3 boxes
-            // const puzzle = generatePuzzle_broken_ten(na);
-            const puzzle = generatePuzzle_colorMatch(na);
-
-            // convert base64 → image
-
-            // res.json({
-            //     title: "[Circels and Triangles] Broken",
-            //     question: "Count the broken boxes that contain circles and triangles.",
-            //     options: puzzle.options,
-            //     answer: puzzle.correct,
-            //     image: puzzle.image
-            // })
-
-            const ans = puzzle.answer;
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(ans.toString())
-                .digest("hex");
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: puzzle.image,
-                Questio: puzzle.question,
-                options: puzzle.options,
-                Ans: hash,
-                tough: "none",
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "letter_colour_find",
-                yes: [],
-                no: [],
-                x: x,
-                typ: "letter_colour_find"
-            });
-
-
-            await time_ans_Module.create({
-                Time,
-                user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: new Date(),
-                Qst_get_tm: "n",
-                Qst_ans_tm: "n",
-                cl_sec: "n",
-                r_sec: -1
-
-            })
-
-
-        } catch (error) {
-            console.log(error)
-        }
-    }
-}
-
-
-
-function Twenty() {
-    return async function (level, user, qno, sec, sum, x) {
-        try {
-            const cat_count = await calcccc_cc("word_colour_find", 5)
-            const na = parseInt(cat_count) - (parseInt(sum) * 0.5) //3 means it takes 1 seconds to make check the 3 boxes
-            // const puzzle = generatePuzzle_broken_ten(na);
-            const puzzle = generatePuzzle_colorMatch2(na);
-
-            // convert base64 → image
-
-            // res.json({
-            //     title: "[Circels and Triangles] Broken",
-            //     question: "Count the broken boxes that contain circles and triangles.",
-            //     options: puzzle.options,
-            //     answer: puzzle.correct,
-            //     image: puzzle.image
-            // })
-
-            const ans = puzzle.answer;
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(ans.toString())
-                .digest("hex");
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: puzzle.image,
-                Questio: puzzle.question,
-                options: puzzle.options,
-                Ans: hash,
-                tough: "none",
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "word_colour_find",
-                yes: [],
-                no: [],
-                x: x,
-                typ: "word_colour_find"
-            });
-
-
-            await time_ans_Module.create({
-                Time,
-                user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: new Date(),
-                Qst_get_tm: "n",
-                Qst_ans_tm: "n",
-                cl_sec: "n",
-                r_sec: -1
-
-            })
-
-
-        } catch (error) {
-            console.log(error)
-        }
-    }
-}
-
-
-
-function Twentyone() {
-    return async function (level, user, qno, sec, sum, x) {
-        try {
-            const cat_count = await calcccc_cc("encode_decode", 5)
-            const na = parseInt(cat_count) - (parseInt(sum) * 0.8) //3 means it takes 1 seconds to make check the 3 boxes
-            // const puzzle = generatePuzzle_broken_ten(na);
-            const puzzle = generatePuzzle_cipher_text({ letterLength: na });
-
-            // convert base64 → image
-
-            // res.json({
-            //     title: "[Circels and Triangles] Broken",
-            //     question: "Count the broken boxes that contain circles and triangles.",
-            //     options: puzzle.options,
-            //     answer: puzzle.correct,
-            //     image: puzzle.image
-            // })
-
-            const ans = puzzle.answer;
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(ans.toString())
-                .digest("hex");
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: puzzle.image,
-                Questio: puzzle.question,
-                options: puzzle.options,
-                Ans: hash,
-                tough: "none",
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "encode_decode",
-                yes: [],
-                no: [],
-                x: x,
-                typ: "encode_decode"
-            });
-
-
-            await time_ans_Module.create({
-                Time,
-                user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: new Date(),
-                Qst_get_tm: "n",
-                Qst_ans_tm: "n",
-                cl_sec: "n",
-                r_sec: -1
-
-            })
-
-
-        } catch (error) {
-            console.log(error)
-        }
-    }
-}
-
-
-function Twentytwo() {
-    return async function (level, user, qno, sec, sum, x) {
-        try {
-            const cat_count = await calcccc_cc("count_leters_exist", 8)
-            const na = parseInt(cat_count) - (parseInt(sum) * 0.7) //3 means it takes 1 seconds to make check the 3 boxes
-            // const puzzle = generatePuzzle_broken_ten(na);
-            // const puzzle = generatePuzzle_cipher_text({letterLength : na});
-
-            const num = na
-            const puzzle = generatePuzzle_consonant_count({
-                minWords: num - 2,
-                maxWords: num
-            });
-
-            // convert base64 → image
-
-            // res.json({
-            //     title: "[Circels and Triangles] Broken",
-            //     question: "Count the broken boxes that contain circles and triangles.",
-            //     options: puzzle.options,
-            //     answer: puzzle.correct,
-            //     image: puzzle.image
-            // })
-
-            const ans = puzzle.answer;
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(ans.toString())
-                .digest("hex");
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: puzzle.image,
-                Questio: puzzle.question,
-                options: puzzle.options,
-                Ans: hash,
-                tough: "none",
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "count_leters_exist",
-                yes: [],
-                no: [],
-                x: x,
-                typ: "count_leters_exist"
-            });
-
-
-            await time_ans_Module.create({
-                Time,
-                user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: new Date(),
-                Qst_get_tm: "n",
-                Qst_ans_tm: "n",
-                cl_sec: "n",
-                r_sec: -1
-
-            })
-
-
-        } catch (error) {
-            console.log(error)
-        }
-    }
-}
-
-
-function Twentythree() {
-    return async function (level, user, qno, sec, sum, x) {
-        try {
-            const cat_count = await calcccc_cc("count_word_exist", 14)
-            const na = parseInt(cat_count) - (parseInt(sum) * 1) //3 means it takes 1 seconds to make check the 3 boxes
-            // const puzzle = generatePuzzle_broken_ten(na);
-            // const puzzle = generatePuzzle_cipher_text({letterLength : na});
-
-            const puzzle = generatePuzzle_word_search({ totalWords: na })
-
-            // convert base64 → image
-
-            // res.json({
-            //     title: "[Circels and Triangles] Broken",
-            //     question: "Count the broken boxes that contain circles and triangles.",
-            //     options: puzzle.options,
-            //     answer: puzzle.correct,
-            //     image: puzzle.image
-            // })
-
-            const ans = puzzle.answer;
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(ans.toString())
-                .digest("hex");
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: puzzle.image,
-                Questio: puzzle.question,
-                options: puzzle.options,
-                Ans: hash,
-                tough: "none",
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "count_word_exist",
-                yes: [],
-                no: [],
-                x: x,
-                typ: "count_word_exist"
-            });
-
-
-            await time_ans_Module.create({
-                Time,
-                user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: new Date(),
-                Qst_get_tm: "n",
-                Qst_ans_tm: "n",
-                cl_sec: "n",
-                r_sec: -1
-
-            })
-
-
-        } catch (error) {
-            console.log(error)
-        }
-    }
-}
-
-
-//work
-function Twentyfour() {
-    return async function (level, user, qno, sec, sum, x) {
-        try {
-            const cat_count = await calcccc_cc("re_arrange_letters", 5)
-            const na = parseInt(cat_count) - (parseInt(sum) * 0.5) //3 means it takes 1 seconds to make check the 3 boxes
-            // const puzzle = generatePuzzle_broken_ten(na);
-            // const puzzle = generatePuzzle_cipher_text({letterLength : na});
-
-            const puzzle = generatePuzzle_alphabetical({ letters: na })
-
-            // convert base64 → image
-
-            // res.json({
-            //     title: "[Circels and Triangles] Broken",
-            //     question: "Count the broken boxes that contain circles and triangles.",
-            //     options: puzzle.options,
-            //     answer: puzzle.correct,
-            //     image: puzzle.image
-            // })
- 
-            const ans = puzzle.answer;
-
-            const hash = crypto
-                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
-                .update(ans.toString())
-                .digest("hex");
-
-            const dt_post = await QuestionModule.create({
-                Time: Time,
-                user: user,
-                img: puzzle.image,
-                Questio: puzzle.question,
-                options: puzzle.options,
-                Ans: hash,
-                tough: "none",
-                Qno: qno,
-                seconds: sec,
-                sub_lang: "re_arrange_letters",
-                yes: [],
-                no: [],
-                x: x,
-                typ: "re_arrange_letters"
-            });
-
-
-            await time_ans_Module.create({
-                Time,
-                user,
-                Qno_ID: dt_post._id,
-                Qst_crt_tm: new Date(),
-                Qst_get_tm: "n",
-                Qst_ans_tm: "n",
-                cl_sec: "n",
-                r_sec: -1
-
-            })
-
-
-        } catch (error) {
-            console.log(error)
-        }
-    }
-}
-
-
-const functions = {
-    One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten,
-    // Eleven, Tweleve, Thirteen, Fourteen, Fifteen, Sixteen
-}
 
 
 const milion_qst_Schema = new mongoose.Schema({
@@ -8755,7 +7338,7 @@ const Function_name_Schema = new mongoose.Schema({
                 name: {
                     type: String,
                     required: true,
-                    unique : true
+                    // unique : true
                 },
 
                 add_to_live: {
@@ -8766,18 +7349,35 @@ const Function_name_Schema = new mongoose.Schema({
         ],
 
         default: [
-            { name: "Twentyfour", add_to_live: true },
-            { name: "Twentythree", add_to_live: true },
-            { name: "Twentytwo", add_to_live: true },
-            { name: "Twentyone", add_to_live: true },
-            { name: "Twenty", add_to_live: true },
-            { name: "Nineteen", add_to_live: true },
-            { name: "Eighteen", add_to_live: true },
-            { name: "Sixteen", add_to_live: true },
-            { name: "Fifteen", add_to_live: true },
-            { name: "Eleven", add_to_live: true },
-            { name: "One", add_to_live: true },
-            { name: "Two", add_to_live: true }
+
+            {name : "Two", add_to_live: true },
+            {name : "Two", add_to_live: true },
+            {name : "Two", add_to_live: true },
+            {name : "Two", add_to_live: true },
+            {name : "Two", add_to_live: true },
+            {name : "Two", add_to_live: true },
+            {name : "Two", add_to_live: true },
+            {name : "Two", add_to_live: true },
+            {name : "Two", add_to_live: true },
+            {name : "Two", add_to_live: true },
+            {name : "Two", add_to_live: true },
+            {name : "Two", add_to_live: true },
+            {name : "Two", add_to_live: true },
+            {name : "Two", add_to_live: true },
+            
+
+            // { name: "Twentyfour", add_to_live: true },
+            // { name: "Twentythree", add_to_live: true },
+            // { name: "Twentytwo", add_to_live: true },
+            // { name: "Twentyone", add_to_live: true },
+            // { name: "Twenty", add_to_live: true },
+            // { name: "Nineteen", add_to_live: true },
+            // { name: "Eighteen", add_to_live: true },
+            // { name: "Sixteen", add_to_live: true },
+            // { name: "Fifteen", add_to_live: true },
+            // { name: "Eleven", add_to_live: true },
+            // { name: "One", add_to_live: true },
+            // { name: "Two", add_to_live: true }
         ]
     }
 
@@ -8805,32 +7405,6 @@ async function generate_qst_no(user, count) {
         // FUNCTION MAP
         // =========================================
 
-        const functions = {
-            Twentyfour,
-            Twentythree,
-            Twentytwo,
-            Twentyone,
-            Twenty,
-            Nineteen,
-            Eighteen,
-            // Seventeen,
-            Sixteen,
-            Fifteen,
-            // Fourteen,
-            // Thirteen,
-            // Tweleve,
-            One,
-            Two,
-            // Three,
-            // Four,
-            // Five,
-            // Six,
-            // Seven,
-            // Eight,
-            // Nine,
-            // Ten,
-            Eleven
-        };
 
 
         // =========================================
