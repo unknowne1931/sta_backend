@@ -3495,6 +3495,7 @@ const QnoSchema = new mongoose.Schema({
     seconds: String,
     sub_lang: String,
     x: String,
+    fn : String,
     yes: [],
     no: [],
     typ: {
@@ -3504,7 +3505,7 @@ const QnoSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-const QuestionModule = mongoose.model('Qno_Count', QnoSchema);
+const QuestionModule = mongoose.model('Question_Data', QnoSchema);
 
 
 
@@ -7111,24 +7112,29 @@ async function getOrCreatePuzleData(user, data = {}) {
     }
 }
 
+
+
+
 // work 18-09-2026
 function One() {
     return async function (level, user, qno, sec, sum, x) {
         try {
             const result = await getOrCreatePuzleData("One", {
+
                 qst: {
-                    1: 10,
-                    2: 20,
-                    3: 30,
-                    4: 35,
-                    5: 40,
-                    6: 40,
-                    7: 40,
-                    8: 40,
-                    9: 40,
-                    10: 40
+                    1: {cnt : 10, yes : [], no : []},
+                    2: {cnt : 20, yes : [], no : []},
+                    3: {cnt : 30, yes : [], no : []},
+                    4: {cnt : 35, yes : [], no : []},
+                    5: {cnt : 40, yes : [], no : []},
+                    6: {cnt : 40, yes : [], no : []},
+                    7: {cnt : 40, yes : [], no : []},
+                    8: {cnt : 40, yes : [], no : []},
+                    9: {cnt : 40, yes : [], no : []},
+                    10:{cnt : 40, yes : [], no : []}
                 }
-            });
+
+            })
 
             // ✅ FIX: Access the document from the result object
             const doc = result.doc;
@@ -7136,7 +7142,7 @@ function One() {
             console.log(doc.data.get('qst')[qno]); //Ex num 10
 
             // ✅ FIX: Use doc.data.qst instead of data.qst
-            const difficulty = getDifficultiesByPer(parseInt(doc.data.get("qst")[qno]));
+            const difficulty = getDifficultiesByPer(parseInt(doc.data.get("qst")[qno].cnt));
             const boxes = generateBoxesData(difficulty);
             await calcccc_cc("Total Boxes [Comp]", 40)
 
@@ -7166,6 +7172,7 @@ function One() {
                 yes: [],
                 no: [],
                 x: x,
+                fn : "One",
                 typ: "star_circ_tria"
             });
 
@@ -7193,23 +7200,23 @@ function Two() {
             const data = await getOrCreatePuzleData("Two", {
 
                 qst: {
-                    1: 10,
-                    2: 20,
-                    3: 30,
-                    4: 35,
-                    5: 40,
-                    6: 40,
-                    7: 40,
-                    8: 40,
-                    9: 40,
-                    10: 40
+                    1: {cnt : 10, yes : [], no : []},
+                    2: {cnt : 20, yes : [], no : []},
+                    3: {cnt : 30, yes : [], no : []},
+                    4: {cnt : 35, yes : [], no : []},
+                    5: {cnt : 40, yes : [], no : []},
+                    6: {cnt : 40, yes : [], no : []},
+                    7: {cnt : 40, yes : [], no : []},
+                    8: {cnt : 40, yes : [], no : []},
+                    9: {cnt : 40, yes : [], no : []},
+                    10:{cnt : 40, yes : [], no : []}
                 }
 
             })
 
             const data_doc = data.doc
 
-            const difficulty = getDifficultiesByPer_two(parseInt(data_doc.data.get("qst")[qno])); //fix 40 1931
+            const difficulty = getDifficultiesByPer_two(parseInt(data_doc.data.get("qst")[qno].cnt)); //fix 40 1931
             const { boxes, brokenCount } = generateBoxesData_two(difficulty);
 
             const imageBuffer = drawImage_two(boxes);
@@ -7247,6 +7254,7 @@ function Two() {
                 yes: [],
                 no: [],
                 x: x,
+                fn : "Two",
                 typ: "star_circ_tria"
             });
 
@@ -7270,6 +7278,7 @@ function Two() {
         }
     }
 }
+
 
 
 
@@ -8192,6 +8201,21 @@ async function milion_reward(count, rs) {
 }
 
 
+async function addAnswer(doc, qno, field /* "yes" | "no" */, user) {
+    const qst = doc.data.get("qst");
+    if (!qst[qno]) throw new Error(`No qst entry for qno=${qno}`);
+
+    // avoid duplicates
+    if (!qst[qno][field].includes(user)) {
+        qst[qno][field].push(user);
+    }
+
+    doc.data.set("qst", qst);
+    doc.markModified("data");
+    await doc.save();
+}
+
+
 app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
     const user = req.user;
     const { answer } = req.body;
@@ -8291,7 +8315,11 @@ app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
 
         const check_ans = compareHash(answer, Ans)
 
+        const update_info = await puzz_Data_Module.findOne({user : find_qst_data.fn })
+
         if (check_ans) {
+
+            await addAnswer(update_info, find_qst_data.Qno, "yes", user);
             if (data_milion_ten_dt.count < 10) {
                 const rward_amt = await milion_reward(data_milion_ten_dt.count, data_milion_ten_dt.rs)
                 const mi_dtt = await Milion_ten_qst_count_Module.findOne({ user })
@@ -8314,6 +8342,12 @@ app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
                         yes: user
                     }
                 });
+
+                
+
+                
+
+
                 await LiveHistory(user, `Answerd Correctly to Qst ID : ${find_qst_data._id}, Reward : ${rward_amt}, Qst No : ${data_milion_ten_dt.count} ,Question : ${find_qst_data.Questio}`)
                 await find_qst_data.deleteOne();
                 return res.status(200).json({ Status: "correct", message: "Correct Answer!", reward: rward_amt });
@@ -8348,6 +8382,8 @@ app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
 
 
 
+
+
                 
 
                 await History_star(user, 200)
@@ -8357,18 +8393,22 @@ app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
                 await find_qst_data.deleteOne();
                 return res.status(200).json({ Status: "completed", message: "Congratulations! You have completed the game." });
             }
-
+ 
 
         } else {
             //wrong answer
+
+            await addAnswer(update_info, find_qst_data.Qno, "no", user);
             await LiveHistory(
                 user,
                 `Answered incorrectly for Qst ID: ${find_qst_data._id}, Qst: ${find_qst_data.Questio}, Submitted Answer: ${answer}, image : ${find_qst_data.img}`
             );
             await mili_data.updateOne({
+                
                 $push: {
                     no: user
                 }
+
             });
             await find_qst_data.deleteOne();
             await Milion_ten_qst_count_Module.deleteMany({ user })
@@ -9901,28 +9941,28 @@ app.get("/get/total/data", async (req, res) => {
 
 
 
-app.get('/similar/question/colour', (req, res) => {
-    const Data = generateGame()
-    res.json({
-        Data
-    });
-});
+// app.get('/similar/question/colour', (req, res) => {
+//     const Data = generateGame()
+//     res.json({
+//         Data
+//     });
+// });
 
 
-app.get('/similar/question/text', (req, res) => {
-    const Data = generateGame_text()
-    res.json({
-        Data
-    });
-});
+// app.get('/similar/question/text', (req, res) => {
+//     const Data = generateGame_text()
+//     res.json({
+//         Data
+//     });
+// });
 
 
-app.get('/trial/ten/questions/11', (req, res) => {
-    const Data = generatePuzzle_color(20)
-    res.json({
-        Data
-    });
-});
+// app.get('/trial/ten/questions/11', (req, res) => {
+//     const Data = generatePuzzle_color(20)
+//     res.json({
+//         Data
+//     });
+// });
 
 
 
@@ -9950,7 +9990,7 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 
-const PORT = 81;
+const PORT = 80;
 
 
 app.listen(PORT, () => {
