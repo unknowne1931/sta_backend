@@ -1,241 +1,202 @@
+// // colorMatchPuzzle.js
+// // Node.js version — premium UI, dark-mode neon, base64 image output
+// // Canvas: 400 x 250
+// // All puzzle logic UNCHANGED.
+// // Run: node colorMatchPuzzle.js
+
+// // const { createCanvas } = require("canvas");
 // import { createCanvas } from "canvas";
 
-// // ----------------------------------------------
-// // constants
-// // ----------------------------------------------
-// const WIDTH = 400;
-// const HEIGHT = 250;
-
-// const SHAPES = ["circle", "star", "triangle"];
-
 // const COLORS = [
-//   "#e74c3c", "#3498db", "#2ecc71",
-//   "#f1c40f", "#9b59b6", "#e67e22",
-//   "#1abc9c", "#34495e"
+//   { name: "RED", code: "#FF0000" },
+//   { name: "GREEN", code: "#037103" },
+//   { name: "BLUE", code: "#0000FF" },
+//   { name: "YELLOW", code: "#dee600" },
+//   { name: "ORANGE", code: "#ff8c00" },
+//   { name: "PURPLE", code: "#800080" }
 // ];
 
-// const rand = (a, b) =>
-//   Math.floor(Math.random() * (b - a + 1)) + a;
-
-// const randomColor = () => COLORS[rand(0, COLORS.length - 1)];
-
-// // ----------------------------------------------
-// // difficulty
-// // ----------------------------------------------
-// export function getDifficultiesByPer(per) {
-//   const boxCount = per;
-
-//   const minBroken = rand(1, Math.floor(boxCount * 0.3));
-//   const maxBroken = rand(minBroken + 1, Math.floor(boxCount * 0.7));
-
-//   return {
-//     boxes: boxCount,
-//     size: [25, 25],
-//     broken: [30, 40]
-//   };
+// function getRandom(arr) {
+//   return arr[Math.floor(Math.random() * arr.length)];
 // }
 
-// // ----------------------------------------------
-// // overlap check
-// // ----------------------------------------------
-// function overlap(a, b) {
-//   return !(
-//     a.x + a.w < b.x ||
-//     a.x > b.x + b.w ||
-//     a.y + a.h < b.y ||
-//     a.y > b.y + b.h
-//   );
-// }
-
-// // ----------------------------------------------
-// // options generator
-// // ----------------------------------------------
-// export function generateOptions(correct) {
-//   const set = new Set([correct]);
-//   let i = 1;
-
-//   while (set.size < 4) {
-//     set.add(correct + i);
-//     if (correct - i >= 0) set.add(correct - i);
-//     i++;
-//   }
-
-//   return [...set].sort(() => Math.random() - 0.5);
-// }
-
-// // ----------------------------------------------
-// // generate boxes
-// // ----------------------------------------------
-// export function generateBoxesData(difficulty) {
-//   const boxes = [];
-//   let tries = 0;
-
-//   while (boxes.length < difficulty.boxes && tries < 5000) {
-//     const size = rand(...difficulty.size);
-//     const x = rand(4, WIDTH - size - 4);
-//     const y = rand(4, HEIGHT - size - 4);
-
-//     const test = { x, y, w: size, h: size };
-
-//     if (!boxes.some(b => overlap(test, b))) {
-//       boxes.push({
-//         ...test,
-//         shape: SHAPES[rand(0, SHAPES.length - 1)],
-//         color: randomColor(),
-//         complete: true
-//       });
-//     }
-//     tries++;
-//   }
-
-//   // mark broken boxes
-//   const brokenCount = rand(...difficulty.broken);
-//   const shuffled = [...boxes].sort(() => Math.random() - 0.5);
-
-//   shuffled.slice(0, brokenCount).forEach(b => {
-//     b.complete = false;
-//   });
-
-//   return boxes;
-// }
-
-// // ----------------------------------------------
-// // COUNT ONLY BROKEN STAR BOXES ⭐
-// // ----------------------------------------------
-// export function countBrokenStars(boxes) {
-//   return boxes.filter(
-//     b => !b.complete && b.shape === "star"
-//   ).length;
-// }
-
-// // ----------------------------------------------
-// // drawing helpers
-// // ----------------------------------------------
-// function drawStar(ctx, x, y, size) {
-//   const spikes = 5;
-//   const outer = size / 2;
-//   const inner = outer / 2.5;
-//   let rot = Math.PI / 2 * 3;
-//   const step = Math.PI / spikes;
-
+// // -----------------------------------
+// // Rounded rect helper
+// // -----------------------------------
+// function roundRect(ctx, x, y, w, h, r) {
+//   if (w < 2 * r) r = w / 2;
+//   if (h < 2 * r) r = h / 2;
 //   ctx.beginPath();
-//   ctx.moveTo(x, y - outer);
-
-//   for (let i = 0; i < spikes; i++) {
-//     ctx.lineTo(x + Math.cos(rot) * outer, y + Math.sin(rot) * outer);
-//     rot += step;
-//     ctx.lineTo(x + Math.cos(rot) * inner, y + Math.sin(rot) * inner);
-//     rot += step;
-//   }
-
+//   ctx.moveTo(x + r, y);
+//   ctx.arcTo(x + w, y, x + w, y + h, r);
+//   ctx.arcTo(x + w, y + h, x, y + h, r);
+//   ctx.arcTo(x, y + h, x, y, r);
+//   ctx.arcTo(x, y, x + w, y, r);
 //   ctx.closePath();
-//   ctx.stroke();
 // }
 
-// function drawBoxBorderWithGap(ctx, x, y, size, broken) {
-//   const gapEdge = broken ? rand(0, 3) : -1;
-//   const gapSize = broken ? Math.floor(size * 0.1) : 0;
-//   const gapPos = broken ? rand(5, size - gapSize - 5) : 0;
+// // -----------------------------------
+// // Main puzzle generator (logic UNCHANGED)
+// // -----------------------------------
+// export function generatePuzzle_color(totalWords = 10) {
+//   const width = 400;
+//   const height = 250;
 
-//   ctx.lineWidth = 2;
-
-//   // top
-//   ctx.beginPath();
-//   if (gapEdge === 0) {
-//     ctx.moveTo(x, y);
-//     ctx.lineTo(x + gapPos, y);
-//     ctx.moveTo(x + gapPos + gapSize, y);
-//     ctx.lineTo(x + size, y);
-//   } else ctx.strokeRect(x, y, size, 0);
-//   ctx.stroke();
-
-//   // right
-//   ctx.beginPath();
-//   if (gapEdge === 1) {
-//     ctx.moveTo(x + size, y);
-//     ctx.lineTo(x + size, y + gapPos);
-//     ctx.moveTo(x + size, y + gapPos + gapSize);
-//     ctx.lineTo(x + size, y + size);
-//   } else ctx.strokeRect(x + size, y, 0, size);
-//   ctx.stroke();
-
-//   // bottom
-//   ctx.beginPath();
-//   if (gapEdge === 2) {
-//     ctx.moveTo(x, y + size);
-//     ctx.lineTo(x + gapPos, y + size);
-//     ctx.moveTo(x + gapPos + gapSize, y + size);
-//     ctx.lineTo(x + size, y + size);
-//   } else ctx.strokeRect(x, y + size, size, 0);
-//   ctx.stroke();
-
-//   // left
-//   ctx.beginPath();
-//   if (gapEdge === 3) {
-//     ctx.moveTo(x, y);
-//     ctx.lineTo(x, y + gapPos);
-//     ctx.moveTo(x, y + gapPos + gapSize);
-//     ctx.lineTo(x, y + size);
-//   } else ctx.strokeRect(x, y, 0, size);
-//   ctx.stroke();
-// }
-
-// // ----------------------------------------------
-// // draw image
-// // ----------------------------------------------
-// export function drawImage(boxes) {
-//   const canvas = createCanvas(WIDTH, HEIGHT);
+//   const canvas = createCanvas(width, height);
 //   const ctx = canvas.getContext("2d");
 
-//   ctx.fillStyle = "#ffffff";
-//   ctx.fillRect(0, 0, WIDTH, HEIGHT);
+//   // ============================================================
+//   // 🎨 PREMIUM BACKGROUND
+//   // ============================================================
+//   const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
+//   bgGradient.addColorStop(0, "#050b18");
+//   bgGradient.addColorStop(0.5, "#0b1530");
+//   bgGradient.addColorStop(1, "#050b18");
+//   ctx.fillStyle = bgGradient;
+//   ctx.fillRect(0, 0, width, height);
 
-//   boxes.forEach(b => {
-//     ctx.strokeStyle = b.complete ? b.color : "#555";
+//   // Ambient glow blobs
+//   ctx.save();
+//   ctx.globalAlpha = 0.10;
+//   const blobs = [
+//     { x: width * 0.15, y: height * 0.2, r: 90, c: "#3b82f6" },
+//     { x: width * 0.85, y: height * 0.4, r: 110, c: "#a855f7" },
+//     { x: width * 0.5, y: height * 0.95, r: 120, c: "#22d3ee" },
+//   ];
+//   for (const b of blobs) {
+//     const g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
+//     g.addColorStop(0, b.c);
+//     g.addColorStop(1, "transparent");
+//     ctx.fillStyle = g;
+//     ctx.beginPath();
+//     ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+//     ctx.fill();
+//   }
+//   ctx.restore();
 
-//     drawBoxBorderWithGap(ctx, b.x, b.y, b.w, !b.complete);
+//   // Top gradient accent bar
+//   const topBar = ctx.createLinearGradient(0, 0, width, 0);
+//   topBar.addColorStop(0, "#1d4ed8");
+//   topBar.addColorStop(0.5, "#7c3aed");
+//   topBar.addColorStop(1, "#1d4ed8");
+//   ctx.fillStyle = topBar;
+//   roundRect(ctx, 8, 6, width - 16, 4, 2);
+//   ctx.fill();
 
-//     if (b.shape === "circle") {
-//       ctx.beginPath();
-//       ctx.arc(b.x + b.w / 2, b.y + b.h / 2, b.w * 0.25, 0, Math.PI * 2);
-//       ctx.stroke();
+//   // ============================================================
+//   // 🧩 PUZZLE LOGIC (UNCHANGED)
+//   // ============================================================
+//   let matchCount = 0;
+
+//   const cols = Math.ceil(Math.sqrt(totalWords));
+//   const rows = Math.ceil(totalWords / cols);
+
+//   const xGap = width / cols;
+//   const yGap = height / rows;
+
+//   ctx.textAlign = "center";
+//   ctx.textBaseline = "middle";
+//   ctx.font = "bold 16px Arial";
+
+//   // Store word entries first so we can draw them
+//   const entries = [];
+
+//   for (let i = 0; i < totalWords; i++) {
+//     const word = getRandom(COLORS);
+//     let color;
+
+//     if (Math.random() > 0.5) {
+//       color = word.code;
+//       matchCount++;
+//     } else {
+//       let other;
+//       do {
+//         other = getRandom(COLORS);
+//       } while (other.name === word.name);
+//       color = other.code;
 //     }
 
-//     if (b.shape === "triangle") {
-//       ctx.beginPath();
-//       ctx.moveTo(b.x + b.w / 2, b.y + b.h * 0.25);
-//       ctx.lineTo(b.x + b.w * 0.75, b.y + b.h * 0.75);
-//       ctx.lineTo(b.x + b.w * 0.25, b.y + b.h * 0.75);
-//       ctx.closePath();
-//       ctx.stroke();
+//     const col = i % cols;
+//     const row = Math.floor(i / cols);
+
+//     const x = col * xGap + xGap / 2;
+//     const y = row * yGap + yGap / 2;
+
+//     entries.push({ word, color, x, y });
+//   }
+
+//   // ============================================================
+//   // ✨ DRAW EACH WORD — text only, no box
+//   // ============================================================
+//   const fontSize = 17;
+
+//   for (const e of entries) {
+//     ctx.save();
+//     ctx.font = `bold ${fontSize}px Arial`;
+//     ctx.textAlign = "center";
+//     ctx.textBaseline = "middle";
+//     ctx.fillStyle = e.color;
+//     ctx.shadowColor = e.color + "aa";
+//     ctx.shadowBlur = 5;
+//     ctx.fillText(e.word.name, e.x, e.y + 0.5);
+//     ctx.restore();
+//   }
+
+//   // ============================================================
+//   // 🖋 WATERMARK (premium style)
+//   // ============================================================
+//   ctx.save();
+//   ctx.strokeStyle = "rgba(148, 163, 184, 0.22)";
+//   ctx.lineWidth = 1;
+//   ctx.beginPath();
+//   ctx.moveTo(12, height - 22);
+//   ctx.lineTo(width - 12, height - 22);
+//   ctx.stroke();
+
+//   ctx.textAlign = "right";
+//   ctx.textBaseline = "middle";
+//   ctx.font = "bold 12px Arial";
+//   ctx.fillStyle = "rgba(226, 232, 240, 0.9)";
+//   ctx.fillText("powered by AVI", width - 14, height - 11);
+//   ctx.restore();
+
+//   // ============================================================
+//   // 🎯 OPTIONS (UNCHANGED)
+//   // ============================================================
+//   let options = new Set();
+//   options.add(matchCount);
+
+//   while (options.size < 4) {
+//     let fake = matchCount + Math.floor(Math.random() * 7) - 3;
+//     if (fake >= 0 && fake <= totalWords) {
+//       options.add(fake);
 //     }
+//   }
 
-//     if (b.shape === "star") {
-//       drawStar(ctx, b.x + b.w / 2, b.y + b.h / 2, b.w * 0.7);
-//     }
-//   });
+//   options = Array.from(options).sort(() => Math.random() - 0.5);
 
-//   return canvas.toBuffer("image/png");
-// }
-
-// // ----------------------------------------------
-// // FINAL PUZZLE GENERATOR
-// // ----------------------------------------------
-// export function generatePuzzle_three(per) {
-//   const difficulty = getDifficultiesByPer(per);
-//   const boxes = generateBoxesData(difficulty);
-
-//   const correct = countBrokenStars(boxes);
-//   const options = generateOptions(correct);
-//   const image = drawImage(boxes);
+//   const base64 = canvas.toDataURL().split(",")[1];
 
 //   return {
-//     image: image.toString("base64"),
-//     correct,
-//     options
+//     totalWords,
+//     question: `How many colour names match their text colour out of ${totalWords}?`,
+//     options,
+//     answer: matchCount,
+//     image: base64
 //   };
 // }
 
+// // -----------------------------------
+// // CLI usage
+// // -----------------------------------
+// if (import.meta.url === `file://${process.argv[1]}`) {
+//   const puzzle = generatePuzzle_color(10);
+//   console.log("\n🎨 Color Match Puzzle");
+//   console.log("Question:", puzzle.question);
+//   console.log("Options:", puzzle.options);
+//   console.log("Answer:", puzzle.answer);
+//   console.log("🖼️  Base64 image length:", puzzle.image.length, "chars");
+// }
 
 
 
@@ -248,312 +209,240 @@
 
 
 
+// colorMatchPuzzle.js
+// Node.js version — premium UI, dark-mode neon, base64 image output
+// Canvas: 400 x 250
+// All puzzle logic UNCHANGED.
+// Run: node colorMatchPuzzle.js
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+// const { createCanvas } = require("canvas");
 import { createCanvas } from "canvas";
 
-// ----------------------------------------------
-// constants
-// ----------------------------------------------
-const WIDTH = 400;
-const HEIGHT = 250;
-
-const SHAPES = ["circle", "star", "triangle"];
-
 const COLORS = [
-  "#e74c3c", "#3498db", "#2ecc71",
-  "#f1c40f", "#9b59b6", "#e67e22",
-  "#1abc9c", "#34495e"
+  { name: "RED", code: "#FF0000" },
+  { name: "GREEN", code: "#037103" },
+  { name: "BLUE", code: "#0000FF" },
+  { name: "YELLOW", code: "#dee600" },
+  { name: "ORANGE", code: "#ff8c00" },
+  { name: "PURPLE", code: "#800080" }
 ];
 
-const rand = (a, b) =>
-  Math.floor(Math.random() * (b - a + 1)) + a;
-
-const randomColor = () => COLORS[rand(0, COLORS.length - 1)];
-
-// ----------------------------------------------
-// difficulty
-// ----------------------------------------------
-export function getDifficultiesByPer(per) {
-  const boxCount = per;
-
-  const minBroken = rand(1, Math.floor(boxCount * 0.3));
-  const maxBroken = rand(minBroken + 1, Math.floor(boxCount * 0.7));
-
-  return {
-    boxes: boxCount,
-    size: [25, 25],
-    broken: [30, 40]
-  };
+function getRandom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
 }
 
-// ----------------------------------------------
-// overlap check
-// ----------------------------------------------
-function overlap(a, b) {
-  return !(
-    a.x + a.w < b.x ||
-    a.x > b.x + b.w ||
-    a.y + a.h < b.y ||
-    a.y > b.y + b.h
-  );
-}
-
-// ----------------------------------------------
-// options generator
-// ----------------------------------------------
-export function generateOptions(correct) {
-  const set = new Set([correct]);
-  let i = 1;
-
-  while (set.size < 4) {
-    set.add(correct + i);
-    if (correct - i >= 0) set.add(correct - i);
-    i++;
-  }
-
-  return [...set].sort(() => Math.random() - 0.5);
-}
-
-// ----------------------------------------------
-// generate boxes
-// ----------------------------------------------
-export function generateBoxesData(difficulty) {
-  const boxes = [];
-  let tries = 0;
-
-  while (boxes.length < difficulty.boxes && tries < 5000) {
-    const size = rand(...difficulty.size);
-    const x = rand(4, WIDTH - size - 4);
-    const y = rand(4, HEIGHT - size - 4);
-
-    const test = { x, y, w: size, h: size };
-
-    if (!boxes.some(b => overlap(test, b))) {
-      boxes.push({
-        ...test,
-        shape: SHAPES[rand(0, SHAPES.length - 1)],
-        color: randomColor(),
-        complete: true
-      });
-    }
-    tries++;
-  }
-
-  // mark broken boxes
-  const brokenCount = rand(...difficulty.broken);
-  const shuffled = [...boxes].sort(() => Math.random() - 0.5);
-
-  shuffled.slice(0, brokenCount).forEach(b => {
-    b.complete = false;
-  });
-
-  return boxes;
-}
-
-// ----------------------------------------------
-// COUNT ONLY BROKEN STAR BOXES ⭐
-// ----------------------------------------------
-export function countBrokenStars(boxes) {
-  return boxes.filter(
-    b => !b.complete && b.shape === "star"
-  ).length;
-}
-
-// ----------------------------------------------
-// drawing helpers
-// ----------------------------------------------
-function drawStar(ctx, x, y, size) {
-  const spikes = 5;
-  const outer = size / 2;
-  const inner = outer / 2.5;
-  let rot = Math.PI / 2 * 3;
-  const step = Math.PI / spikes;
-
+// -----------------------------------
+// Rounded rect helper
+// -----------------------------------
+function roundRect(ctx, x, y, w, h, r) {
+  if (w < 2 * r) r = w / 2;
+  if (h < 2 * r) r = h / 2;
   ctx.beginPath();
-  ctx.moveTo(x, y - outer);
-
-  for (let i = 0; i < spikes; i++) {
-    ctx.lineTo(x + Math.cos(rot) * outer, y + Math.sin(rot) * outer);
-    rot += step;
-    ctx.lineTo(x + Math.cos(rot) * inner, y + Math.sin(rot) * inner);
-    rot += step;
-  }
-
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
   ctx.closePath();
-  ctx.stroke();
 }
 
-function drawBoxBorderWithGap(ctx, x, y, size, broken) {
-  const gapEdge = broken ? rand(0, 3) : -1;
-  const gapSize = broken ? Math.floor(size * 0.1) : 0;
-  const gapPos = broken ? rand(5, size - gapSize - 5) : 0;
+// ✅ NEW: Premium font stack
+const FONT_STACK =
+  '"Inter", "Poppins", "Montserrat", "Helvetica Neue", Arial, sans-serif';
 
-  const originalColor = ctx.strokeStyle;
+// ✅ NEW: Draw text with manual letter-spacing for a premium look
+function drawSpacedText(ctx, text, cx, cy, spacing) {
+  const chars = [...text];
+  const widths = chars.map((c) => ctx.measureText(c).width);
+  const totalW =
+    widths.reduce((a, b) => a + b, 0) + spacing * (chars.length - 1);
 
-  ctx.lineWidth = 2;
+  let x = cx - totalW / 2;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
 
-  // top
-  ctx.beginPath();
-  if (gapEdge === 0) {
-    ctx.moveTo(x, y);
-    ctx.lineTo(x + gapPos, y);
-    ctx.moveTo(x + gapPos + gapSize, y);
-    ctx.lineTo(x + size, y);
-  } else ctx.strokeRect(x, y, size, 0);
-  ctx.stroke();
-
-  // right
-  ctx.beginPath();
-  if (gapEdge === 1) {
-    ctx.moveTo(x + size, y);
-    ctx.lineTo(x + size, y + gapPos);
-    ctx.moveTo(x + size, y + gapPos + gapSize);
-    ctx.lineTo(x + size, y + size);
-  } else ctx.strokeRect(x + size, y, 0, size);
-  ctx.stroke();
-
-  // bottom
-  ctx.beginPath();
-  if (gapEdge === 2) {
-    ctx.moveTo(x, y + size);
-    ctx.lineTo(x + gapPos, y + size);
-    ctx.moveTo(x + gapPos + gapSize, y + size);
-    ctx.lineTo(x + size, y + size);
-  } else ctx.strokeRect(x, y + size, size, 0);
-  ctx.stroke();
-
-  // left
-  ctx.beginPath();
-  if (gapEdge === 3) {
-    ctx.moveTo(x, y);
-    ctx.lineTo(x, y + gapPos);
-    ctx.moveTo(x, y + gapPos + gapSize);
-    ctx.lineTo(x, y + size);
-  } else ctx.strokeRect(x, y, 0, size);
-  ctx.stroke();
-
-  // draw white ONLY at the disconnected part
-  if (broken) {
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 2;
-
-    ctx.beginPath();
-
-    if (gapEdge === 0)
-      ctx.moveTo(x + gapPos, y), ctx.lineTo(x + gapPos + gapSize, y);
-
-    if (gapEdge === 1)
-      ctx.moveTo(x + size, y + gapPos), ctx.lineTo(x + size, y + gapPos + gapSize);
-
-    if (gapEdge === 2)
-      ctx.moveTo(x + gapPos, y + size), ctx.lineTo(x + gapPos + gapSize, y + size);
-
-    if (gapEdge === 3)
-      ctx.moveTo(x, y + gapPos), ctx.lineTo(x, y + gapPos + gapSize);
-
-    ctx.stroke();
-
-    ctx.strokeStyle = originalColor;
+  for (let i = 0; i < chars.length; i++) {
+    ctx.fillText(chars[i], x, cy);
+    x += widths[i] + spacing;
   }
 }
 
-// ----------------------------------------------
-// draw image
-// ----------------------------------------------
-export function drawImage(boxes) {
-  const canvas = createCanvas(WIDTH, HEIGHT);
+// -----------------------------------
+// Main puzzle generator (logic UNCHANGED)
+// -----------------------------------
+export function generatePuzzle_color(totalWords = 10) {
+  const width = 400;
+  const height = 250;
+
+  const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
 
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  // ============================================================
+  // 🎨 PREMIUM BACKGROUND
+  // ============================================================
+  const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
+  bgGradient.addColorStop(0, "#050b18");
+  bgGradient.addColorStop(0.5, "#0b1530");
+  bgGradient.addColorStop(1, "#050b18");
+  ctx.fillStyle = bgGradient;
+  ctx.fillRect(0, 0, width, height);
 
-  boxes.forEach(b => {
+  // Ambient glow blobs
+  ctx.save();
+  ctx.globalAlpha = 0.10;
+  const blobs = [
+    { x: width * 0.15, y: height * 0.2, r: 90, c: "#3b82f6" },
+    { x: width * 0.85, y: height * 0.4, r: 110, c: "#a855f7" },
+    { x: width * 0.5, y: height * 0.95, r: 120, c: "#22d3ee" },
+  ];
+  for (const b of blobs) {
+    const g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
+    g.addColorStop(0, b.c);
+    g.addColorStop(1, "transparent");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
 
-    boxes.forEach(b => {
+  // Top gradient accent bar
+  const topBar = ctx.createLinearGradient(0, 0, width, 0);
+  topBar.addColorStop(0, "#1d4ed8");
+  topBar.addColorStop(0.5, "#7c3aed");
+  topBar.addColorStop(1, "#1d4ed8");
+  ctx.fillStyle = topBar;
+  roundRect(ctx, 8, 6, width - 16, 4, 2);
+  ctx.fill();
 
-      // color logic
-      if (!b.complete && b.shape === "star") {
-        ctx.strokeStyle = randomColor();   // broken stars → random color
-      } else if (!b.complete) {
-        ctx.strokeStyle = "#555";          // other broken shapes → gray
-      } else {
-        ctx.strokeStyle = b.color;         // complete shapes → original color
-      }
+  // ============================================================
+  // 🧩 PUZZLE LOGIC (UNCHANGED)
+  // ============================================================
+  let matchCount = 0;
 
-      drawBoxBorderWithGap(ctx, b.x, b.y, b.w, !b.complete);
+  const cols = Math.ceil(Math.sqrt(totalWords));
+  const rows = Math.ceil(totalWords / cols);
 
-      if (b.shape === "circle") {
-        ctx.beginPath();
-        ctx.arc(b.x + b.w / 2, b.y + b.h / 2, b.w * 0.25, 0, Math.PI * 2);
-        ctx.stroke();
-      }
+  const xGap = width / cols;
+  const yGap = height / rows;
 
-      if (b.shape === "triangle") {
-        ctx.beginPath();
-        ctx.moveTo(b.x + b.w / 2, b.y + b.h * 0.25);
-        ctx.lineTo(b.x + b.w * 0.75, b.y + b.h * 0.75);
-        ctx.lineTo(b.x + b.w * 0.25, b.y + b.h * 0.75);
-        ctx.closePath();
-        ctx.stroke();
-      }
+  // Store word entries first
+  const entries = [];
 
-      if (b.shape === "star") {
-        drawStar(ctx, b.x + b.w / 2, b.y + b.h / 2, b.w * 0.7);
-      }
-    });
+  for (let i = 0; i < totalWords; i++) {
+    const word = getRandom(COLORS);
+    let color;
 
-    drawBoxBorderWithGap(ctx, b.x, b.y, b.w, !b.complete);
-
-    if (b.shape === "circle") {
-      ctx.beginPath();
-      ctx.arc(b.x + b.w / 2, b.y + b.h / 2, b.w * 0.25, 0, Math.PI * 2);
-      ctx.stroke();
+    if (Math.random() > 0.5) {
+      color = word.code;
+      matchCount++;
+    } else {
+      let other;
+      do {
+        other = getRandom(COLORS);
+      } while (other.name === word.name);
+      color = other.code;
     }
 
-    if (b.shape === "triangle") {
-      ctx.beginPath();
-      ctx.moveTo(b.x + b.w / 2, b.y + b.h * 0.25);
-      ctx.lineTo(b.x + b.w * 0.75, b.y + b.h * 0.75);
-      ctx.lineTo(b.x + b.w * 0.25, b.y + b.h * 0.75);
-      ctx.closePath();
-      ctx.stroke();
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+
+    const x = col * xGap + xGap / 2;
+    const y = row * yGap + yGap / 2;
+
+    entries.push({ word, color, x, y });
+  }
+
+  // ============================================================
+  // ✨ DRAW EACH WORD — premium font, letter-spacing, soft glow
+  // ============================================================
+  const fontSize = 14;
+  const letterSpacing = 1.6;
+
+  for (const e of entries) {
+    // ---- Soft outer glow (drawn twice at low alpha for a smooth halo) ----
+    ctx.save();
+    ctx.font = `800 ${fontSize}px ${FONT_STACK}`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    // Wide soft glow
+    ctx.globalAlpha = 0.35;
+    ctx.shadowColor = e.color;
+    ctx.shadowBlur = 16;
+    ctx.fillStyle = e.color;
+    drawSpacedText(ctx, e.word.name, e.x, e.y + 0.5, letterSpacing);
+
+    // Tight inner glow for pop
+    ctx.globalAlpha = 0.9;
+    ctx.shadowColor = e.color;
+    ctx.shadowBlur = 6;
+    drawSpacedText(ctx, e.word.name, e.x, e.y + 0.5, letterSpacing);
+
+    ctx.restore();
+
+    // ---- Main crisp text ----
+    ctx.save();
+    ctx.font = `800 ${fontSize}px ${FONT_STACK}`;
+    ctx.fillStyle = e.color;
+    ctx.shadowColor = "transparent";
+    ctx.shadowBlur = 0;
+    drawSpacedText(ctx, e.word.name, e.x, e.y + 0.5, letterSpacing);
+    ctx.restore();
+  }
+
+  // ============================================================
+  // 🖋 WATERMARK (premium style)
+  // ============================================================
+  ctx.save();
+  ctx.strokeStyle = "rgba(148, 163, 184, 0.22)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(12, height - 22);
+  ctx.lineTo(width - 12, height - 22);
+  ctx.stroke();
+
+  ctx.textAlign = "right";
+  ctx.textBaseline = "middle";
+  ctx.font = `700 12px ${FONT_STACK}`;
+  ctx.fillStyle = "rgba(226, 232, 240, 0.9)";
+  ctx.fillText("powered by AVI", width - 14, height - 11);
+  ctx.restore();
+
+  // ============================================================
+  // 🎯 OPTIONS (UNCHANGED)
+  // ============================================================
+  let options = new Set();
+  options.add(matchCount);
+
+  while (options.size < 4) {
+    let fake = matchCount + Math.floor(Math.random() * 7) - 3;
+    if (fake >= 0 && fake <= totalWords) {
+      options.add(fake);
     }
+  }
 
-    if (b.shape === "star") {
-      drawStar(ctx, b.x + b.w / 2, b.y + b.h / 2, b.w * 0.7);
-    }
-  });
+  options = Array.from(options).sort(() => Math.random() - 0.5);
 
-  return canvas.toBuffer("image/png");
-}
-
-// ----------------------------------------------
-// FINAL PUZZLE GENERATOR
-// ----------------------------------------------
-export function generatePuzzle_three(per) {
-  const difficulty = getDifficultiesByPer(per);
-  const boxes = generateBoxesData(difficulty);
-
-  const correct = countBrokenStars(boxes);
-  const options = generateOptions(correct);
-  const image = drawImage(boxes);
+  const base64 = canvas.toDataURL().split(",")[1];
 
   return {
-    image: image.toString("base64"),
-    correct,
-    options
+    totalWords,
+    question: `How many colour names match their text colour out of ${totalWords}?`,
+    options,
+    answer: matchCount,
+    image: base64
   };
+}
+
+// -----------------------------------
+// CLI usage
+// -----------------------------------
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const puzzle = generatePuzzle_color(10);
+  console.log("\n🎨 Color Match Puzzle");
+  console.log("Question:", puzzle.question);
+  console.log("Options:", puzzle.options);
+  console.log("Answer:", puzzle.answer);
+  console.log("🖼️  Base64 image length:", puzzle.image.length, "chars");
 }

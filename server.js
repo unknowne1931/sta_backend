@@ -26,33 +26,8 @@ import admin, { } from "firebase-admin";
 import serviceAccount from "./config/firebase-key.json" with { type: "json" };
 import { drawImage, generateBoxesData, generateOptions, getDifficultiesByPer } from './new_modules/one.js';
 import { drawImage_two, generateBoxesData_two, generateOptions_two, getDifficultiesByPer_two, uploadImage_two } from './new_modules/two.js';
-import { generatePuzzle_three } from './new_modules/three.js';
-import { generatePuzzle_four } from './new_modules/four.js';
-import { generatePuzzle_five } from './new_modules/five.js';
-import { generatePuzzle_six } from './new_modules/six.js';
-import { generatePuzzle_seven } from './new_modules/seven.js';
-import { generatePuzzle_eight } from './new_modules/eight.js';
-import { generatePuzzle_complete_nine } from './new_modules/nine.js';
-import { generatePuzzle_broken_ten } from './new_modules/ten.js';
-import { generatePuzzle_color } from './new_modules/eleven.js';
-import { type } from 'os';
-import { count } from 'console';
-import generateGame from './similar/one.js';
-import generateGame_text from './similar/two.js';
-import { generatePuzzle_unlock_pattern } from './new_modules/tweleve.js';
-import { generatePuzzle_morseCode } from './new_modules/thirteen.js';
-import { generatePuzzle_alphabetColourCount } from './new_modules/fourteen.js';
-import { generatePuzzle_maleConnectorCount } from './new_modules/fifteen.js';
-import { generatePuzzle_misalignedLetters } from './new_modules/sixteen.js';
-import { generatePuzzle_clockCounting } from './new_modules/seventeen.js';
-import { generatePuzzle_scrambledWords } from './new_modules/eighteen.js';
-import { generatePuzzle_colorMatch } from './new_modules/nineteen.js';
-import { generatePuzzle_colorMatch2 } from './new_modules/twenty.js';
-import { generatePuzzle_cipher_text } from './new_modules/tweentyone.js';
-import { generatePuzzle_consonant_count } from './new_modules/tweentytwo.js';
-import { generatePuzzle_word_search } from './new_modules/thweentythree.js';
-import { generatePuzzle_alphabetical } from './new_modules/twentyfour.js';
 import { addPaymentToExcel } from './paymentdatatoexcel.js';
+import { generatePuzzle_color } from './new_modules/three.js';
 
 const app = express();
 app.use(express.static('public'))
@@ -120,12 +95,36 @@ const Time_2 = Time.toLocaleString("en-US", {
 
 
 const qst_gen = [
-    One(), Two()
+    One(), Two(), Three()
 ];
 
 const functions = {
-    One, Two
+    One, Two, Three
 }
+
+async function get_categ_fn(fn) {
+    const data = [
+        {
+            fn: "One",
+            typ: "star_circ_tria"
+        },
+        {
+            fn: "Two",
+            typ: "star_circ_tria"
+        },
+        {
+            fn: "Three",
+            typ: "Colours & Name Match"
+        },
+        
+    ]
+
+    const find_data = data.find(d => d.fn === fn)
+    return find_data ? find_data.typ : null;
+
+
+}
+
 
 
 //razorpay webhook
@@ -6954,115 +6953,6 @@ async function cat_fn(user, cat, fn) {
 }
 
 
-const Calc_perr = new mongoose.Schema({
-    Time: String,
-    cat: { type: String, unique: true }, // Unique constraint
-    count: String,
-    yes: [],
-    no: [],
-    seconds: []
-}, { timestamps: true });
-
-const monitor_cal_data_Module = mongoose.model('Monitor_cal_per_data', Calc_perr);
-
-
-
-async function calcccc_cc(cat, count) {
-    const cat_find = await monitor_cal_data_Module.findOne({ cat })
-    if (cat_find) {
-        return parseInt(cat_find.count)
-    } else {
-        await monitor_cal_data_Module.create({ Time, cat, count, yes: [], no: [], seconds: [] })
-        return count
-    }
-}
-
-
-
-app.get("/get/calculate/data/monitor/main", adminMiddleware, async (req, res) => {
-    try {
-        const data = await monitor_cal_data_Module.find({})
-        if (data) {
-            res.status(200).json({ data })
-        } else {
-            res.status(200).json({ message: "No Data Found" })
-        }
-    } catch (error) {
-        console.error("Error fetching IQ data:", error);
-    }
-})
-
-app.put(
-    "/get/update/new/data/monitor/data",
-    adminMiddleware,
-    async (req, res) => {
-        const { cat, val } = req.body;
-
-        try {
-            const data = await monitor_cal_data_Module.findOneAndUpdate(
-                { cat },
-                { count: String(val) },
-                { new: true }
-            );
-
-            if (!data) {
-                return res.status(404).json({
-                    Status: "NO",
-                    message: "Data not found"
-                });
-            }
-
-            return res.status(200).json({
-                Status: "OK",
-                message: "Count updated successfully",
-                data
-            });
-
-        } catch (error) {
-            console.error("Error updating monitor data:", error);
-
-            return res.status(500).json({
-                Status: "NO",
-                message: "Internal server error",
-                error: error.message
-            });
-        }
-    }
-);
-
-
-app.delete("/get/update/new/data/monitor/data/delete",
-    adminMiddleware,
-    async (req, res) => {
-        const { cat } = req.body;
-
-        try {
-            const data = await monitor_cal_data_Module.findOneAndDelete({ cat });
-
-            if (!data) {
-                return res.status(404).json({
-                    Status: "NO",
-                    message: "Data not found"
-                });
-            }
-
-            return res.status(200).json({
-                Status: "YES",
-                message: "Data deleted successfully"
-            });
-
-        } catch (error) {
-            console.error("Error deleting monitor data:", error);
-
-            return res.status(500).json({
-                Status: "NO",
-                message: "Internal server error",
-                error: error.message
-            });
-        }
-    }
-);
-
 
 
 
@@ -7144,7 +7034,6 @@ function One() {
             // ✅ FIX: Use doc.data.qst instead of data.qst
             const difficulty = getDifficultiesByPer(parseInt(doc.data.get("qst")[qno].cnt));
             const boxes = generateBoxesData(difficulty);
-            await calcccc_cc("Total Boxes [Comp]", 40)
 
             // ✅ REAL ANSWER (NOT CONFIG)
             const correct = boxes.filter(b => b.complete).length;
@@ -7224,8 +7113,6 @@ function Two() {
 
             const options = generateOptions_two(brokenCount);
 
-            await calcccc_cc("Total Boxes [Broken]", 40)
-
             // res.json({
             //     title: "Total Boxes [Broken]",
             //     question: "How many broken boxes are there?",
@@ -7280,7 +7167,78 @@ function Two() {
 }
 
 
+function Three(){
 
+    return async function (level, user, qno, sec, sum, x) {
+        try{
+
+            const data = await getOrCreatePuzleData("Three", {
+
+                qst: {
+                    1: {cnt : 4, yes : [], no : []},
+                    2: {cnt : 6, yes : [], no : []},
+                    3: {cnt : 10, yes : [], no : []},
+                    4: {cnt : 12, yes : [], no : []},
+                    5: {cnt : 15, yes : [], no : []},
+                    6: {cnt : 16, yes : [], no : []},
+                    7: {cnt : 17, yes : [], no : []},
+                    8: {cnt : 18, yes : [], no : []},
+                    9: {cnt : 18, yes : [], no : []},
+                    10:{cnt : 18, yes : [], no : []}
+                }
+
+            })
+
+            const data_doc = data.doc
+
+
+            const result = generatePuzzle_color(parseInt(data_doc.data.get("qst")[qno].cnt))
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(result.answer.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: result.image,
+                Questio: result.question,
+                options: result.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "Colours & Name Match",
+                yes: [],
+                no: [],
+                x: x,
+                fn : "Three",
+                typ: "Colours & Name Match"
+            });
+
+            console.log(dt_post)
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+
+            })
+
+
+
+        }catch(error){
+            console.log(error)
+        }
+    }
+
+}
 
 
 
@@ -7325,7 +7283,7 @@ const qst_aray_store_Schema = new mongoose.Schema({
     },
 }, { timestamps: true });
 
-const Qst_array_store_Module = mongoose.model('Qst_array', qst_aray_store_Schema);
+const Qst_array_store_Module = mongoose.model('selected_Question_category_Array', qst_aray_store_Schema);
 
 
 
@@ -7359,20 +7317,20 @@ const Function_name_Schema = new mongoose.Schema({
 
         default: [
 
-            {name : "Two", add_to_live: true },
-            {name : "Two", add_to_live: true },
-            {name : "Two", add_to_live: true },
-            {name : "Two", add_to_live: true },
-            {name : "Two", add_to_live: true },
-            {name : "Two", add_to_live: true },
-            {name : "Two", add_to_live: true },
-            {name : "Two", add_to_live: true },
-            {name : "Two", add_to_live: true },
-            {name : "Two", add_to_live: true },
-            {name : "Two", add_to_live: true },
-            {name : "Two", add_to_live: true },
-            {name : "Two", add_to_live: true },
-            {name : "Two", add_to_live: true },
+            {name : "Three", add_to_live: true },
+            {name : "Three", add_to_live: true },
+            {name : "Three", add_to_live: true },
+            {name : "Three", add_to_live: true },
+            {name : "Three", add_to_live: true },
+            {name : "Three", add_to_live: true },
+            {name : "Three", add_to_live: true },
+            {name : "Three", add_to_live: true },
+            {name : "Three", add_to_live: true },
+            {name : "Three", add_to_live: true },
+            {name : "Three", add_to_live: true },
+            {name : "Three", add_to_live: true },
+            {name : "Three", add_to_live: true },
+            {name : "Three", add_to_live: true },
             
 
             // { name: "Twentyfour", add_to_live: true },
@@ -7635,112 +7593,6 @@ async function generate_qst_no(user, count) {
     }
 }
 
-async function get_categ_fn(fn) {
-    const data = [
-        {
-            fn: "One",
-            typ: "star_circ_tria"
-        },
-        {
-            fn: "Two",
-            typ: "star_circ_tria"
-        },
-        {
-            fn: "Three",
-            typ: "star_circ_tria"
-        },
-        {
-            fn: "Four",
-            typ: "star_circ_tria"
-
-        },
-        {
-            fn: "Five",
-            typ: "star_circ_tria"
-        },
-        {
-            fn: "Six",
-            typ: "star_circ_tria"
-        },
-        {
-            fn: "Seven",
-            typ: "star_circ_tria"
-        },
-        {
-            fn: "Eight",
-            typ: "star_circ_tria"
-        },
-        {
-            fn: "Nine",
-            typ: "star_circ_tria"
-        },
-        {
-            fn: "Ten",
-            typ: "star_circ_tria"
-        },
-        {
-            fn: "Eleven",
-            typ: "Colours & Name Match"
-        },
-        {
-            fn: "Tweleve",
-            typ: "Pattern_to_Numbers"
-        },
-        {
-            fn: "Thirteen",
-            typ: "Morse code"
-        },
-        {
-            fn: "Fourteen",
-            typ: "Black_&_White_letters"
-        },
-        {
-            fn: "Fifteen",
-            typ: "puzle_peace_male_female"
-        },
-        {
-            fn: "Sixteen",
-            typ: "letters_missalign"
-        },
-        {
-            fn: "Seventeen",
-            typ: "clock_s"
-        },
-        {
-            fn: "Eighteen",
-            typ: "scramble_words"
-        },
-        {
-            fn: "Nineteen",
-            typ: "letter_colour_find"
-        },
-        {
-            fn: "Twenty",
-            typ: "word_colour_find"
-        },
-        {
-            fn: "Twentyone",
-            typ: "encode_decode"
-        },
-        {
-            fn: "Twentytwo",
-            typ: "count_leters_exist"
-        },
-        {
-            fn: "Twentythree",
-            typ: "count_word_exist"
-        },
-        {
-            fn: "Twentyfour",
-            typ: "re_arrange_letters"
-        }
-    ]
-
-    const find_data = data.find(d => d.fn === fn)
-    return find_data ? find_data.typ : null;
-
-
-}
 
 
 app.post("/milionear/game/start/ten/qst", authMiddleware, async (req, res) => {
@@ -7997,7 +7849,7 @@ app.get("/milionear/game/get/qst/no/to/play", authMiddleware, async (req, res) =
 
         if (data_milion_ten_dt.count === data_milion_ten_dt.shown_qst) {
             const data = await Qst_array_store_Module.findOne({ user }).lean()
-            const categ = await get_categ_fn(data.qst_array[data_milion_ten_dt.count - 1]);
+            const categ = await get_categ_fn(data.qst_array[data_milion_ten_dt.count - 1]); //function name to cetegory to show puzle type before play
             return res.status(200).json({ Status: "show", message: "Understand Game", cat: categ })
         }
 
@@ -8242,7 +8094,6 @@ app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
 
         // console.log("Time taken to answer : " + timeDiffSeconds + " Timeeee : " + time )
 
-        const mili_data = await monitor_cal_data_Module.findOne({cat : find_qst_data.sub_lang })
 
 
 
@@ -8336,12 +8187,6 @@ app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
                 //         $set: { rs: rward_amt }
                 //     }
                 // );
-                console.log(rward_amt)
-                await mili_data.updateOne({
-                    $push: {
-                        yes: user
-                    }
-                });
 
                 
 
@@ -8354,11 +8199,7 @@ app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
             }
             else {
                 const data_user = await Usermodule.findById(user).lean()
-                await mili_data.updateOne({
-                    $push: {
-                        yes: user
-                    }
-                });
+
                 await admin_noti("❤️❤️ Mili. Won the Game.", `User : ${data_user.username}`)
                 await addToWinList(user);
                 await LiveHistory(
@@ -8403,13 +8244,7 @@ app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
                 user,
                 `Answered incorrectly for Qst ID: ${find_qst_data._id}, Qst: ${find_qst_data.Questio}, Submitted Answer: ${answer}, image : ${find_qst_data.img}`
             );
-            await mili_data.updateOne({
-                
-                $push: {
-                    no: user
-                }
 
-            });
             await find_qst_data.deleteOne();
             await Milion_ten_qst_count_Module.deleteMany({ user })
             const data_user = await Usermodule.findById(user).lean()
