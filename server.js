@@ -34,6 +34,7 @@ import { generatePuzzle_colorMatch } from './new_modules/six.js';
 import { generatePuzzle_consonant_count } from './new_modules/seven.js';
 import { generatePuzzle_word_search } from './new_modules/eight.js';
 import { generatePuzzle_alphabetical } from './new_modules/nine.js';
+import { generatePuzzle_cipher_text } from './new_modules/ten.js';
 
 const app = express();
 app.use(express.static('public'))
@@ -101,15 +102,17 @@ const Time_2 = Time.toLocaleString("en-US", {
 
 
 const qst_gen = [
-    One(), Two(), Three(), Four(), Five(), Six(), Seven(), Eight(), Nine()
+    One(), Two(), Three(), Four(), Five(), Six(), Seven(), Eight(), Nine(), Ten()
 ];
 
 const functions = {
-    One, Two, Three, Four, Five, Six, Seven, Eight, Nine
+    One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten
 }
 
 async function get_categ_fn(fn) {
     const data = [
+
+
         {
             fn: "One",
             typ: "star_circ_tria"
@@ -145,6 +148,10 @@ async function get_categ_fn(fn) {
         {
             fn : "Nine",
             typ : "re_arrange_letters"
+        },
+        {
+            fn : "Ten",
+            typ : "encode_decode"
         }
 
 
@@ -187,20 +194,20 @@ const Function_name_Schema = new mongoose.Schema({
 
         default: [
 
-            {name : "Nine", add_to_live: true },
-            {name : "Nine", add_to_live: true },
-            {name : "Nine", add_to_live: true },
-            {name : "Nine", add_to_live: true },
-            {name : "Nine", add_to_live: true },
-            {name : "Nine", add_to_live: true },
-            {name : "Nine", add_to_live: true },
-            {name : "Nine", add_to_live: true },
-            {name : "Nine", add_to_live: true },
-            {name : "Nine", add_to_live: true },
-            {name : "Nine", add_to_live: true },
-            {name : "Nine", add_to_live: true },
-            {name : "Nine", add_to_live: true },
-            {name : "Nine", add_to_live: true },
+            {name : "Ten", add_to_live: true },
+            {name : "Ten", add_to_live: true },
+            {name : "Ten", add_to_live: true },
+            {name : "Ten", add_to_live: true },
+            {name : "Ten", add_to_live: true },
+            {name : "Ten", add_to_live: true },
+            {name : "Ten", add_to_live: true },
+            {name : "Ten", add_to_live: true },
+            {name : "Ten", add_to_live: true },
+            {name : "Ten", add_to_live: true },
+            {name : "Ten", add_to_live: true },
+            {name : "Ten", add_to_live: true },
+            {name : "Ten", add_to_live: true },
+            {name : "Ten", add_to_live: true },
             
 
             // { name: "Twentyfour", add_to_live: true },
@@ -7767,6 +7774,77 @@ function Nine(){
     }
 }
 
+function Ten(){
+    return async function (level, user, qno, sec, sum, x) {
+        try{
+
+            const data = await getOrCreatePuzleData("Ten", {
+
+                qst: {
+                    1: {cnt : 1, alpha_cnt : 10 , yes : [], no : []},
+                    2: {cnt : 2, alpha_cnt : 10 , yes : [], no : []},
+                    3: {cnt : 3, alpha_cnt : 10 , yes : [], no : []},
+                    4: {cnt : 4, alpha_cnt : 10 , yes : [], no : []},
+                    5: {cnt : 5, alpha_cnt : 10 , yes : [], no : []},
+                    6: {cnt : 5, alpha_cnt : 10 , yes : [], no : []},
+                    7: {cnt : 5, alpha_cnt : 10 , yes : [], no : []},
+                    8: {cnt : 5, alpha_cnt : 10 , yes : [], no : []},
+                    9: {cnt : 5, alpha_cnt : 10 , yes : [], no : []},
+                    10:{cnt : 5, alpha_cnt : 10 , yes : [], no : []}
+                }
+            })
+
+            const data_doc = data.doc
+
+
+            const result = generatePuzzle_cipher_text({ letterLength : parseInt(data_doc.data.get("qst")[qno].cnt) , clueCount : parseInt(data_doc.data.get("qst")[qno].alpha_cnt) })
+
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(result.answer.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: result.image,
+                Questio: result.question,
+                options: result.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "",
+                yes: [],
+                no: [],
+                x: x,
+                fn : "Ten",
+                typ: "encode_decode"
+            });
+
+            console.log(dt_post)
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+            })
+
+
+
+        }catch(error){
+            console.log(error)
+        }
+    }
+}
+
+
 
 
 const milion_qst_Schema = new mongoose.Schema({
@@ -8724,7 +8802,6 @@ app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
     }
 
 })
-
 
 
 //Main start API
