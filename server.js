@@ -32,6 +32,8 @@ import { generatePuzzle_maleConnectorCount } from './new_modules/four.js';
 import { generatePuzzle_scrambledWords } from './new_modules/five.js';
 import { generatePuzzle_colorMatch } from './new_modules/six.js';
 import { generatePuzzle_consonant_count } from './new_modules/seven.js';
+import { generatePuzzle_word_search } from './new_modules/eight.js';
+import { generatePuzzle_alphabetical } from './new_modules/nine.js';
 
 const app = express();
 app.use(express.static('public'))
@@ -99,11 +101,11 @@ const Time_2 = Time.toLocaleString("en-US", {
 
 
 const qst_gen = [
-    One(), Two(), Three(), Four(), Five(), Six(), Seven()
+    One(), Two(), Three(), Four(), Five(), Six(), Seven(), Eight(), Nine()
 ];
 
 const functions = {
-    One, Two, Three, Four, Five, Six, Seven
+    One, Two, Three, Four, Five, Six, Seven, Eight, Nine
 }
 
 async function get_categ_fn(fn) {
@@ -135,6 +137,14 @@ async function get_categ_fn(fn) {
         {
             fn : "Seven",
             typ : "count_leters_exist"
+        },
+        {
+            fn : "Eight",
+            typ : "count_word_exist"
+        },
+        {
+            fn : "Nine",
+            typ : "re_arrange_letters"
         }
 
 
@@ -177,20 +187,20 @@ const Function_name_Schema = new mongoose.Schema({
 
         default: [
 
-            {name : "Seven", add_to_live: true },
-            {name : "Seven", add_to_live: true },
-            {name : "Seven", add_to_live: true },
-            {name : "Seven", add_to_live: true },
-            {name : "Seven", add_to_live: true },
-            {name : "Seven", add_to_live: true },
-            {name : "Seven", add_to_live: true },
-            {name : "Seven", add_to_live: true },
-            {name : "Seven", add_to_live: true },
-            {name : "Seven", add_to_live: true },
-            {name : "Seven", add_to_live: true },
-            {name : "Seven", add_to_live: true },
-            {name : "Seven", add_to_live: true },
-            {name : "Seven", add_to_live: true },
+            {name : "Nine", add_to_live: true },
+            {name : "Nine", add_to_live: true },
+            {name : "Nine", add_to_live: true },
+            {name : "Nine", add_to_live: true },
+            {name : "Nine", add_to_live: true },
+            {name : "Nine", add_to_live: true },
+            {name : "Nine", add_to_live: true },
+            {name : "Nine", add_to_live: true },
+            {name : "Nine", add_to_live: true },
+            {name : "Nine", add_to_live: true },
+            {name : "Nine", add_to_live: true },
+            {name : "Nine", add_to_live: true },
+            {name : "Nine", add_to_live: true },
+            {name : "Nine", add_to_live: true },
             
 
             // { name: "Twentyfour", add_to_live: true },
@@ -7571,9 +7581,7 @@ function Seven(){
             const data_doc = data.doc
 
 
-            const result = generatePuzzle_consonant_count({minWords : data_doc.data.get("qst")[qno].min, maxWords : data_doc.data.get("qst")[qno].max, num : data_doc.data.get("qst")[qno].num })
-
-            console.log(data_doc.data.get("qst")[qno].min, data_doc.data.get("qst")[qno].max, data_doc.data.get("qst")[qno].num )
+            const result = await generatePuzzle_consonant_count({minWords : data_doc.data.get("qst")[qno].min, maxWords : data_doc.data.get("qst")[qno].max, num : data_doc.data.get("qst")[qno].num })
 
             const hash = crypto
                 .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
@@ -7619,6 +7627,145 @@ function Seven(){
     }
 }
 
+function Eight(){
+    return async function (level, user, qno, sec, sum, x) {
+        try{
+
+            const data = await getOrCreatePuzleData("Eight", {
+
+                qst: {
+                    1: {cnt : 4, yes : [], no : []},
+                    2: {cnt : 6, yes : [], no : []},
+                    3: {cnt : 8, yes : [], no : []},
+                    4: {cnt : 10, yes : [], no : []},
+                    5: {cnt : 12, yes : [], no : []},
+                    6: {cnt : 14, yes : [], no : []},
+                    7: {cnt : 14, yes : [], no : []},
+                    8: {cnt : 14, yes : [], no : []},
+                    9: {cnt : 14, yes : [], no : []},
+                    10:{cnt : 14, yes : [], no : []}
+                }
+            })
+
+            const data_doc = data.doc
+
+
+            const result = generatePuzzle_word_search({ totalWords : parseInt(data_doc.data.get("qst")[qno].cnt) })
+
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(result.answer.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: result.image,
+                Questio: result.question,
+                options: result.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "",
+                yes: [],
+                no: [],
+                x: x,
+                fn : "Eight",
+                typ: "count_word_exist"
+            });
+
+            console.log(dt_post)
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+            })
+
+
+
+        }catch(error){
+            console.log(error)
+        }
+    }
+}
+
+function Nine(){
+    return async function (level, user, qno, sec, sum, x) {
+        try{
+
+            const data = await getOrCreatePuzleData("Nine", {
+
+                qst: {
+                    1: {cnt : 2, yes : [], no : []},
+                    2: {cnt : 3, yes : [], no : []},
+                    3: {cnt : 4, yes : [], no : []},
+                    4: {cnt : 4, yes : [], no : []},
+                    5: {cnt : 4, yes : [], no : []},
+                    6: {cnt : 5, yes : [], no : []},
+                    7: {cnt : 5, yes : [], no : []},
+                    8: {cnt : 5, yes : [], no : []},
+                    9: {cnt : 5, yes : [], no : []},
+                    10:{cnt : 5, yes : [], no : []}
+                }
+            })
+
+            const data_doc = data.doc
+
+
+            const result = generatePuzzle_alphabetical({ letters : parseInt(data_doc.data.get("qst")[qno].cnt) })
+
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(result.answer.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: result.image,
+                Questio: result.question,
+                options: result.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "",
+                yes: [],
+                no: [],
+                x: x,
+                fn : "Nine",
+                typ: "re_arrange_letters"
+            });
+
+            console.log(dt_post)
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+            })
+
+
+
+        }catch(error){
+            console.log(error)
+        }
+    }
+}
 
 
 

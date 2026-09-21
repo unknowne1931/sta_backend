@@ -79,10 +79,10 @@ function generateRandomParagraph(minWords = 14, maxWords = 25) {
   }
   
   // Ensure at least some letters
-  if (paragraph.length < 20) {
-    paragraph = "A quick brown fox jumps over the lazy dog, but sometimes the world is quiet. " +
-               "Zephyrs blow through the valley, carrying whispers of ancient tales.";
-  }
+  // if (paragraph.length < 20) {
+  //   paragraph = "A quick brown fox jumps over the lazy dog, but sometimes the world is quiet. " +
+  //              "Zephyrs blow through the valley, carrying whispers of ancient tales.";
+  // }
   
   return paragraph;
 }
@@ -213,11 +213,11 @@ function generateOptions(correctAnswer) {
 // Main Function with Parameters
 // -----------------------------------
 
-export function generatePuzzle_consonant_count(options = {}) {
+export async function generatePuzzle_consonant_count(options = {}) {
   // Default values
   const {
-    minWords = 14,
-    maxWords = 25,
+    minWords = 3,
+    maxWords = 5,
     num = 3,
     width = 400,
     height = 250,
