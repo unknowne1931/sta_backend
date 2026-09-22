@@ -38,6 +38,7 @@ import { generatePuzzle_cipher_text } from './new_modules/ten.js';
 import { generatePuzzle_alphabetical1 } from './new_modules/eleven.js';
 import { generatePuzzle_numberRule } from './new_modules/tweleve.js';
 import { generatePuzzle_groupWords } from './new_modules/thirteen.js';
+import { generatePuzzle_vowelConsonant } from './new_modules/fourteen.js';
 
 const app = express();
 app.use(express.static('public'))
@@ -105,11 +106,11 @@ const Time_2 = Time.toLocaleString("en-US", {
 
 
 const qst_gen = [
-    One(), Two(), Three(), Four(), Five(), Six(), Seven(), Eight(), Nine(), Ten(), Eleven(), Twelve(), Thirteen()
+    One(), Two(), Three(), Four(), Five(), Six(), Seven(), Eight(), Nine(), Ten(), Eleven(), Twelve(), Thirteen(), Fourteen()
 ];
 
 const functions = {
-    One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen
+    One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen
 }
 
 async function get_categ_fn(fn) {
@@ -167,6 +168,10 @@ async function get_categ_fn(fn) {
         {
             fn : "Thirteen",
             typ : "grouping_:_"
+        },
+        {
+            fn : "Fourteen",
+            typ : "ovels_groupin_:_"
         }
 
 
@@ -209,34 +214,21 @@ const Function_name_Schema = new mongoose.Schema({
 
         default: [
 
+            {name : "One", add_to_live: true },
+            {name : "Two", add_to_live: true },
+            {name : "Three", add_to_live: true },
+            {name : "Four", add_to_live: true },
+            {name : "Five", add_to_live: true },
+            {name : "Six", add_to_live: true },
+            {name : "Seven", add_to_live: true },
+            {name : "Eight", add_to_live: true },
+            {name : "Nine", add_to_live: true },
+            {name : "Ten", add_to_live: true },
+            {name : "Eleven", add_to_live: true },
+            {name : "Twelve", add_to_live: true },
             {name : "Thirteen", add_to_live: true },
-            {name : "Thirteen", add_to_live: true },
-            {name : "Thirteen", add_to_live: true },
-            {name : "Thirteen", add_to_live: true },
-            {name : "Thirteen", add_to_live: true },
-            {name : "Thirteen", add_to_live: true },
-            {name : "Thirteen", add_to_live: true },
-            {name : "Thirteen", add_to_live: true },
-            {name : "Thirteen", add_to_live: true },
-            {name : "Thirteen", add_to_live: true },
-            {name : "Thirteen", add_to_live: true },
-            {name : "Thirteen", add_to_live: true },
-            {name : "Thirteen", add_to_live: true },
-            {name : "Thirteen", add_to_live: true },
-            
+            {name : "Fourteen", add_to_live: true },
 
-            // { name: "Twentyfour", add_to_live: true },
-            // { name: "Twentythree", add_to_live: true },
-            // { name: "Twentytwo", add_to_live: true },
-            // { name: "Twentyone", add_to_live: true },
-            // { name: "Twenty", add_to_live: true },
-            // { name: "Nineteen", add_to_live: true },
-            // { name: "Eighteen", add_to_live: true },
-            // { name: "Sixteen", add_to_live: true },
-            // { name: "Fifteen", add_to_live: true },
-            // { name: "Eleven", add_to_live: true },
-            // { name: "One", add_to_live: true },
-            // { name: "Two", add_to_live: true }
         ]
     }
 
@@ -8053,6 +8045,82 @@ function Thirteen(){
                 x: x,
                 fn : "Thirteen",
                 typ: "grouping_:_"
+            });
+
+            console.log(dt_post)
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+            })
+
+
+
+        }catch(error){
+            console.log(error)
+        }
+    }
+}
+
+function Fourteen(){
+    return async function (level, user, qno, sec, sum, x) {
+        try{
+
+            const data = await getOrCreatePuzleData("Fourteen", {
+
+                qst: {
+                    1: {cnt : 2, min : 3, max : 4 ,  yes : [], no : []},
+                    2: {cnt : 2, min : 3, max : 4 ,  yes : [], no : []},
+                    3: {cnt : 2, min : 3, max : 5 ,  yes : [], no : []},
+                    4: {cnt : 3, min : 3, max : 5 ,  yes : [], no : []},
+                    5: {cnt : 3, min : 4, max : 6 ,  yes : [], no : []},
+                    6: {cnt : 4, min : 4, max : 6 ,  yes : [], no : []},
+                    7: {cnt : 4, min : 4, max : 6 ,  yes : [], no : []},
+                    8: {cnt : 4, min : 4, max : 6 ,  yes : [], no : []},
+                    9: {cnt : 4, min : 4, max : 6 ,  yes : [], no : []},
+                    10:{cnt : 4, min : 4, max : 6 ,  yes : [], no : []}
+                }
+            })
+
+            const data_doc = data.doc
+
+
+            const result = generatePuzzle_vowelConsonant({
+                wordCount : parseInt(data_doc.data.get("qst")[qno].cnt), 
+                minWordLength : parseInt(data_doc.data.get("qst")[qno].min),
+                maxWordLength : parseInt(data_doc.data.get("qst")[qno].max),
+                showWatermark: true,
+                watermarkText: "powerd by AVI",
+            })
+
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(result.correctAnswer.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: result.image,
+                Questio: result.question,
+                options: result.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "",
+                yes: [],
+                no: [],
+                x: x,
+                fn : "Fourteen",
+                typ: "ovels_groupin_:_"
             });
 
             console.log(dt_post)
