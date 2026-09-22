@@ -35,6 +35,9 @@ import { generatePuzzle_consonant_count } from './new_modules/seven.js';
 import { generatePuzzle_word_search } from './new_modules/eight.js';
 import { generatePuzzle_alphabetical } from './new_modules/nine.js';
 import { generatePuzzle_cipher_text } from './new_modules/ten.js';
+import { generatePuzzle_alphabetical1 } from './new_modules/eleven.js';
+import { generatePuzzle_numberRule } from './new_modules/tweleve.js';
+import { generatePuzzle_groupWords } from './new_modules/thirteen.js';
 
 const app = express();
 app.use(express.static('public'))
@@ -102,11 +105,11 @@ const Time_2 = Time.toLocaleString("en-US", {
 
 
 const qst_gen = [
-    One(), Two(), Three(), Four(), Five(), Six(), Seven(), Eight(), Nine(), Ten()
+    One(), Two(), Three(), Four(), Five(), Six(), Seven(), Eight(), Nine(), Ten(), Eleven(), Twelve(), Thirteen()
 ];
 
 const functions = {
-    One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten
+    One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen
 }
 
 async function get_categ_fn(fn) {
@@ -152,6 +155,18 @@ async function get_categ_fn(fn) {
         {
             fn : "Ten",
             typ : "encode_decode"
+        },
+        {
+            fn : "Eleven",
+            typ : "random_alpha_rearange"
+        },
+        {
+            fn : "Twelve",
+            typ : "number_rule_1"
+        },
+        {
+            fn : "Thirteen",
+            typ : "grouping_:_"
         }
 
 
@@ -194,20 +209,20 @@ const Function_name_Schema = new mongoose.Schema({
 
         default: [
 
-            {name : "Ten", add_to_live: true },
-            {name : "Ten", add_to_live: true },
-            {name : "Ten", add_to_live: true },
-            {name : "Ten", add_to_live: true },
-            {name : "Ten", add_to_live: true },
-            {name : "Ten", add_to_live: true },
-            {name : "Ten", add_to_live: true },
-            {name : "Ten", add_to_live: true },
-            {name : "Ten", add_to_live: true },
-            {name : "Ten", add_to_live: true },
-            {name : "Ten", add_to_live: true },
-            {name : "Ten", add_to_live: true },
-            {name : "Ten", add_to_live: true },
-            {name : "Ten", add_to_live: true },
+            {name : "Thirteen", add_to_live: true },
+            {name : "Thirteen", add_to_live: true },
+            {name : "Thirteen", add_to_live: true },
+            {name : "Thirteen", add_to_live: true },
+            {name : "Thirteen", add_to_live: true },
+            {name : "Thirteen", add_to_live: true },
+            {name : "Thirteen", add_to_live: true },
+            {name : "Thirteen", add_to_live: true },
+            {name : "Thirteen", add_to_live: true },
+            {name : "Thirteen", add_to_live: true },
+            {name : "Thirteen", add_to_live: true },
+            {name : "Thirteen", add_to_live: true },
+            {name : "Thirteen", add_to_live: true },
+            {name : "Thirteen", add_to_live: true },
             
 
             // { name: "Twentyfour", add_to_live: true },
@@ -7844,6 +7859,225 @@ function Ten(){
     }
 }
 
+function Eleven(){
+    return async function (level, user, qno, sec, sum, x) {
+        try{
+
+            const data = await getOrCreatePuzleData("Eleven", {
+
+                qst: {
+                    1: {cnt : 2, alpha_cnt : 4 , yes : [], no : []},
+                    2: {cnt : 2, alpha_cnt : 4 , yes : [], no : []},
+                    3: {cnt : 3, alpha_cnt : 6 , yes : [], no : []},
+                    4: {cnt : 4, alpha_cnt : 8 , yes : [], no : []},
+                    5: {cnt : 5, alpha_cnt : 10 , yes : [], no : []},
+                    6: {cnt : 5, alpha_cnt : 10 , yes : [], no : []},
+                    7: {cnt : 5, alpha_cnt : 10 , yes : [], no : []},
+                    8: {cnt : 5, alpha_cnt : 10 , yes : [], no : []},
+                    9: {cnt : 5, alpha_cnt : 10 , yes : [], no : []},
+                    10:{cnt : 5, alpha_cnt : 10 , yes : [], no : []}
+                }
+            })
+
+            const data_doc = data.doc
+
+
+            const result = generatePuzzle_alphabetical1({letters: parseInt(data_doc.data.get("qst")[qno].cnt), alphabetCount: parseInt(data_doc.data.get("qst")[qno].alpha_cnt),  })
+
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(result.answer.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: result.image,
+                Questio: result.question,
+                options: result.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "",
+                yes: [],
+                no: [],
+                x: x,
+                fn : "Eleven",
+                typ: "random_alpha_rearange"
+            });
+
+            console.log(dt_post)
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+            })
+
+
+
+        }catch(error){
+            console.log(error)
+        }
+    }
+}
+
+function Twelve(){
+    return async function (level, user, qno, sec, sum, x) {
+        try{
+
+            const data = await getOrCreatePuzleData("Twelve", {
+
+                qst: {
+                    1: {cnt : 2,  yes : [], no : []},
+                    2: {cnt : 2,  yes : [], no : []},
+                    3: {cnt : 3,  yes : [], no : []},
+                    4: {cnt : 4,  yes : [], no : []},
+                    5: {cnt : 5,  yes : [], no : []},
+                    6: {cnt : 5,  yes : [], no : []},
+                    7: {cnt : 5,  yes : [], no : []},
+                    8: {cnt : 5,  yes : [], no : []},
+                    9: {cnt : 5,  yes : [], no : []},
+                    10:{cnt : 5,  yes : [], no : []}
+                }
+            })
+
+            const data_doc = data.doc
+
+
+            const result = generatePuzzle_numberRule({count: parseInt(data_doc.data.get("qst")[qno].cnt) })
+
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(result.json.correctText.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: result.image,
+                Questio: result.json.question,
+                options: result.json.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "",
+                yes: [],
+                no: [],
+                x: x,
+                fn : "Twelve",
+                typ: "number_rule_1"
+            });
+
+            console.log(dt_post)
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+            })
+
+
+
+        }catch(error){
+            console.log(error)
+        }
+    }
+}
+
+function Thirteen(){
+    return async function (level, user, qno, sec, sum, x) {
+        try{
+
+            const data = await getOrCreatePuzleData("Thirteen", {
+
+                qst: {
+                    1: {cnt : 2, num : 2 , min : 5, max : 7 ,  yes : [], no : []},
+                    2: {cnt : 2, num : 2 , min : 5, max : 7 ,  yes : [], no : []},
+                    3: {cnt : 2, num : 2 , min : 5, max : 7 ,  yes : [], no : []},
+                    4: {cnt : 3, num : 2 , min : 5, max : 7 ,  yes : [], no : []},
+                    5: {cnt : 3, num : 2 , min : 5, max : 7 ,  yes : [], no : []},
+                    6: {cnt : 4, num : 2 , min : 5, max : 7 ,  yes : [], no : []},
+                    7: {cnt : 4, num : 2 , min : 5, max : 7 ,  yes : [], no : []},
+                    8: {cnt : 4, num : 2 , min : 5, max : 7 ,  yes : [], no : []},
+                    9: {cnt : 4, num : 2 , min : 5, max : 7 ,  yes : [], no : []},
+                    10:{cnt : 4, num : 2 , min : 5, max : 7 ,  yes : [], no : []}
+                }
+            })
+
+            const data_doc = data.doc
+
+
+            const result = generatePuzzle_groupWords({
+                wordCount : parseInt(data_doc.data.get("qst")[qno].cnt), 
+                groupSize : parseInt(data_doc.data.get("qst")[qno].num),
+                minWordLength : parseInt(data_doc.data.get("qst")[qno].min),
+                maxWordLength : parseInt(data_doc.data.get("qst")[qno].max),
+                showWatermark: true,
+                watermarkText: "powerd by AVI",
+            })
+
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(result.correctAnswer.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: result.image,
+                Questio: result.question,
+                options: result.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "",
+                yes: [],
+                no: [],
+                x: x,
+                fn : "Thirteen",
+                typ: "grouping_:_"
+            });
+
+            console.log(dt_post)
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+            })
+
+
+
+        }catch(error){
+            console.log(error)
+        }
+    }
+}
+
+
+
 
 
 
@@ -8804,667 +9038,12 @@ app.post("/milionear/game/verify/ans", authMiddleware, async (req, res) => {
 })
 
 
-//Main start API
-app.post('/start/playing/by/debit/amount/new/all/xx', authMiddleware, async (req, res) => {
-    const user = req.user;
-    if (!user) return res.status(400).json({ Status: "s_m", message: "Some Data Missing" });
 
-    try {
 
 
-        const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
 
 
-        if (status?.Status === "off") {
-            return res.status(200).json({ Status: "Time", message: status.text });
-        }
 
-
-        const lang_data = await LanguageSelectModule.findOne({ user }).lean();
-        const balance = await Balancemodule.findOne({ user }); // ac balance
-        const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
-
-        if (!lang_data || !lang_data.lang) throw new Error("No language data found");
-
-        if (!balance) return res.status(200).json({ Status: "no_us" });
-
-        const balanceNum = parseInt(balance.balance);
-        const feesNum = parseInt(fees.rupee);
-
-        if (balanceNum < feesNum) {
-            return res.status(200).json({ Status: "Low-Bal" });
-        }
-
-        // const get_per = (won_data / (total_play || 1)) * 100;
-
-
-
-        let create_data = await QuestionListmodule.findOne({ user }); //i this this was useless
-
-
-
-        await QuestionModule.deleteMany({ user });
-
-        const dif_l = ["Singel"];
-
-        const qst_gen = [
-            One(), Two(), Three(), Four(), Five(), Six(),
-            Seven(), Eight(), Nine(), Ten(), Eleven(), Tweleve(), Thirteen(),
-            Fourteen(), Fifteen(), Sixteen()
-            // Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),
-        ];
-
-        const _dec_bal = await Balancemodule.findOne({ user });
-        const won_data = await Wonmodule.find({ user })
-        const randomFunction = qst_gen[Math.floor(Math.random() * qst_gen.length)];
-
-        //make continue from here work 4831
-
-        const get_profit = await Profit_cal_Module.findOne({ user }).lean()
-
-        if (!get_profit) {
-
-            //make him win because he was an new user make him win 50 rupees
-            randomFunction(105, user, "1", "20", "3")
-
-        } else {
-
-
-            const get_cat = await get_cat_per(user)
-
-            if (get_cat !== "none") {
-                // functions[get_cat.fun]?.(105, user, "20", `${get_cat.lst_sec}`)
-                console.log("Herre.........")
-
-                    // const fnName = get_cat.fun; // e.g. "addScore"
-                    // console.log("fnName:", get_cat.fun);
-                    // console.log("functions keys:", Object.keys(functions));
-
-                    (async () => {
-                        const fn = await functions[get_cat.fun](105, user, "1", "20", "0"); // outer runs
-
-                        if (typeof fn === "function") {
-                            await fn(105, user, "1", "20", "0"); // inner runs
-                        }
-                    })();
-
-                // functions[get_cat.fun]?.(
-                //     105,
-                //     user,
-                //     "1",
-                //     "20", 
-                //     "0"
-                // );
-
-
-            } else {
-                randomFunction(105, user, "1", "20", "0")
-            }
-
-        }
-
-
-
-
-
-        //105 = per
-        //user = user
-        //1 = question number
-        //20 = seconds
-        //0 = minus - 0
-
-
-
-        // shuffled.forEach((data, i) => {
-        //     const num = (i + 1).toString();
-        //     dif.push(num);
-        //     const lvl = dif_l[i]
-        //     //make easy before creating add some logics
-        //     data(lvl, user, num, "20", "1")
-        // });
-
-
-
-
-        if (!create_data) {
-            create_data = await QuestionListmodule.create({
-                user,
-                Time,
-                lang: lang_data.lang[0],
-                list: ["1"],
-                oldlist: ["1"],
-            });
-        }
-
-
-        await Promise.all([
-
-            StartValidmodule.create({ Time, user, valid: "yes" }),
-            Totalusermodule.create({ Time, user }),
-            Historymodule.create({ Time, user, rupee: fees.rupee, type: "Debited", tp: "Rupee" }),
-            QuestionListmodule.updateOne(
-                { user: user },
-                {
-                    $set: { list: "1" },
-                    $push: { oldlist: "1" },
-                }
-            )
-        ]);
-
-
-        // const _to_str_up_rp = balanceNum - feesNum
-
-
-
-        if (_dec_bal) {
-            const currentBal = parseInt(_dec_bal.balance);
-            const updatedBal = currentBal - feesNum;
-
-            _dec_bal.balance = updatedBal.toString(); // ✅ convert number to string
-            await _dec_bal.save();
-            await profit_cal_data_update(user, feesNum, "0")
-        }
-
-        const wal_cnt_mod = await Amount_walet_count_Module.findOne({ user: "kick" });
-
-        if (wal_cnt_mod) {
-            wal_cnt_mod.count = parseInt(wal_cnt_mod.count) + feesNum;
-
-            wal_cnt_mod.user_id.push({
-                Time,
-                user,
-                rupee: feesNum,
-            });
-
-            await wal_cnt_mod.save();
-        } else {
-            await Amount_walet_count_Module.create({
-                Time,
-                user: "kick",   // <-- ADD THIS
-                count: feesNum,
-                user_id: [{
-                    Time,
-                    user,
-                    rupee: feesNum
-                }]
-            });
-        }
-
-
-        // ✅ Convert updated balance back to string
-        const updatedBal = await Balancemodule.findOne({ user });
-
-        if (typeof updatedBal.balance === "number") {
-            await Balancemodule.updateOne(
-                { user },
-                { $set: { balance: updatedBal.balance.toString() } }
-            );
-        }
-
-        const balance_to_admin_account = await Amount_Count_Module.findOne({ user: "kick" });
-
-        if (balance_to_admin_account) {
-            balance_to_admin_account.count = parseInt(balance_to_admin_account.count) + parseInt(fees.rupee)
-            await balance_to_admin_account.save()
-        } else {
-            await Amount_Count_Module.create({ Time, user: "kick", count: fees.rupee })
-        }
-
-
-
-
-
-
-        const count = await QuestionModule.countDocuments({ user });
-        if (count === 1) {
-            console.log("✅ Finished successfully");
-            return res.status(200).json({ Status: "OK" });
-        } else {
-            console.log("amount credited")
-            const bal_dt = await Balancemodule.findOne({ user: user })
-            const lat = parseInt(bal_dt.balance) + parseInt(fees.rupee)
-            await QuestionModule.deleteMany({ user })
-            bal_dt.balance = lat.toString()
-            await bal_dt.save()
-            console.log("BAD")
-            return res.status(200).json({ Status: "BAD_CR" })
-        }
-
-
-
-    } catch (error) {
-        console.error("❌ Main Catch Error:", error);
-        return res.status(500).json({ message: "Internal Server Error", error: error.message });
-    }
-});
-
-
-
-//25-03-2026 1948 main v 0.0.0
-app.post('/start/playing/by/debit/amount/new/all/xx/main/1', authMiddleware, async (req, res) => {
-    const user = req.user;
-    if (!user) return res.status(400).json({ Status: "s_m", message: "Some Data Missing" });
-
-    try {
-
-
-        const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
-
-
-        if (status?.Status === "off") {
-            return res.status(200).json({ Status: "Time", message: status.text });
-        }
-
-        await StartValidmodule.findOneAndDelete({ user: user })
-
-
-        const lang_data = await LanguageSelectModule.findOne({ user }).lean();
-        const balance = await Balancemodule.findOne({ user }); // ac balance
-        const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
-
-        if (!lang_data || !lang_data.lang) throw new Error("No language data found");
-
-        if (!balance) return res.status(200).json({ Status: "no_us" });
-
-        const balanceNum = parseInt(balance.balance);
-        const feesNum = parseInt(10);
-
-        if (balanceNum < feesNum) {
-            return res.status(200).json({ Status: "Low-Bal" });
-        }
-
-        // const get_per = (won_data / (total_play || 1)) * 100;
-
-
-
-        let create_data = await QuestionListmodule.findOne({ user }); //i this this was useless
-
-
-
-        await QuestionModule.deleteMany({ user });
-
-
-
-        const qst_gen = [
-            One(), Two(), Three(), Four(), Five(), Six(),
-            Seven(), Eight(), Nine(), Ten(),
-            // Eleven(), Tweleve(), Thirteen(),
-            // Fourteen(), Fifteen(), Sixteen()
-            // Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),Eight(),
-        ];
-
-        const _dec_bal = await Balancemodule.findOne({ user });
-
-        const randomFunction =
-            qst_gen[Math.floor(Math.random() * qst_gen.length)];
-
-        //make continue from here work 4831
-
-
-
-
-        randomFunction(105, user, "1", "20", "0", "10")
-
-
-
-
-
-        //105 = per
-        //user = user
-        //1 = question number
-        //20 = seconds
-        //0 = minus - 0
-
-
-
-        // shuffled.forEach((data, i) => {
-        //     const num = (i + 1).toString();
-        //     dif.push(num);
-        //     const lvl = dif_l[i]
-        //     //make easy before creating add some logics
-        //     data(lvl, user, num, "20", "1")
-        // });
-
-
-
-
-        if (!create_data) {
-            create_data = await QuestionListmodule.create({
-                user,
-                Time,
-                lang: lang_data.lang[0],
-                list: ["1"],
-                oldlist: ["1"],
-            });
-        }
-
-
-        await Promise.all([
-
-            StartValidmodule.create({ Time, user, valid: "yes" }),
-            Totalusermodule.create({ Time, user }),
-            Historymodule.create({ Time, user, rupee: feesNum, type: "Debited", tp: "Rupee" }),
-            QuestionListmodule.updateOne(
-                { user: user },
-                {
-                    $set: { list: "1" },
-                    $push: { oldlist: "1" },
-                }
-            )
-        ]);
-
-
-        // const _to_str_up_rp = balanceNum - feesNum
-
-
-
-        if (_dec_bal) {
-            const currentBal = parseInt(_dec_bal.balance);
-            const updatedBal = currentBal - feesNum;
-
-            _dec_bal.balance = updatedBal.toString(); // ✅ convert number to string
-            await _dec_bal.save();
-            await profit_cal_data_update(user, feesNum, "0")
-        }
-
-        const wal_cnt_mod = await Amount_walet_count_Module.findOne({ user: "kick" });
-
-        if (wal_cnt_mod) {
-            wal_cnt_mod.count = parseInt(wal_cnt_mod.count) + feesNum;
-
-            wal_cnt_mod.user_id.push({
-                Time,
-                user,
-                rupee: feesNum,
-            });
-
-            await wal_cnt_mod.save();
-        } else {
-            await Amount_walet_count_Module.create({
-                Time,
-                user: "kick",   // <-- ADD THIS
-                count: feesNum,
-                user_id: [{
-                    Time,
-                    user,
-                    rupee: feesNum
-                }]
-            });
-        }
-
-
-        // ✅ Convert updated balance back to string
-        const updatedBal = await Balancemodule.findOne({ user });
-
-        if (typeof updatedBal.balance === "number") {
-            await Balancemodule.updateOne(
-                { user },
-                { $set: { balance: updatedBal.balance.toString() } }
-            );
-        }
-
-        const balance_to_admin_account = await Amount_Count_Module.findOne({ user: "kick" });
-
-        if (balance_to_admin_account) {
-            balance_to_admin_account.count = parseInt(balance_to_admin_account.count) + parseInt(feesNum)
-            await balance_to_admin_account.save()
-        } else {
-            await Amount_Count_Module.create({ Time, user: "kick", count: feesNum })
-        }
-
-
-
-
-
-
-        const count = await QuestionModule.countDocuments({ user });
-        if (count === 1) {
-            console.log("✅ Finished successfully");
-            return res.status(200).json({ Status: "OK" });
-        } else {
-            console.log("amount credited")
-            const bal_dt = await Balancemodule.findOne({ user: user })
-            const lat = parseInt(bal_dt.balance) + parseInt(feesNum)
-            await QuestionModule.deleteMany({ user })
-            bal_dt.balance = lat.toString()
-            await bal_dt.save()
-            console.log("BAD")
-            await Historymodule.create({
-                Time,
-                user,
-                rupee: feesNum,
-                type: "Credited",
-                tp: "Rupee",
-            });
-            return res.status(200).json({ Status: "BAD_CR" })
-        }
-
-
-
-    } catch (error) {
-        console.error("❌ Main Catch Error:", error);
-        return res.status(500).json({ message: "Internal Server Error", error: error.message });
-    }
-});
-
-//v 0.0.1
-app.post('/start/playing/by/debit/amount/new/all/xx/main', authMiddleware, async (req, res) => {
-    const user = req.user;
-    if (!user) return res.status(400).json({ Status: "s_m", message: "Some Data Missing" });
-
-    try {
-
-
-        const status = await Start_StopModule.findOne({ user: "kick" }); //checking game is on or off
-
-
-        if (status?.Status === "off") {
-            return res.status(200).json({ Status: "Time", message: status.text });
-        }
-
-        await StartValidmodule.findOneAndDelete({ user: user })
-
-        let lang_data = await LanguageSelectModule.findOne({ user });
-        let balance = await Balancemodule.findOne({ user }); // ac balance
-        const star_bal = await StarBalmodule.findOne({ user })
-        if (!star_bal) {
-            await StarBalmodule.create({
-                Time,
-                user,
-                balance: "2",
-            })
-        }
-        const fees = await Rupeemodule.findOne({ username: "admin" }).lean(); // entry charge
-
-        if (!lang_data || !lang_data.lang) {
-            lang_data = await LanguageSelectModule.create({
-                Time,
-                lang: ["English"],
-                user
-            })
-        }
-
-        if (!balance) {
-            balance = await Balancemodule.create({
-                Time,
-                user,
-                balance: "10",
-                last_tr_id: "no"
-            })
-        }
-
-        const balanceNum = parseInt(balance.balance);
-        const feesNum = parseInt(10);
-
-        if (balanceNum < feesNum) {
-            return res.status(200).json({ Status: "Low-Bal" });
-        }
-
-        // const get_per = (won_data / (total_play || 1)) * 100;
-
-
-
-        let create_data = await QuestionListmodule.findOne({ user }); //i this this was useless
-
-
-
-        await QuestionModule.deleteMany({ user }); //make add this in logics remove this from here
-
-        const _dec_bal = await Balancemodule.findOne({ user });
-
-
-
-        const typee = await get_cat_in_out(user, "10", "20", "10")
-        await admin_noti(`Credited +${feesNum}.00₹`, `Started Playing user ${user}, staWro : ${typee}`)
-
-        // const randomFunction = qst_gen[Math.floor(Math.random() * qst_gen.length)];
-
-        //make continue from here work 4831
-
-
-
-
-        // randomFunction(105, user, "1", "20", "0", "10")
-
-
-
-
-
-        //105 = per
-        //user = user
-        //1 = question number
-        //20 = seconds
-        //0 = minus - 0
-
-
-
-        // shuffled.forEach((data, i) => {
-        //     const num = (i + 1).toString();
-        //     dif.push(num);
-        //     const lvl = dif_l[i]
-        //     //make easy before creating add some logics
-        //     data(lvl, user, num, "20", "1")
-        // });
-
-
-
-
-        if (!create_data) {
-            create_data = await QuestionListmodule.create({
-                user,
-                Time,
-                lang: lang_data.lang[0],
-                list: ["1"],
-                oldlist: ["1"],
-            });
-        }
-
-
-        await Promise.all([
-
-            StartValidmodule.create({ Time, user, valid: "yes" }),
-            Totalusermodule.create({ Time, user }),
-            Historymodule.create({ Time, user, rupee: feesNum, type: "Debited", tp: "Rupee" }),
-            QuestionListmodule.updateOne(
-                { user: user },
-                {
-                    $set: { list: "1" },
-                    $push: { oldlist: "1" },
-                }
-            )
-        ]);
-
-
-        // const _to_str_up_rp = balanceNum - feesNum
-
-
-
-        if (_dec_bal) {
-            const currentBal = parseInt(_dec_bal.balance);
-            const updatedBal = currentBal - feesNum;
-
-            _dec_bal.balance = updatedBal.toString(); // ✅ convert number to string
-            await _dec_bal.save();
-            await profit_cal_data_update(user, feesNum, "0")
-
-        }
-
-        const wal_cnt_mod = await Amount_walet_count_Module.findOne({ user: "kick" });
-
-        if (wal_cnt_mod) {
-            wal_cnt_mod.count = parseInt(wal_cnt_mod.count) + feesNum;
-
-            wal_cnt_mod.user_id.push({
-                Time,
-                user,
-                rupee: feesNum,
-            });
-
-            await wal_cnt_mod.save();
-        } else {
-            await Amount_walet_count_Module.create({
-                Time,
-                user: "kick",   // <-- ADD THIS
-                count: feesNum,
-                user_id: [{
-                    Time,
-                    user,
-                    rupee: feesNum
-                }]
-            });
-        }
-
-
-        // ✅ Convert updated balance back to string
-        const updatedBal = await Balancemodule.findOne({ user });
-
-        if (typeof updatedBal.balance === "number") {
-            await Balancemodule.updateOne(
-                { user },
-                { $set: { balance: updatedBal.balance.toString() } }
-            );
-        }
-
-        const balance_to_admin_account = await Amount_Count_Module.findOne({ user: "kick" });
-
-        if (balance_to_admin_account) {
-            balance_to_admin_account.count = parseInt(balance_to_admin_account.count) + parseInt(feesNum)
-            await balance_to_admin_account.save()
-        } else {
-            await Amount_Count_Module.create({ Time, user: "kick", count: feesNum })
-        }
-
-
-        const count = await QuestionModule.countDocuments({ user });
-        const type_qst = await QuestionModule.findOne({ user });
-        if (count === 1) {
-            console.log("✅ Finished successfully");
-            return res.status(200).json({ Status: "OK", type: type_qst.typ });
-        } else {
-            console.log("amount credited")
-            const bal_dt = await Balancemodule.findOne({ user: user })
-            const lat = parseInt(bal_dt.balance) + parseInt(feesNum)
-            await QuestionModule.deleteMany({ user })
-            bal_dt.balance = lat.toString()
-            await bal_dt.save()
-            console.log("BAD")
-            await Historymodule.create({
-                Time,
-                user,
-                rupee: feesNum,
-                type: "Credited",
-                tp: "Rupee",
-            });
-            return res.status(200).json({ Status: "BAD_CR" })
-        }
-
-
-
-    } catch (error) {
-        console.error("❌ Main Catch Error:", error);
-        return res.status(500).json({ message: "Internal Server Error", error: error.message });
-    }
-});
 
 
 app.get("/admin/balance/played", adminMiddleware, async (req, res) => {
