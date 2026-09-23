@@ -43,6 +43,7 @@ import { generatePuzzle_orderWords } from './new_modules/fifteen.js';
 import { generatePuzzle_countMissingBetween } from './new_modules/sixteen.js';
 import { generatePuzzle_boxDamage } from './new_modules/seventeen.js';
 import { generatePuzzle_commonLetters } from './new_modules/eighteen.js';
+import { generatePuzzle_finalCode } from './new_modules/nineteen.js';
 
 const app = express();
 app.use(express.static('public'))
@@ -110,11 +111,11 @@ const Time_2 = Time.toLocaleString("en-US", {
 
 
 const qst_gen = [
-    One(), Two(), Three(), Four(), Five(), Six(), Seven(), Eight(), Nine(), Ten(), Eleven(), Twelve(), Thirteen(), Fourteen(), Fifteen(), Sixteen(), Seventeen(), Eighteen()
+    One(), Two(), Three(), Four(), Five(), Six(), Seven(), Eight(), Nine(), Ten(), Eleven(), Twelve(), Thirteen(), Fourteen(), Fifteen(), Sixteen(), Seventeen(), Eighteen(), Nineteen()
 ];
 
 const functions = {
-    One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, Sixteen, Seventeen, Eighteen
+    One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, Sixteen, Seventeen, Eighteen, Nineteen
 }
 
 async function get_categ_fn(fn) {
@@ -192,6 +193,10 @@ async function get_categ_fn(fn) {
         {
             fn : "Eighteen",
             typ : "cmn_letters_in_words"
+        },
+        {
+            fn : "Nineteen",
+            typ : "finding_way_and_final_code"
         }
 
 
@@ -233,32 +238,32 @@ const Function_name_Schema = new mongoose.Schema({
         ],
 
         default: [
-            {name : "Eighteen", add_to_live : true,},
-            {name : "Eighteen", add_to_live : true,},
-            {name : "Eighteen", add_to_live : true,},
-            {name : "Eighteen", add_to_live : true,},
-            {name : "Eighteen", add_to_live : true,},
-            {name : "Eighteen", add_to_live : true,},
-            {name : "Eighteen", add_to_live : true,},
-            {name : "Eighteen", add_to_live : true,},
-            {name : "Eighteen", add_to_live : true,},
-            {name : "Eighteen", add_to_live : true,},
-            {name : "Eighteen", add_to_live : true,},
-            {name : "Eighteen", add_to_live : true,},
-            {name : "Eighteen", add_to_live : true,},
-            {name : "Eighteen", add_to_live : true,},
-            {name : "Eighteen", add_to_live : true,},
-            {name : "Eighteen", add_to_live : true,},
-            {name : "Eighteen", add_to_live : true,},
-            {name : "Eighteen", add_to_live : true,},
-            {name : "Eighteen", add_to_live : true,},
-            {name : "Eighteen", add_to_live : true,},
-            {name : "Eighteen", add_to_live : true,},
-            {name : "Eighteen", add_to_live : true,},
-            {name : "Eighteen", add_to_live : true,},
-            {name : "Eighteen", add_to_live : true,},
-            {name : "Eighteen", add_to_live : true,},
-            {name : "Eighteen", add_to_live : true,},
+            {name : "Nineteen", add_to_live : true,},
+            {name : "Nineteen", add_to_live : true,},
+            {name : "Nineteen", add_to_live : true,},
+            {name : "Nineteen", add_to_live : true,},
+            {name : "Nineteen", add_to_live : true,},
+            {name : "Nineteen", add_to_live : true,},
+            {name : "Nineteen", add_to_live : true,},
+            {name : "Nineteen", add_to_live : true,},
+            {name : "Nineteen", add_to_live : true,},
+            {name : "Nineteen", add_to_live : true,},
+            {name : "Nineteen", add_to_live : true,},
+            {name : "Nineteen", add_to_live : true,},
+            {name : "Nineteen", add_to_live : true,},
+            {name : "Nineteen", add_to_live : true,},
+            {name : "Nineteen", add_to_live : true,},
+            {name : "Nineteen", add_to_live : true,},
+            {name : "Nineteen", add_to_live : true,},
+            {name : "Nineteen", add_to_live : true,},
+            {name : "Nineteen", add_to_live : true,},
+            {name : "Nineteen", add_to_live : true,},
+            {name : "Nineteen", add_to_live : true,},
+            {name : "Nineteen", add_to_live : true,},
+            {name : "Nineteen", add_to_live : true,},
+            {name : "Nineteen", add_to_live : true,},
+            {name : "Nineteen", add_to_live : true,},
+            {name : "Nineteen", add_to_live : true,},
             
             
 
@@ -8485,6 +8490,76 @@ function Eighteen(){
     }
 }
 
+function Nineteen(){
+    return async function (level, user, qno, sec, sum, x) {
+        try{
+
+            const data = await getOrCreatePuzleData("Nineteen", {
+
+                qst: {
+                    1: {cnt : 2, yes : [], no : []},
+                    2: {cnt : 3, yes : [], no : []},
+                    3: {cnt : 3, yes : [], no : []},
+                    4: {cnt : 4, yes : [], no : []},
+                    5: {cnt : 4, yes : [], no : []},
+                    6: {cnt : 4, yes : [], no : []},
+                    7: {cnt : 4, yes : [], no : []},
+                    8: {cnt : 4, yes : [], no : []},
+                    9: {cnt : 4, yes : [], no : []},
+                    10:{cnt : 4, yes : [], no : []}
+                }
+            })
+
+            const data_doc = data.doc
+
+
+            const result = generatePuzzle_finalCode({
+                digits : parseInt(data_doc.data.get("qst")[qno].cnt),
+            })
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(result.correctAnswerText.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: result.image,
+                Questio: result.question,
+                options: result.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "",
+                yes: [],
+                no: [],
+                x: x,
+                fn : "Nineteen",
+                typ: "finding_way_and_final_code"
+            });
+
+            console.log(dt_post)
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+            })
+
+
+
+        }catch(error){
+            console.log(error)
+        }
+    }
+}
 
 
 
