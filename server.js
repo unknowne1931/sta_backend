@@ -39,6 +39,8 @@ import { generatePuzzle_alphabetical1 } from './new_modules/eleven.js';
 import { generatePuzzle_numberRule } from './new_modules/tweleve.js';
 import { generatePuzzle_groupWords } from './new_modules/thirteen.js';
 import { generatePuzzle_vowelConsonant } from './new_modules/fourteen.js';
+import { generatePuzzle_orderWords } from './new_modules/fifteen.js';
+import { generatePuzzle_countMissingBetween } from './new_modules/sixteen.js';
 
 const app = express();
 app.use(express.static('public'))
@@ -106,11 +108,11 @@ const Time_2 = Time.toLocaleString("en-US", {
 
 
 const qst_gen = [
-    One(), Two(), Three(), Four(), Five(), Six(), Seven(), Eight(), Nine(), Ten(), Eleven(), Twelve(), Thirteen(), Fourteen()
+    One(), Two(), Three(), Four(), Five(), Six(), Seven(), Eight(), Nine(), Ten(), Eleven(), Twelve(), Thirteen(), Fourteen(), Fifteen(), Sixteen()
 ];
 
 const functions = {
-    One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen
+    One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve, Thirteen, Fourteen, Fifteen, Sixteen
 }
 
 async function get_categ_fn(fn) {
@@ -172,6 +174,14 @@ async function get_categ_fn(fn) {
         {
             fn : "Fourteen",
             typ : "ovels_groupin_:_"
+        },
+        {
+            fn : "Fifteen",
+            typ : "rearrange_words_based_on_alphabets"
+        },
+        {
+            fn : "Sixteen",
+            typ : "Count_missing_between"
         }
 
 
@@ -213,21 +223,52 @@ const Function_name_Schema = new mongoose.Schema({
         ],
 
         default: [
+            {name : "Sixteen", add_to_live : true,},
+            {name : "Sixteen", add_to_live : true,},
+            {name : "Sixteen", add_to_live : true,},
+            {name : "Sixteen", add_to_live : true,},
+            {name : "Sixteen", add_to_live : true,},
+            {name : "Sixteen", add_to_live : true,},
+            {name : "Sixteen", add_to_live : true,},
+            {name : "Sixteen", add_to_live : true,},
+            {name : "Sixteen", add_to_live : true,},
+            {name : "Sixteen", add_to_live : true,},
+            {name : "Sixteen", add_to_live : true,},
+            {name : "Sixteen", add_to_live : true,},
+            {name : "Sixteen", add_to_live : true,},
+            {name : "Sixteen", add_to_live : true,},
+            {name : "Sixteen", add_to_live : true,},
+            {name : "Sixteen", add_to_live : true,},
+            {name : "Sixteen", add_to_live : true,},
+            {name : "Sixteen", add_to_live : true,},
+            {name : "Sixteen", add_to_live : true,},
+            {name : "Sixteen", add_to_live : true,},
+            {name : "Sixteen", add_to_live : true,},
+            {name : "Sixteen", add_to_live : true,},
+            {name : "Sixteen", add_to_live : true,},
+            {name : "Sixteen", add_to_live : true,},
+            {name : "Sixteen", add_to_live : true,},
+            {name : "Sixteen", add_to_live : true,},
+            
+            
 
-            {name : "One", add_to_live: true },
-            {name : "Two", add_to_live: true },
-            {name : "Three", add_to_live: true },
-            {name : "Four", add_to_live: true },
-            {name : "Five", add_to_live: true },
-            {name : "Six", add_to_live: true },
-            {name : "Seven", add_to_live: true },
-            {name : "Eight", add_to_live: true },
-            {name : "Nine", add_to_live: true },
-            {name : "Ten", add_to_live: true },
-            {name : "Eleven", add_to_live: true },
-            {name : "Twelve", add_to_live: true },
-            {name : "Thirteen", add_to_live: true },
-            {name : "Fourteen", add_to_live: true },
+
+
+            // {name : "One", add_to_live: true },
+            // {name : "Two", add_to_live: true },
+            // {name : "Three", add_to_live: true },
+            // {name : "Four", add_to_live: true },
+            // {name : "Five", add_to_live: true },
+            // {name : "Six", add_to_live: true },
+            // {name : "Seven", add_to_live: true },
+            // {name : "Eight", add_to_live: true },
+            // {name : "Nine", add_to_live: true },
+            // {name : "Ten", add_to_live: true },
+            // {name : "Eleven", add_to_live: true },
+            // {name : "Twelve", add_to_live: true },
+            // {name : "Thirteen", add_to_live: true },
+            // {name : "Fourteen", add_to_live: true },
+            // {name : "Fifteen", add_to_live : true,}
 
         ]
     }
@@ -8121,6 +8162,154 @@ function Fourteen(){
                 x: x,
                 fn : "Fourteen",
                 typ: "ovels_groupin_:_"
+            });
+
+            console.log(dt_post)
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+            })
+
+
+
+        }catch(error){
+            console.log(error)
+        }
+    }
+}
+
+function Fifteen(){
+    return async function (level, user, qno, sec, sum, x) {
+        try{
+
+            const data = await getOrCreatePuzleData("Fifteen", {
+
+                qst: {
+                    1: {cnt : 2, yes : [], no : []},
+                    2: {cnt : 2, yes : [], no : []},
+                    3: {cnt : 2, yes : [], no : []},
+                    4: {cnt : 3, yes : [], no : []},
+                    5: {cnt : 3, yes : [], no : []},
+                    6: {cnt : 5, yes : [], no : []},
+                    7: {cnt : 5, yes : [], no : []},
+                    8: {cnt : 5, yes : [], no : []},
+                    9: {cnt : 5, yes : [], no : []},
+                    10:{cnt : 5, yes : [], no : []}
+                }
+            })
+
+            const data_doc = data.doc
+
+
+            const result = generatePuzzle_orderWords({
+                wordCount: parseInt(data_doc.data.get("qst")[qno].cnt),
+                width: 400,
+                height: 250,
+                showWatermark: true,
+                watermarkText: "powerd by AVI"
+            })
+
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(result.correctAnswer.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: result.image,
+                Questio: result.question,
+                options: result.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "",
+                yes: [],
+                no: [],
+                x: x,
+                fn : "Fifteen",
+                typ: "rearrange_words_based_on_alphabets"
+            });
+
+            console.log(dt_post)
+
+            await time_ans_Module.create({
+                Time,
+                user,
+                Qno_ID: dt_post._id,
+                Qst_crt_tm: new Date(),
+                Qst_get_tm: "n",
+                Qst_ans_tm: "n",
+                cl_sec: "n",
+                r_sec: -1
+            })
+
+
+
+        }catch(error){
+            console.log(error)
+        }
+    }
+}
+
+function Sixteen(){
+    return async function (level, user, qno, sec, sum, x) {
+        try{
+
+            const data = await getOrCreatePuzleData("Sixteen", {
+
+                qst: {
+                    1: {cnt : 2, yes : [], no : []},
+                    2: {cnt : 2, yes : [], no : []},
+                    3: {cnt : 2, yes : [], no : []},
+                    4: {cnt : 3, yes : [], no : []},
+                    5: {cnt : 3, yes : [], no : []},
+                    6: {cnt : 4, yes : [], no : []},
+                    7: {cnt : 4, yes : [], no : []},
+                    8: {cnt : 4, yes : [], no : []},
+                    9: {cnt : 4, yes : [], no : []},
+                    10:{cnt : 4, yes : [], no : []}
+                }
+            })
+
+            const data_doc = data.doc
+
+
+            const result = generatePuzzle_countMissingBetween({
+                numberCount: parseInt(data_doc.data.get("qst")[qno].cnt),
+            })
+
+
+            const hash = crypto
+                .createHmac("sha256", "stawro_with_psycho_and_avi_1931_dkashdhsa")
+                .update(result.correctAnswerText.toString())
+                .digest("hex");
+
+            const dt_post = await QuestionModule.create({
+                Time: Time,
+                user: user,
+                img: result.image,
+                Questio: result.question,
+                options: result.options,
+                Ans: hash,
+                tough: "none",
+                Qno: qno,
+                seconds: sec,
+                sub_lang: "",
+                yes: [],
+                no: [],
+                x: x,
+                fn : "Sixteen",
+                typ: "Count_missing_between"
             });
 
             console.log(dt_post)
