@@ -269,21 +269,25 @@ const Function_name_Schema = new mongoose.Schema({
 
 
 
-            {name : "One", add_to_live: true },
-            {name : "Two", add_to_live: true },
-            {name : "Three", add_to_live: true },
-            {name : "Four", add_to_live: true },
-            {name : "Five", add_to_live: true },
-            {name : "Six", add_to_live: true },
-            {name : "Seven", add_to_live: true },
-            {name : "Eight", add_to_live: true },
-            {name : "Nine", add_to_live: true },
-            {name : "Ten", add_to_live: true },
-            {name : "Eleven", add_to_live: true },
-            {name : "Twelve", add_to_live: true },
-            {name : "Thirteen", add_to_live: true },
-            {name : "Fourteen", add_to_live: true },
-            {name : "Fifteen", add_to_live : true,}
+            {name : "One", add_to_live: true, selected : true },
+            {name : "Two", add_to_live: true, selected : true },
+            {name : "Three", add_to_live: true, selected : true },
+            {name : "Four", add_to_live: true, selected : false },
+            {name : "Five", add_to_live: true, selected : true },
+            {name : "Six", add_to_live: true, selected : false },
+            {name : "Seven", add_to_live: true, selected : true },
+            {name : "Eight", add_to_live: true, selected : false },
+            {name : "Nine", add_to_live: true, selected : true },
+            {name : "Ten", add_to_live: true, selected : true },
+            {name : "Eleven", add_to_live: true, selected : false },
+            {name : "Twelve", add_to_live: true , selected : false},
+            {name : "Thirteen", add_to_live: true, selected : false },
+            {name : "Fourteen", add_to_live: true, selected : false },
+            {name : "Fifteen", add_to_live : true, selected : true},
+            {name : "Sixteen", add_to_live: true, selected : true },
+            {name : "Seventeen", add_to_live: true, selected : true },
+            {name : "Eighteen", add_to_live: true, selected : true },
+            {name : "Nineteen", add_to_live: true, selected : false },
 
         ]
     }
