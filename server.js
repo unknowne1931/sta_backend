@@ -7235,7 +7235,7 @@ function One() {
                 no: [],
                 x: x,
                 fn : "One",
-                typ: "star_circ_tria"
+                typ: "star_circ_tria_2"
             });
 
             await time_ans_Module.create({
@@ -7315,7 +7315,7 @@ function Two() {
                 no: [],
                 x: x,
                 fn : "Two",
-                typ: "star_circ_tria"
+                typ: "star_circ_tria_2"
             });
 
             console.log(dt_post)
