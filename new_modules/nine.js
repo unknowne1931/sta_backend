@@ -1,5 +1,3 @@
-
-
 import { createCanvas } from "canvas";
 
 // -----------------------------------
@@ -393,7 +391,7 @@ export function generatePuzzle_alphabetical(options = {}) {
   ctx.lineWidth = 1;
   ctx.strokeRect(0, 0, width, height);
   
-  // Display the word/letters - PLAIN TEXT, NO DECORATIONS
+  // Display the word/letters - PLAIN TEXT WITH POSITION NUMBERS BELOW
   const centerY = height / 2;
   const fontSize = Math.min(48, Math.max(32, 300 / targetWord.length));
   const spacing = fontSize * 0.6;
@@ -406,20 +404,28 @@ export function generatePuzzle_alphabetical(options = {}) {
     '#1ABC9C', '#D35400', '#3498DB', '#2ECC71', '#9B59B6', '#E67E22'
   ];
   
-  // Draw each letter as plain text
+  // Draw each letter as plain text with its position number below
   for (let i = 0; i < targetWord.length; i++) {
     const x = startX + i * (fontSize + spacing);
-    const y = centerY;
+    const y = centerY - 12;
     const letter = targetWord[i];
     const color = getRandom(colorPalette);
     
     ctx.save();
     
+    // Draw letter
     ctx.fillStyle = color;
     ctx.font = `bold ${fontSize}px Arial, Helvetica, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(letter.toUpperCase(), x + fontSize/2, y);
+    
+    // Draw position number below the letter
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = 'bold 18px Arial, Helvetica, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(i + 1), x + fontSize/2, y + fontSize/2 + 24);
     
     ctx.restore();
   }
