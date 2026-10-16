@@ -213,7 +213,7 @@ export function generatePuzzle_scrambledWords(
     ctx.fillText("No words can be scrambled!", 200, 100);
     
     return {
-      question: `How many words are scrambled?`,
+      question: `How many words are scrambled? or How many words are incorrect?`,
       options: ['0', '1', '2', '3'],
       answer: '0',
       originalWords: words,
@@ -428,7 +428,7 @@ export function generatePuzzle_scrambledWords(
   ctx.restore();
   
   return {
-    question: `How many words are scrambled?`,
+    question: `How many words are scrambled? or How many words are incorrect?`,
     options: options,
     answer: String(answer),
     originalWords: words,
